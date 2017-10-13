@@ -1,0 +1,51 @@
+{
+  "name": "socket-serializer",
+  "version": "0.1.0",
+  "description": "A JS object, buffer, string, number serializer for socket.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emmkimme/socket-serializer.git"
+  },
+  "keywords": [
+    "ipc",
+    "serialize",
+    "node",
+    "communication",
+    "socket"
+  ],
+  "author": "Emmanuel Kimmerlin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/emmkimme/socket-serializer/issues"
+  },
+  "homepage": "https://github.com/emmkimme/socket-serializers#readme",
+  "maintainers": [
+    {
+      "name": "Emmanuel Kimmerlin",
+      "email": "emmanuel.kimmerlin@thomsonreuters.com"
+    }
+  ],
+  "main": "./lib/socket-serializer.js",
+  "types": "./lib/socket-serializer.d.ts",
+  "devDependencies": {
+    "@types/node": "^0.0.3",
+    "del": "^2.2.2",
+    "del-cli": "^0.2.1",
+    "dts-bundle": "^0.6.1",
+    "tslint": "^4.1.1",
+    "tslint-microsoft-contrib": "^4.0.1",
+    "typescript": "^2.5.2"
+  },
+  "scripts": {
+    "clean": "del-cli ./lib ./build ./dist",
+    "build": "npm run build-js && npm run build-declaration",
+    "build-js": "tsc -p ./tsconfig/tsconfig-js.json",
+    "build-declaration": "npm run build-declaration-ts && npm run build-declaration-dts-bundle && npm run clean-declaration-dts",
+    "build-declaration-ts": "tsc -p ./tsconfig/tsconfig-declaration.json",
+    "build-declaration-dts-generator": "dts-generator --name socket-serializer --project . --out ./lib/index.d.ts",
+    "build-declaration-dts-bundle": "dts-bundle --outputAsModuleFolder --name socket-serializer --main ./lib/socket-serializer.d.ts",
+    "clean-declaration-dts": "del-cli ./lib/ts/*.d.ts",
+    "tsc": "tsc",
+    "tslint": "tslint"
+  }
+}
