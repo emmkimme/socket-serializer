@@ -35,16 +35,30 @@ describe('Test server', function () {
         });
     });
 
-    it(`client connecting`, function (done) {
-        let client = new ipnModule.IpcPacketNet({ port: port });
+    let client1;
+    it(`client1 connecting`, function (done) {
+        client1 = new ipnModule.IpcPacketNet({ port: port });
         // const server = new ipnModule.IpcPacketNet({ socketPath: '/tests'});
-        client.addListener('connect', () => {
+        client1.addListener('connect', () => {
             done();
         });
-        client.addListener('error', (err) => {
+        client1.addListener('error', (err) => {
             done(err);
         });
-        client.connect();
+        client1.connect();
+    });
+
+    let client2;
+    it(`client2 connecting`, function (done) {
+        client2 = new ipnModule.IpcPacketNet({ port: port });
+        // const server = new ipnModule.IpcPacketNet({ socketPath: '/tests'});
+        client2.addListener('connect', () => {
+            done();
+        });
+        client2.addListener('error', (err) => {
+            done(err);
+        });
+        client2.connect();
     });
 });
 

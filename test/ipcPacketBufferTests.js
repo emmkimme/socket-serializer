@@ -77,3 +77,23 @@ describe('Buffer', function () {
     });
   });
 });
+
+describe('Object', function () {
+  const paramObject = {
+    num: 10.2,
+    str: "test",
+    bool: true
+  };
+
+  describe('serialize', function () {
+    it(`explicit should return a type ${typeof paramObject} = ${paramObject}`, function () {
+      var ipb = ipbModule.IpcPacketBuffer.fromObject(paramObject);
+      assert(JSON.stringify(ipb.toObject()) === JSON.stringify(paramObject));
+    });
+    it(`implicit should return a type ${typeof paramObject} = ${paramObject}`, function () {
+      var ipb = ipbModule.IpcPacketBuffer.from(paramObject);
+      assert(JSON.stringify(ipb.to()) === JSON.stringify(paramObject));
+    });
+  });
+});
+

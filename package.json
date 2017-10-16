@@ -47,7 +47,7 @@
     "build-declaration-ts": "tsc -p ./tsconfig/tsconfig-declaration.json",
     "build-declaration-dts-generator": "dts-generator --name socket-serializer --project . --out ./lib/index.d.ts",
     "build-declaration-dts-bundle": "dts-bundle --outputAsModuleFolder --name socket-serializer --main ./lib/socket-serializer.d.ts",
-    "clean-declaration-dts": "del-cli ./lib/ts/*.d.ts",
+    "clean-declaration-dts": "del-cli ./lib/code/*.d.ts",
     "test": "mocha test --recursive",
     "tsc": "tsc",
     "tslint": "tslint"
