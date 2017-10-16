@@ -137,7 +137,7 @@ export class BufferListReader implements Reader {
         let start = this._curOffset;
         this._offset += 8;
         this._curOffset += 8;
-        return this._curBuffer.readDoubleBE(start);
+        return this._curBuffer.readDoubleLE(start);
     }
 
     readString(encoding?: string, len?: number): string {

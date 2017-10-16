@@ -46,7 +46,7 @@ export class BufferReader implements Reader {
     readDouble(): number {
         let start = this._offset;
         this._offset += 8;
-        return this._buffer.readDoubleBE(start);
+        return this._buffer.readDoubleLE(start);
     }
 
     readString(encoding?: string, len?: number): string {
