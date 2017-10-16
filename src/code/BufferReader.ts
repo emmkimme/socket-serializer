@@ -11,8 +11,8 @@ export class BufferReader implements Reader {
         this._offset = offset || 0;
     }
 
-    get EOF(): boolean {
-        return (this._offset >= this._buffer.length);
+    checkEOF(offsetStep?: number): boolean {
+        return (this._offset + (offsetStep || 0) > this.length);
     }
 
     get length(): number {

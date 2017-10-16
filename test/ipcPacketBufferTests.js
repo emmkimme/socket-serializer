@@ -3,16 +3,17 @@ const assert = chai.assert;
 const expect = chai.expect;
 
 const Buffer = require('buffer').Buffer;
-const ipbModule = require('../lib/ipcPacketBuffer');
+const ipbModule = require('../lib/code/ipcPacketBuffer');
+const ipb = new ipbModule.IpcPacketBuffer();
 
-function testSerialization(param, fctFrom, fctTo) {
+function testSerialization(param, ipb, fctSerialize, fctParse) {
   it(`explicit should return a type ${typeof param} = ${param}`, function () {
-    var ipb = fctFrom(param);
-    assert.equal(fctTo.apply(ipb), param);
+    fctSerialize.apply(ipb, [param]);
+    assert.equal(fctParse.apply(ipb), param);
   });
   it(`implicit should return a type ${typeof param} = ${param}`, function () {
-    var ipb = ipbModule.IpcPacketBuffer.from(param);
-    assert.equal(ipb.to(), param);
+    ipb.serialize(param);
+    assert.equal(ipb.parse(), param);
   });
 }
 
@@ -21,10 +22,10 @@ describe('Boolean', function () {
   const paramFalse = false;
 
   describe('serialize true', function () {
-    testSerialization(paramTrue, ipbModule.IpcPacketBuffer.fromBoolean, new ipbModule.IpcPacketBuffer().toBoolean);
+    testSerialization(paramTrue, ipb, ipb.serializeBoolean, ipb.parseBoolean);
   });
   describe('serialize false', function () {
-    testSerialization(paramFalse, ipbModule.IpcPacketBuffer.fromBoolean, new ipbModule.IpcPacketBuffer().toBoolean);
+    testSerialization(paramFalse, ipb, ipb.serializeBoolean, ipb.parseBoolean);
   });
 });
 
@@ -32,7 +33,7 @@ describe('String', function () {
   const paramString = 'this is a test';
 
   describe('serialize', function () {
-    testSerialization(paramString, ipbModule.IpcPacketBuffer.fromString, new ipbModule.IpcPacketBuffer().toString);
+    testSerialization(paramString, ipb, ipb.serializeString, ipb.parseString);
   });
 });
 
@@ -44,19 +45,19 @@ describe('Number', function () {
   const paramInt64Negative = -99999999999999;
 
   describe('serialize double', function () {
-    testSerialization(paramDouble, ipbModule.IpcPacketBuffer.fromNumber, new ipbModule.IpcPacketBuffer().toNumber);
+    testSerialization(paramDouble, ipb, ipb.serializeNumber, ipb.parseNumber);
   });
   describe('serialize 32bits positive integer', function () {
-    testSerialization(paramInt32Positive, ipbModule.IpcPacketBuffer.fromNumber, new ipbModule.IpcPacketBuffer().toNumber);
+    testSerialization(paramInt32Positive, ipb, ipb.serializeNumber, ipb.parseNumber);
   });
   describe('serialize 32bits negative integer', function () {
-    testSerialization(paramInt32Negative, ipbModule.IpcPacketBuffer.fromNumber, new ipbModule.IpcPacketBuffer().toNumber);
+    testSerialization(paramInt32Negative, ipb, ipb.serializeNumber, ipb.parseNumber);
   });
   describe('serialize 64bits positive integer', function () {
-    testSerialization(paramInt64Positive, ipbModule.IpcPacketBuffer.fromNumber, new ipbModule.IpcPacketBuffer().toNumber);
+    testSerialization(paramInt64Positive, ipb, ipb.serializeNumber, ipb.parseNumber);
   });
   describe('serialize 64bits negative integer', function () {
-    testSerialization(paramInt64Negative, ipbModule.IpcPacketBuffer.fromNumber, new ipbModule.IpcPacketBuffer().toNumber);
+    testSerialization(paramInt64Negative, ipb, ipb.serializeNumber, ipb.parseNumber);
   });
 });
 
@@ -68,12 +69,12 @@ describe('Buffer', function () {
 
   describe('serialize', function () {
     it(`explicit should return a type ${typeof paramBuffer}`, function () {
-      var ipb = ipbModule.IpcPacketBuffer.fromBuffer(paramBuffer);
-      assert(Buffer.compare(ipb.toBuffer(), paramBuffer) === 0);
+      ipb.serializeBuffer(paramBuffer);
+      assert(Buffer.compare(ipb.parseBuffer(), paramBuffer) === 0);
     });
     it(`implicit should return a type ${typeof paramBuffer}`, function () {
-      var ipb = ipbModule.IpcPacketBuffer.from(paramBuffer);
-      assert(Buffer.compare(ipb.to(), paramBuffer) === 0);
+      ipb.serialize(paramBuffer);
+      assert(Buffer.compare(ipb.parse(), paramBuffer) === 0);
     });
   });
 });
@@ -87,12 +88,12 @@ describe('Object', function () {
 
   describe('serialize', function () {
     it(`explicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
-      var ipb = ipbModule.IpcPacketBuffer.fromObject(paramObject);
-      assert(JSON.stringify(ipb.toObject()) === JSON.stringify(paramObject));
+      ipb.serializeObject(paramObject);
+      assert(JSON.stringify(ipb.parseObject()) === JSON.stringify(paramObject));
     });
     it(`implicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
-      var ipb = ipbModule.IpcPacketBuffer.from(paramObject);
-      assert(JSON.stringify(ipb.to()) === JSON.stringify(paramObject));
+      ipb.serialize(paramObject);
+      assert(JSON.stringify(ipb.parse()) === JSON.stringify(paramObject));
     });
   });
 });

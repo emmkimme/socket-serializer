@@ -1,13 +1,12 @@
 import { Buffer } from 'buffer';
 import { EventEmitter } from 'events';
-import { IpcPacketBufferWrap, BufferType } from './ipcPacketBufferWrap';
 import { IpcPacketBuffer } from './ipcPacketBuffer';
 import { BufferListReader } from './BufferListReader';
 
 /** @internal */
 export class IpcPacketBufferDecoder extends EventEmitter {
     private _bufferListReader: BufferListReader;
-    private _header: IpcPacketBufferWrap;
+    private _packet: IpcPacketBuffer;
 
     expectedArgs: number;
     packetArgs: IpcPacketBuffer[];
@@ -15,7 +14,7 @@ export class IpcPacketBufferDecoder extends EventEmitter {
     constructor() {
         super();
         this._bufferListReader = new BufferListReader([]);
-        this._header = IpcPacketBufferWrap.fromType(BufferType.HeaderNotValid);
+        this._packet = new IpcPacketBuffer();
 
         this.packetArgs = [];
         this.expectedArgs = 0;
@@ -40,7 +39,8 @@ export class IpcPacketBufferDecoder extends EventEmitter {
                     buffersLen += packet.buffer.length;
                     return packet.buffer;
                 });
-                let packet = IpcPacketBuffer.fromPacketBuffer(this.packetArgs[0], Buffer.concat(buffers, buffersLen));
+                let packet = new IpcPacketBuffer();
+                packet.parseFromBuffer(Buffer.concat(buffers, buffersLen));
                 this.packetArgs = [];
                 this.expectedArgs = 0;
                 return packet;
@@ -59,36 +59,18 @@ export class IpcPacketBufferDecoder extends EventEmitter {
         this._bufferListReader.appendBuffer(data);
 
         let packets: IpcPacketBuffer[] = [];
-
-        while (this._bufferListReader.length > 0) {
-            let offset = this._bufferListReader.offset;
-            this._header.readHeader(this._bufferListReader);
-            // if packet size error, find a way to resynchronize later
-            if (this._header.isNotValid()) {
-                this.emit('error', new Error('Get invalid packet header'));
-                break;
-            }
-            this._bufferListReader.seek(offset);
-            // if not enough data accumulated for reading the header, exit
-            if (this._header.isNotComplete()) {
-                break;
-            }
-            let packetSize = this._header.packetSize;
-            // if not enough data accumulated for reading the packet, exit
-            if (this._bufferListReader.length - this._bufferListReader.offset  < packetSize) {
-                break;
-            }
-
-            let buffer = this._bufferListReader.readBuffer(packetSize);
-
-            let packet = IpcPacketBuffer.fromPacketBuffer(this._header, buffer);
-            packets.push(packet);
-            this.emit('packet', packet);
+        while (this._packet.parseFromReader(this._bufferListReader)) {
+            packets.push(this._packet);
+            this.emit('packet', this._packet);
+            this._packet = new IpcPacketBuffer();
             // let packet = this.handlePacket(packet);
             // if (packet) {
             //     packets.push(packet);
             //     this.emit('packet', packet);
             // }
+        }
+        if (this._packet.isNotValid()) {
+            this.emit('error', new Error('Get invalid packet header'));
         }
         this._bufferListReader.reduce();
         this.emit('packet[]', packets);

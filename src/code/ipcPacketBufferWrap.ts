@@ -17,9 +17,9 @@ const ArrayLenHeaderLength: number = MinHeaderLength + 4;
 
 export enum BufferType {
     // 88
-    HeaderNotValid = 'X'.charCodeAt(0),
+    NotValid = 'X'.charCodeAt(0),
     // 85
-    HeaderNotComplete = 'P'.charCodeAt(0),
+    NotComplete = 'P'.charCodeAt(0),
     // 115
     String = 's'.charCodeAt(0),
     // 66
@@ -47,20 +47,8 @@ export class IpcPacketBufferWrap {
     protected _headerSize: number;
     protected _argsLen: number;
 
-    protected constructor() {
-        this._type = BufferType.HeaderNotValid;
-    }
-
-    static fromType(bufferType: BufferType) {
-        let header = new IpcPacketBufferWrap();
-        header.type = bufferType;
-        return header;
-    }
-
-    static fromBufferHeader(bufferReader: Reader) {
-        let header = new IpcPacketBufferWrap();
-        header.readHeader(bufferReader);
-        return header;
+    constructor() {
+        this._type = BufferType.NotValid;
     }
 
     get type(): BufferType {
@@ -101,7 +89,7 @@ export class IpcPacketBufferWrap {
                 this.setContentSize(0);
                 break;
             default:
-                this._type = BufferType.HeaderNotValid;
+                this._type = BufferType.NotValid;
                 break;
         }
     }
@@ -155,11 +143,11 @@ export class IpcPacketBufferWrap {
     }
 
     isNotValid(): boolean {
-        return this._type === BufferType.HeaderNotValid;
+        return this._type === BufferType.NotValid;
     }
 
     isNotComplete(): boolean {
-        return this._type === BufferType.HeaderNotComplete;
+        return this._type === BufferType.NotComplete;
     }
 
     isArray(): boolean {
@@ -220,21 +208,17 @@ export class IpcPacketBufferWrap {
     }
 
     readHeader(bufferReader: Reader): number {
-        if (bufferReader.EOF) {
-            this._type = BufferType.HeaderNotComplete;
+        if (bufferReader.checkEOF(2)) {
+            this._type = BufferType.NotComplete;
             return bufferReader.offset;
         }
         if (bufferReader.readByte() !== headerSeparator) {
-            this._type = BufferType.HeaderNotValid;
-            return bufferReader.offset;
-        }
-        if (bufferReader.EOF) {
-            this._type = BufferType.HeaderNotComplete;
+            this._type = BufferType.NotValid;
             return bufferReader.offset;
         }
         this.type = bufferReader.readByte();
         if (bufferReader.offset + (this._headerSize - 2) > bufferReader.length) {
-            this._type = BufferType.HeaderNotComplete;
+            this._type = BufferType.NotComplete;
         }
         else {
             switch (this.type) {

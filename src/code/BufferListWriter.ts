@@ -12,8 +12,13 @@ export class BufferListWriter implements Writer {
     }
 
     get buffer(): Buffer {
-        // Would be interesting to keep the result of the concat locally ?
-        return Buffer.concat(this._buffers, this._length);
+        if (this._buffers.length === 0) {
+            return Buffer.alloc(0);
+        }
+        if (this._buffers.length > 1) {
+            this._buffers = [ Buffer.concat(this._buffers, this._length) ];
+        }
+        return this._buffers[0];
     }
 
     get buffers(): Buffer[] {

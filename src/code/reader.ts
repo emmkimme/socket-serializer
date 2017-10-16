@@ -2,10 +2,10 @@
 
 /** @internal */
 export interface Reader {
-    readonly EOF: boolean;
     readonly length: number;
     readonly offset: number;
 
+    checkEOF(offsetStep?: number): boolean;
     seek(offset: number): number;
     skip(offsetStep?: number): number;
     readByte(): number;

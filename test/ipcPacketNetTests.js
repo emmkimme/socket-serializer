@@ -5,9 +5,9 @@ const expect = chai.expect;
 const portfinder = require('portfinder');
 
 const Buffer = require('buffer').Buffer;
-const ipbModule = require('../lib/ipcPacketBuffer');
+const ipbModule = require('../lib/code/ipcPacketBuffer');
 
-const ipnModule = require('../lib/ipcPacketNet');
+const ipnModule = require('../lib/code/ipcPacketNet');
 
 describe('Test server', function () {
     let server;
