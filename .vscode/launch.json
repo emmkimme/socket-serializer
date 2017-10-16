@@ -10,7 +10,7 @@
            
                 "sourceMaps": true,
            
-                "args": ["test/**/*.js", "--no-timeouts"],
+                "args": ["test/**/*.js", "--no-timeouts", "--recursive"],
                 "cwd": "${workspaceRoot}",
                 "runtimeExecutable": null,
                 "env": { "NODE_ENV": "testing"}

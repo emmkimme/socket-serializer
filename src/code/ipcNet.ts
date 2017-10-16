@@ -3,14 +3,13 @@ import * as net from 'net';
 import { EventEmitter } from 'events';
 
 export class IpcNet extends EventEmitter {
-  private socketPath: string;
-  private defaultPort: number;
-  private defaultHost: string;
+  private _defaultPortOrPath: any;
+  private _defaultHost: string;
 
-  private reconnect: boolean;
-  private delayReconnect: number;
+  private _reconnect: boolean;
+  private _delayReconnect: number;
 
-  private numReconnects: number;
+  private _numReconnects: number;
 
   private _socket: net.Socket;
 
@@ -19,13 +18,12 @@ export class IpcNet extends EventEmitter {
 
     options = options || {};
 
-    this.socketPath = options.socketPath != null ? options.socketPath : false;
-    this.defaultPort = options.port != null ? options.port : 7100;
-    this.defaultHost = options.host != null ? options.host : 'localhost';
+    this._defaultPortOrPath = options.socketPath || options.port || 7100;
+    this._defaultHost = options.host || 'localhost';
 
-    this.numReconnects = 0;
-    this.reconnect = options.reconnect != null ? options.reconnect : true;
-    this.delayReconnect = options.delayReconnect != null ? options.delayReconnect : 3000;
+    this._numReconnects = 0;
+    this._reconnect = options._reconnect || true;
+    this._delayReconnect = options._delayReconnect || 3000;
   }
 
   // on(event: 'connect', handler: (socket: net.Socket) => void): this;
@@ -40,7 +38,7 @@ export class IpcNet extends EventEmitter {
   //   return super.on(event, handler);
   // }
 
-  private _onSocketConnect(socket: net.Socket, port: number, host: string, cb: Function): void {
+  private _onSocketConnect(socket: net.Socket, portOrPath: any, host: string): void {
     socket.removeAllListeners('error');
 
     this._parseStream(socket);
@@ -49,90 +47,76 @@ export class IpcNet extends EventEmitter {
       this.emit('close', had_error, socket);
 
       // reconnect
-      if (this.reconnect) {
-        this._reconnect(port, host);
+      if (this._reconnect) {
+        this.reconnect(portOrPath, host);
       }
     });
 
-    cb(null, socket);
-
-    if (this.numReconnects > 0) {
+    if (this._numReconnects > 0) {
       this.emit('reconnect', socket);
-      this.numReconnects = 0;
+      this._numReconnects = 0;
     }
     else {
       this.emit('connect', socket);
     }
   }
 
-  private _onSocketError(err: NodeJS.ErrnoException, port: number, host: string, cb: Function): void {
+  private _onSocketError(err: NodeJS.ErrnoException, portOrPath: any, host: string): void {
     this._socket.removeAllListeners('connect');
 
-    if ((err.code === 'ENOENT') && isNaN(port) && this.defaultPort) {
-      this.emit('warn', new Error(err.code + ' on ' + port + ', ' + host));
-      this.connect(this.defaultPort, cb);
+    if ((err.code === 'ENOENT') && isNaN(portOrPath) && this._defaultPortOrPath) {
+      this.emit('warn', new Error(err.code + ' on ' + portOrPath + ', ' + host));
+      this.connect(this._defaultPortOrPath);
       return;
     }
-    if ((err.code === 'ECONNREFUSED') && this.numReconnects) {
-      this.emit('warn', new Error(err.code + ' on ' + port + ', ' + host));
-      return this._reconnect(port, host);
+    if ((err.code === 'ECONNREFUSED') && this._numReconnects) {
+      this.emit('warn', new Error(err.code + ' on ' + portOrPath + ', ' + host));
+      return this.reconnect(portOrPath, host);
     }
-    cb(err);
     this.emit('error', err);
   }
 
-  connect(port: any, host?: any, cb?: any) {
-    if (port instanceof Function) {
-      cb = port;
-      port = null;
-    }
-    if (host instanceof Function) {
-      cb = host;
-      host = null;
-    }
+  connect(portOrPath?: any, host?: string) {
+    portOrPath = portOrPath || this._defaultPortOrPath;
+    host = host || (!isNaN(portOrPath) ? this._defaultHost : null);
 
-    port = port || this.socketPath || this.defaultPort;
-    host = host || (!isNaN(port) ? this.defaultHost : null);
-    cb = cb || function () { };
-
-    if (port && host) {
-      this._socket = net.connect(port, host);
+    if (portOrPath && host) {
+      this._socket = net.connect(portOrPath, host);
     }
     else {
-      this._socket = net.connect(port);
+      this._socket = net.connect(portOrPath);
     }
 
     this._socket.once('error', (err: NodeJS.ErrnoException) => {
-      this._onSocketError(err, port, host, cb);
+      this._onSocketError(err, portOrPath, host);
     });
     this._socket.once('connect', () => {
-      this._onSocketConnect(this._socket, port, host, cb);
+      this._onSocketConnect(this._socket, portOrPath, host);
     });
   }
 
-  private _reconnect(port: any, host: any) {
-    this.numReconnects += 1;
-    if (this.delayReconnect) {
+  private reconnect(portOrPath: any, host: string) {
+    this._numReconnects += 1;
+    if (this._delayReconnect) {
       setTimeout(() => {
-        this.connect(port, host);
-      }, this.delayReconnect);
+        this.connect(portOrPath, host);
+      }, this._delayReconnect);
     }
     else {
-      this.connect(port, host);
+      this.connect(portOrPath, host);
     }
   }
 
-  private _onServerError(err: NodeJS.ErrnoException, port: number, host: string, cb: Function): void {
-    if ((err.code === 'EACCES') && isNaN(port) && this.defaultPort) {
-      this.emit('warn', new Error(err.code + ' on ' + port + ', ' + host));
-      this.listen(this.defaultPort, cb);
+  private _onServerError(err: NodeJS.ErrnoException, portOrPath: any, host: string): void {
+    if ((err.code === 'EACCES') && isNaN(portOrPath) && this._defaultPortOrPath) {
+      this.emit('warn', new Error(err.code + ' on ' + portOrPath + ', ' + host));
+      this.listen(this._defaultPortOrPath);
       return;
     }
-    cb(err);
     this.emit('error', err);
   }
 
-  private _onServerConnection(socket: net.Socket, server: net.Server, cb: Function): void {
+  private _onServerConnection(socket: net.Socket, server: net.Server): void {
     this._socket = socket;
     this._parseStream(socket, server);
 
@@ -140,7 +124,6 @@ export class IpcNet extends EventEmitter {
       this.emit('close', had_error, socket, server);
     });
 
-    cb(null, socket, server);
     this.emit('connection', socket, server);
   }
 
@@ -149,53 +132,33 @@ export class IpcNet extends EventEmitter {
     this.emit('listening', server);
   };
 
-  listen(port: any, host?: any, cb?: any) {
-    if (port instanceof Function) {
-      cb = port;
-      port = null;
-    }
-    if (host instanceof Function) {
-      cb = host;
-      host = null;
-    }
-
-    port = port || this.socketPath || this.defaultPort;
-    host = host || (!isNaN(port) ? this.defaultHost : null);
-    cb = cb || function () { };
+  listen(portOrPath?: any, host?: string) {
+    portOrPath = portOrPath || this._defaultPortOrPath;
+    host = host || (!isNaN(portOrPath) ? this._defaultHost : null);
 
     let server = net.createServer();
 
     server.once('error', (err: NodeJS.ErrnoException) => {
-      this._onServerError(err, port, host, cb);
+      this._onServerError(err, portOrPath, host);
     });
     server.once('listening', () => {
       this._onServerListening(server);
     });
     server.on('connection', (socket) => {
-      this._onServerConnection(socket, server, cb);
+      this._onServerConnection(socket, server);
     });
 
-    if (port && host) {
-      server.listen(port, host);
+    if (portOrPath && host) {
+      server.listen(portOrPath, host);
     }
     else {
-      server.listen(port);
+      server.listen(portOrPath);
     }
   }
 
-  // start(port: any, host: any, cb: any) {
-  //   if (port instanceof Function) {
-  //     cb = port;
-  //     port = null;
-  //   }
-  //   if (host instanceof Function) {
-  //     cb = host;
-  //     host = null;
-  //   }
-
-  //   port = port || this.socketPath || this.defaultPort;
-  //   host = host || (!isNaN(port) ? this.defaultHost : null);
-  //   cb = cb || function () { };
+  // start(portOrPath: any, host: any) {
+  //   port = port || this.socketPath || this._defaultPortOrPath;
+  //   host = host || (!isNaN(port) ? this._defaultHost : null);
 
   //   let onError = (err: any): void => {
   //     if (err.code === 'ECONNREFUSED') {
@@ -206,7 +169,6 @@ export class IpcNet extends EventEmitter {
   //       this.removeAllListeners('listening');
   //       this.removeAllListeners('connection');
   //       this.removeAllListeners('connect');
-  //       cb(err);
   //       this.emit('error', err);
   //     }
   //   };
@@ -215,21 +177,18 @@ export class IpcNet extends EventEmitter {
   //     this.removeAllListeners('error');
   //     this.removeAllListeners('connection');
   //     this.removeAllListeners('connect');
-  //     cb(null, true, server);
   //   };
 
   //   let onConnection = (socket: net.Socket, server: net.Server): void => {
   //     this.removeAllListeners('error');
   //     this.removeListener('listening', onListening);
   //     this.removeListener('connect', onConnect);
-  //     cb(null, true, socket, server);
   //   };
 
   //   let onConnect = (socket: net.Socket): void => {
   //     this.removeListener('error', onError);
   //     this.removeAllListeners('listening');
   //     this.removeAllListeners('connect');
-  //     cb(null, false, socket);
   //   };
 
   //   this.once('error', (err: any) => onError(err));
