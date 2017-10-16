@@ -20,16 +20,14 @@ Dependencies
 ```js
 const portfinder = require('portfinder');
 
-const ipbModule = require('../lib/ipcPacketBuffer');
-const ipnModule = require('../lib/ipcPacketNet');
+const socketSerialModule = require('socket-serializer');
 
 portfinder.getPortPromise({ port: 49152 }).then((port) => {
-    let server = new ipnModule.IpcPacketNet({ port: port });
+    let server = new socketSerialModule.IpcPacketNet({ port: port });
     server.addListener('listening', () => {
-        let client = new ipnModule.IpcPacketNet({ port: port });
+        let client = new socketSerialModule.IpcPacketNet({ port: port });
         client.addListener('packet', (ipcPacketBuffer) => {
-            var ipb = new ipbModule.IpcPacketBuffer();
-            let paramObject = ipb.parseObject();
+            let paramObject = ipcPacketBuffer.parseObject();
             console.log(JSON.stringify(paramObject));
         });
         client.addListener('error', (err) => {
@@ -42,7 +40,7 @@ portfinder.getPortPromise({ port: 49152 }).then((port) => {
             str: "test",
             bool: true
         };
-        var ipb = new ipbModule.IpcPacketBuffer();
+        var ipb = new socketSerialModule.IpcPacketBuffer();
         ipb.serializeObject(paramObject);
         socket.write(ipb.buffer);
     });

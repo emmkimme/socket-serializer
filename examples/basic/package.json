@@ -1,0 +1,12 @@
+{
+  "name": "socket-serializer-tests",
+  "version": "1.0.0",
+  "description": "Basic Tests for socket-serializer",
+  "main": "Sample.js",
+  "scripts": {},
+  "author": "Emmanuel Kimmerlin",
+  "devDependencies": {},
+  "dependencies": {
+    "socket-serializer": "file:../../"
+  }
+}

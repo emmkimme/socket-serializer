@@ -1,0 +1,20 @@
+{
+"version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Basic Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}\\Sample.js",
+            "stopOnEntry": false,
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "runtimeExecutable": null,
+
+            "env": {},
+            "externalConsole": false,
+            "sourceMaps": false,
+            "outDir": null
+        }
+    ]
+}
