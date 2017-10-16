@@ -13,18 +13,10 @@ describe('Test server', function () {
     let server;
     let port;
 
-    // beforeEach(function(done) {
-    //     portfinder.getPortPromise({port: 49152}).then((thePort) => {
-    //         port = thePort;
-    //         server = new ipnModule.IpcPacketNet({ port: port });
-    //         done();
-    //   });
-    // });
-
     it(`server listening`, function (done) {
         portfinder.getPortPromise({ port: 49152 }).then((thePort) => {
             port = thePort;
-            server = new ipnModule.IpcPacketNet({ port: port }); '/tests'
+            server = new ipnModule.IpcPacketNet({ port: port });
             server.addListener('listening', () => {
                 done();
             });
@@ -35,30 +27,15 @@ describe('Test server', function () {
         });
     });
 
-    let client1;
-    it(`client1 connecting`, function (done) {
-        client1 = new ipnModule.IpcPacketNet({ port: port });
-        // const server = new ipnModule.IpcPacketNet({ socketPath: '/tests'});
-        client1.addListener('connect', () => {
+    it(`client connecting`, function (done) {
+        let client = new ipnModule.IpcPacketNet({ port: port });
+        client.addListener('connect', (socket) => {
             done();
         });
-        client1.addListener('error', (err) => {
+        client.addListener('error', (err) => {
             done(err);
         });
-        client1.connect();
-    });
-
-    let client2;
-    it(`client2 connecting`, function (done) {
-        client2 = new ipnModule.IpcPacketNet({ port: port });
-        // const server = new ipnModule.IpcPacketNet({ socketPath: '/tests'});
-        client2.addListener('connect', () => {
-            done();
-        });
-        client2.addListener('error', (err) => {
-            done(err);
-        });
-        client2.connect();
+        client.connect();
     });
 });
 

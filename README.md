@@ -16,10 +16,44 @@ npm install socket-serializer
 Dependencies
 * http://nodejs.org/
 
+#Sample
+```js
+const portfinder = require('portfinder');
+
+const ipbModule = require('../lib/ipcPacketBuffer');
+const ipnModule = require('../lib/ipcPacketNet');
+
+
+portfinder.getPortPromise({ port: 49152 }).then((port) => {
+    let server = new ipnModule.IpcPacketNet({ port: port });
+    server.addListener('listening', () => {
+        let client = new ipnModule.IpcPacketNet({ port: port });
+        client.addListener('packet', (ipcPacketBuffer) => {
+            let paramObject = ipcPacketBuffer.toObject();
+            console.log(JSON.stringify(paramObject));
+        });
+        client.addListener('error', (err) => {
+        });
+        client.connect();
+    });
+    server.addListener('connection', (socket) => {
+        const paramObject = {
+            num: 10.2,
+            str: "test",
+            bool: true
+        };
+        var ipb = ipbModule.fromObject(paramObject);
+        socket.write(ipb.buffer);
+    });
+    server.addListener('error', (err) => {
+    });
+    server.listen();
+});
+```
 
 # MIT License
 
-Copyright (c) 2017 Michael Vasseur and Emmanuel Kimmerlin
+Copyright (c) 2017 Emmanuel Kimmerlin
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

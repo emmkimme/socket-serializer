@@ -67,11 +67,11 @@ describe('Buffer', function () {
   }
 
   describe('serialize', function () {
-    it(`explicit should return a type ${typeof paramBuffer} = ${paramBuffer}`, function () {
+    it(`explicit should return a type ${typeof paramBuffer}`, function () {
       var ipb = ipbModule.IpcPacketBuffer.fromBuffer(paramBuffer);
       assert(Buffer.compare(ipb.toBuffer(), paramBuffer) === 0);
     });
-    it(`implicit should return a type ${typeof paramBuffer} = ${paramBuffer}`, function () {
+    it(`implicit should return a type ${typeof paramBuffer}`, function () {
       var ipb = ipbModule.IpcPacketBuffer.from(paramBuffer);
       assert(Buffer.compare(ipb.to(), paramBuffer) === 0);
     });
@@ -86,11 +86,11 @@ describe('Object', function () {
   };
 
   describe('serialize', function () {
-    it(`explicit should return a type ${typeof paramObject} = ${paramObject}`, function () {
+    it(`explicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
       var ipb = ipbModule.IpcPacketBuffer.fromObject(paramObject);
       assert(JSON.stringify(ipb.toObject()) === JSON.stringify(paramObject));
     });
-    it(`implicit should return a type ${typeof paramObject} = ${paramObject}`, function () {
+    it(`implicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
       var ipb = ipbModule.IpcPacketBuffer.from(paramObject);
       assert(JSON.stringify(ipb.to()) === JSON.stringify(paramObject));
     });
