@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A JS object, buffer, string, number serializer for socket.",
   "repository": {
     "type": "git",
