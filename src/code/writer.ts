@@ -1,6 +1,5 @@
 // import { Buffer } from 'buffer';
 
-/** @internal */
 export interface Writer {
     readonly buffer: Buffer;
     readonly buffers: Buffer[];

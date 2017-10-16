@@ -218,7 +218,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return IpcPacketBuffer._parse(this, bufferReader);
     }
 
-    static _parse(header: IpcPacketBufferWrap, bufferReader: BufferReader): any {
+    static _parse(header: IpcPacketBufferWrap, bufferReader: Reader): any {
         let arg: any;
         switch (header.type) {
             case BufferType.ArrayLen: {
@@ -261,7 +261,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return IpcPacketBuffer._parseBoolean(this, bufferReader);
     }
 
-    private static _parseBoolean(header: IpcPacketBufferWrap, bufferReader: BufferReader): boolean {
+    private static _parseBoolean(header: IpcPacketBufferWrap, bufferReader: Reader): boolean {
         let data: boolean;
         switch (header.type) {
             case BufferType.BooleanTrue:
@@ -284,7 +284,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return IpcPacketBuffer._parseNumber(this, bufferReader);
     }
 
-    private static _parseNumber(header: IpcPacketBufferWrap, bufferReader: BufferReader): number {
+    private static _parseNumber(header: IpcPacketBufferWrap, bufferReader: Reader): number {
         let data: number;
         switch (header.type) {
             case BufferType.Double:
@@ -314,7 +314,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return IpcPacketBuffer._parseObject(this, bufferReader);
     }
 
-    private static _parseObject(header: IpcPacketBufferWrap, bufferReader: BufferReader): any {
+    private static _parseObject(header: IpcPacketBufferWrap, bufferReader: Reader): any {
         let data = bufferReader.readString('utf8', header.contentSize);
         bufferReader.skip(header.footerSize);
         return JSON.parse(data);
@@ -328,7 +328,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return IpcPacketBuffer._parseString(this, bufferReader, encoding);
     }
 
-    private static _parseString(header: IpcPacketBufferWrap, bufferReader: BufferReader, encoding?: string): string {
+    private static _parseString(header: IpcPacketBufferWrap, bufferReader: Reader, encoding?: string): string {
         let data = bufferReader.readString(encoding, header.contentSize);
         bufferReader.skip(header.footerSize);
         return data;
@@ -342,7 +342,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return IpcPacketBuffer._parseBuffer(this, bufferReader);
     }
 
-    private static _parseBuffer(header: IpcPacketBufferWrap, bufferReader: BufferReader): Buffer {
+    private static _parseBuffer(header: IpcPacketBufferWrap, bufferReader: Reader): Buffer {
         let data = bufferReader.readBuffer(header.contentSize);
         bufferReader.skip(header.footerSize);
         return data;
@@ -359,7 +359,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return null;
     }
 
-    private static _parseArrayAt(index: number, header: IpcPacketBufferWrap, bufferReader: BufferReader): any {
+    private static _parseArrayAt(index: number, header: IpcPacketBufferWrap, bufferReader: Reader): any {
         let offsetContentSize = bufferReader.offset + header.contentSize;
         let headerArg = new IpcPacketBufferWrap();
         while ((index > 0) && (bufferReader.offset < offsetContentSize)) {
@@ -375,7 +375,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return arg;
     }
 
-    private static _parseArrayLenAt(index: number, header: IpcPacketBufferWrap, bufferReader: BufferReader): any {
+    private static _parseArrayLenAt(index: number, header: IpcPacketBufferWrap, bufferReader: Reader): any {
         let argsLen = header.argsLen;
         bufferReader.skip(header.footerSize);
 
@@ -408,7 +408,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return null;
     }
 
-    private static _parseArray(header: IpcPacketBufferWrap, bufferReader: BufferReader): any[] {
+    private static _parseArray(header: IpcPacketBufferWrap, bufferReader: Reader): any[] {
         let offsetContentSize = bufferReader.offset + header.contentSize;
         let args = [];
         let headerArg = new IpcPacketBufferWrap();
@@ -421,7 +421,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return args;
     }
 
-    private static _parseArrayLen(header: IpcPacketBufferWrap, bufferReader: BufferReader): any[] {
+    private static _parseArrayLen(header: IpcPacketBufferWrap, bufferReader: Reader): any[] {
         let argsLen = header.argsLen;
         bufferReader.skip(header.footerSize);
 

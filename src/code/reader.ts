@@ -1,6 +1,5 @@
 // import { Buffer } from 'buffer';
 
-/** @internal */
 export interface Reader {
     readonly length: number;
     readonly offset: number;
