@@ -1,18 +1,16 @@
-# electron-ipc-bus
-A safe IPC (Inter-Process Communication) bus for applications built on Electron. 
-
-This bus offers a common API for exchanging data between any Electron process : Node, Master and Renderer instances.
-
+# socket-serializer
+A javascript serializer for socket.
+Purpose is to serialize object, buffer, string, number, boolean with the minimum of transformations in order to improve performance.
+For instance buffers remain untouched and go through socket without any changes (copy, merge, split...).
+It is why we do not use classic serialization like BSON or protobuf.
 
 # Features
-* Publish/Subscribe oriented API
-* Works with sandboxed renderer process
-* Support for renderer affinity (several webpages hosted in the same renderer process)
-* Remote calls/events and pending messages management with Services
+* Basic Socket API
+* Serialization API
 
 # Installation
 ```Batchfile
-npm install electron-ipc-bus
+npm install socket-serializer
 ```
 
 Dependencies
@@ -20,10 +18,6 @@ Dependencies
 
 
 # Technical Overview
-
-## Objective
-![Electron's processes](https://raw.githubusercontent.com/MichaelVasseur/electron-ipc-bus/Doc_Update/doc/electron_processes.svg)
-
 
 # Usage
 
@@ -498,196 +492,6 @@ The event object passed to the listener has the following properties:
 ### event.request [optional]: IpcBusRequest
 If present, the message is a request.
 Listener can resolve the request by calling ***event.request.resolve()*** with the response or can reject the request by calling ***event.request.reject()*** with an error message.
-
-
-# IpcBusService
-The ***IpcBusService*** creates an IPC endpoint that can be requested via remote calls and send events.
-
-## Interface
-```ts
-interface IpcBusService {
-    start(): void;
-    stop(): void;
-    registerCallHandler(name: string, handler: IpcBusServiceCallHandler): void;
-    sendEvent(eventName: string, ...args: any[]): void;
-}
-```
-
-## IpcBusServiceCall
-Message sent to a service to execute a remote call.
-```ts
-interface IpcBusServiceCall {
-    handlerName: string;
-    args: any[];
-}
-```
-
-## IpcBusServiceCallHandler
-Prototype of a method that will be executed to handle a service's call.
-```ts
-interface IpcBusServiceCallHandler {
-    (call: IpcBusServiceCall, request: IpcBusRequest): void;
-}
-```
-
-## Creation (without an outer implementation)
-```js
-const ipcBusModule = require("electron-ipc-bus");
-...
-// ipcBusClient is a connected instance of IpcBusClient
-const ipcMyService = ipcBusModule.CreateIpcBusService(ipcBusClient, 'myService');
-```
-
-## Creation (with an outer instance)
-```js
-const ipcBusModule = require("electron-ipc-bus");
-...
-const myOuterServiceInstance = {};
-myOuterServiceInstance.test = () => { return 'This is a test'; };
-...
-// ipcBusClient is a connected instance of IpcBusClient
-const ipcMyService = ipcBusModule.CreateIpcBusService(ipcBusClient, 'myService', myOuterServiceInstance);
-```
-NOTE : This constructor will automatically register all methods of ***myOuterServiceImpl*** as call handlers using ***registerCallHandler()***.
-
-## Methods
-
-### start(): void
-This makes the service to listen and serve incoming remote calls.
-The service also sends the ***IPCBUS_SERVICE_EVENT_START*** event.
-NOTE : If an outerrouter service's instance has been specified at construction time, ***start()*** will overload its This method will overload
-
-### stop(): void
-This makes the service to stop listen and serve incoming remote calls.
-The service also sends the ***IPCBUS_SERVICE_EVENT_STOP*** event.
-
-### registerCallHandler(name, handler): void
-- ***name***: string
-- ***handler***: IpcBusServiceCallHandler
-This sets the function that will be executed to serve the specified remote call.
-As this is run in the context of a promise, the function must call either request.resolve()
-or request.reject() to fulfill the promise.
-```js
-ipcMyService.registerCallHandler('getCurrentTime', (call, request) => {
-                        try {                        {
-                            request.resolve(new Date().getTime());
-                        } catch(e) {
-                            request.reject(e);
-                        }
-                    });
-```
-
-### sendEvent(name, ...args): void
-- ***name***: string
-- ***args***: any[]
-This sends a service event message.
-```js
-ipcMyService.sendEvent('timeChanged', new Date().getTime());
-```
-
-
-# IpcBusServiceProxy
-The ***IpcBusServiceProxy*** creates an IPC endpoint that can be used to execute calls on a service and listen its events.
-
-## Interface
-```ts
-interface IpcBusServiceProxy extends events.EventEmitter {
-    readonly isStarted: boolean;
-
-    getStatus(): Promise<ServiceStatus>;
-    call<T>(handlerName: string, ...args: any[]): Promise<T>;
-    getWrapper<T>(): T;
-    connect<T>(timeoutDelay?: number): Promise<T>
-```
-
-## IpcBusServiceEvent
-Message sent to a service's proxy to trigger the code associated to this event.
-```ts
-interface IpcBusServiceEvent {
-    eventName: string;
-    args: any[];
-}
-```
-
-## IpcBusServiceEventHandler
-Prototype of a method that will be executed to handle a service's call.
-```ts
-interface IpcBusServiceEventHandler {
-    (event: IpcBusServiceEvent): void;
-}
-```
-
-## Creation
-```js
-const ipcBusModule = require("electron-ipc-bus");
-...
-// ipcBusClient is a connected instance of IpcBusClient
-const ipcMyServiceProxy = ipcBusModule.CreateIpcBusServiceProxy(ipcBusClient, 'myService', 2000); // 2000 ms for call timeout (default is 1000 ms)
-```
-
-## Properties
-
-### isAvailable: boolean
-Availability of the associated service (available means that the service is started).
-
-## Methods
-
-### checkAvailability(): Promise< boolean >
-This asynchronously requests the service availability to the Broker.
-```js
-ipcMyServiceProxy.checkAvailability()
-        .then(
-            (availability) => console.log(`MyService availability = ${availability}`),
-            (err) => console.log(`Failed to get MyService availability (${err})`));
-```
-
-### call<T>(handlerName: string, timeout: number, ...args: any[]): Promise< T >
-- ***handlerName***: string
-- ***timeout***: number
-- ***args***: any[]
-This sends a service event message.
-```js
-ipcMyServiceProxy.call('getCurrentTime')
-        .then(
-            (currentTime) => console.log(`Current Time = ${currentTime}`),
-            (err) => console.log(`Failed to get current time : ${err}`));
-```
-
-### EventEmitter interface ###
-This allow to handle events emitted by remote RPC service. Please refers to the EventEmitter class documentation for more information.
-- addListener(event: string, listener: IpcBusServiceEventHandler): this;
-- removeListener(event: string, listener: IpcBusServiceEventHandler): this;
-- on(event: string, listener: IpcBusServiceEventHandler): this;
-- once(event: string, listener: IpcBusServiceEventHandler): this;
-- off(event: string, listener: IpcBusServiceEventHandler): this;
-- removeAllListeners(event?: string): this;
-- prependListener(event: string, listener: IpcBusServiceEventHandler): this;
-- prependOnceListener(event: string, listener: IpcBusServiceEventHandler): this;
-
-The wrapper implements EventEmitter as well. If the interface of the service emits an event it will be receiced by the wrapper of the proxy.
-
-# Test application
-The test-app folder contains all sources of the testing application.
-
-NOTE: This folder is not packaged by NPM.
-
-To build the application:
-```
-cd examples
-cd test-app
-npm install
-npm run build
-```
-
-To run the application:
-```
-npm run start
-```
-
-To run the application in sandboxed mode:
-```
-npm run start-sandboxed
-```
 
 
 # Possible enhancements

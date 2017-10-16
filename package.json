@@ -28,13 +28,15 @@
   "main": "./lib/socket-serializer.js",
   "types": "./lib/socket-serializer.d.ts",
   "devDependencies": {
-    "@types/node": "^0.0.3",
+    "@types/node": "0.0.3",
     "del": "^2.2.2",
     "del-cli": "^0.2.1",
     "dts-bundle": "^0.6.1",
+    "mocha": "^4.0.1",
+    "sinon": "^4.0.1",
     "tslint": "^4.1.1",
     "tslint-microsoft-contrib": "^4.0.1",
-    "typescript": "^2.5.2"
+    "typescript": "^2.5.3"
   },
   "scripts": {
     "clean": "del-cli ./lib ./build ./dist",
@@ -45,7 +47,12 @@
     "build-declaration-dts-generator": "dts-generator --name socket-serializer --project . --out ./lib/index.d.ts",
     "build-declaration-dts-bundle": "dts-bundle --outputAsModuleFolder --name socket-serializer --main ./lib/socket-serializer.d.ts",
     "clean-declaration-dts": "del-cli ./lib/ts/*.d.ts",
+    "test": "mocha test --recursive",
     "tsc": "tsc",
     "tslint": "tslint"
+  },
+  "dependencies": {
+    "chai": "^4.1.2",
+    "user": "0.0.0"
   }
 }
