@@ -6,21 +6,23 @@ import { Writer } from './writer';
 export class SocketWriter implements Writer {
     private _socket: net.Socket;
     private _length: number;
+    private _buffer4: Buffer;
+    private _buffer8: Buffer;
     // private _buffers: Buffer[];
 
     constructor(socket: net.Socket) {
         this._socket = socket;
         // this._buffers = [];
         this._length = 0;
+        this._buffer8 = Buffer.alloc(8);
+        this._buffer4 = Buffer.alloc(4);
     }
 
     get buffer(): Buffer {
-        // return Buffer.concat(this._buffers, this._length);
         return null;
     }
 
     get buffers(): Buffer[] {
-        // return this._buffers;
         return null;
     }
 
@@ -29,32 +31,30 @@ export class SocketWriter implements Writer {
     }
 
     writeByte(data: number): number {
-        return this.writeBytes([data]);
+        ++this._length;
+        this._socket.write(data);
+        return this.length;
     }
 
     writeBytes(dataArray: number[]): number {
-        let buff = Buffer.from(dataArray);
-        this._length += buff.length;
-        this._socket.write(buff);
-        // this._buffers.push(buff);
+        this._length += dataArray.length;
+        for(let i = 0; i < dataArray.length; ++i) {
+            this._socket.write(dataArray[i]);
+        }
         return this.length;
     }
 
     writeUInt32(data: number): number {
-        let buff = Buffer.alloc(4);
-        buff.writeUInt32LE(data, 0);
-        this._length += buff.length;
-        this._socket.write(buff);
-        // this._buffers.push(buff);
+        this._buffer4.writeUInt32LE(data, 0);
+        this._length += 4;
+        this._socket.write(this._buffer4);
         return this.length;
     }
 
     writeDouble(data: number): number {
-        let buff = Buffer.alloc(8);
-        buff.writeDoubleLE(data, 0);
-        this._length += buff.length;
-        this._socket.write(buff);
-        // this._buffers.push(buff);
+        this._buffer8.writeDoubleLE(data, 0);
+        this._length += 8;
+        this._socket.write(this._buffer8);
         return this.length;
     }
 
@@ -62,10 +62,8 @@ export class SocketWriter implements Writer {
         if ((len != null) && (len < data.length)) {
             data = data.substring(0, len);
         }
-        let buff = Buffer.from(data, encoding);
-        this._length += buff.length;
-        this._socket.write(buff);
-        // this._buffers.push(buff);
+        this._length += Buffer.byteLength(data, encoding);
+        this._socket.write(data, encoding);
         return this.length;
     }
 
@@ -78,7 +76,6 @@ export class SocketWriter implements Writer {
         }
         this._length += buff.length;
         this._socket.write(buff);
-        // this._buffers.push(buff);
         return this.length;
     }
 }
