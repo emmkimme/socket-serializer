@@ -6,6 +6,7 @@ import { Writer } from './writer';
 export class SocketWriter implements Writer {
     private _socket: net.Socket;
     private _length: number;
+    private _buffer1: Buffer;
     private _buffer4: Buffer;
     private _buffer8: Buffer;
     // private _buffers: Buffer[];
@@ -14,6 +15,7 @@ export class SocketWriter implements Writer {
         this._socket = socket;
         // this._buffers = [];
         this._length = 0;
+        this._buffer1 = Buffer.alloc(1);
         this._buffer8 = Buffer.alloc(8);
         this._buffer4 = Buffer.alloc(4);
     }
@@ -31,16 +33,16 @@ export class SocketWriter implements Writer {
     }
 
     writeByte(data: number): number {
-        ++this._length;
-        this._socket.write(data);
+        this._buffer1[0] = data;
+        this._length += 1;
+        this._socket.write(this._buffer1);
         return this.length;
     }
 
     writeBytes(dataArray: number[]): number {
-        this._length += dataArray.length;
-        for(let i = 0; i < dataArray.length; ++i) {
-            this._socket.write(dataArray[i]);
-        }
+        let buff = Buffer.from(dataArray);
+        this._length += buff.length;
+        this._socket.write(buff);
         return this.length;
     }
 
