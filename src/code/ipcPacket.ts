@@ -17,6 +17,14 @@ export class IpcPacketSerializer {
         IpcPacketBuffer._serialize(this._packet, this._writer, data);
         return this;
     }
+
+    get buffer(): Buffer {
+        return this._writer.buffer;
+    }
+
+    get buffers(): Buffer[] {
+        return this._writer.buffers;
+    }
 };
 
 export class IpcPacketParser {
