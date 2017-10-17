@@ -61,6 +61,26 @@ describe('Number', function () {
   });
 });
 
+function ArrayEqual(a1, a2) {
+  return (a1.length === a2.length) && (a1.join(':') === a2.join(':'));
+}
+
+describe('Array', function () {
+  const paramArray = ['this is a test', 255, 56.5, true];
+
+  describe('serialize', function () {
+    it(`explicit should return a type ${typeof paramArray}`, function () {
+      ipb.serializeArray(paramArray);
+      assert(ArrayEqual(ipb.parseArray(), paramArray));
+    });
+    it(`implicit should return a type ${typeof paramArray}`, function () {
+      ipb.serialize(paramArray);
+      assert(ArrayEqual(ipb.parseArray(), paramArray));
+    });
+  });
+});
+
+
 describe('Buffer', function () {
   const paramBuffer = Buffer.alloc(128);
   for (let i = 0; i < paramBuffer.length; ++i) {

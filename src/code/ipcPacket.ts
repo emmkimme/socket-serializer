@@ -1,6 +1,5 @@
 // import { Buffer } from 'buffer';
 import { IpcPacketBufferWrap } from './ipcPacketBufferWrap';
-import { IpcPacketBuffer } from './ipcPacketBuffer';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferReader } from './bufferReader';
 
@@ -14,7 +13,7 @@ export class IpcPacketSerializer {
     }
 
     serialize(data: any): this {
-        IpcPacketBuffer._serialize(this._packet, this._writer, data);
+        this._packet.write(this._writer, data);
         return this;
     }
 
@@ -37,6 +36,6 @@ export class IpcPacketParser {
     }
 
     parse(): any {
-        return IpcPacketBuffer._parse(this._packet, this._reader);
+        return this._packet.read(this._reader);
     }
 }

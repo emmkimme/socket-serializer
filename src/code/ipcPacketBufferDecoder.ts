@@ -30,7 +30,7 @@ export class IpcPacketBufferDecoder extends EventEmitter {
     handlePacket(packet: IpcPacketBuffer): IpcPacketBuffer | null {
         if (this.packetArgs.length > 0) {
             this.packetArgs.push(packet);
-            if (packet.isArrayLen()) {
+            if (packet.isArrayWithLen()) {
                 this.expectedArgs += packet.argsLen;
             }
             if (--this.expectedArgs === 0) {
@@ -47,7 +47,7 @@ export class IpcPacketBufferDecoder extends EventEmitter {
             }
             return null;
         }
-        if (packet.isArrayLen()) {
+        if (packet.isArrayWithLen()) {
             this.packetArgs.push(packet);
             this.expectedArgs = packet.argsLen;
             return null;
