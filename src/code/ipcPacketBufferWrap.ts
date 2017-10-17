@@ -344,11 +344,11 @@ export class IpcPacketBufferWrap {
         this.type = BufferType.ArrayWithLen;
         this.argsLen = args.length;
         this.writeHeader(bufferWriter);
-        this.writeFooter(bufferWriter);
         let headerArg = new IpcPacketBufferWrap();
         args.forEach((arg) => {
             headerArg.write(bufferWriter, arg);
         });
+        this.writeFooter(bufferWriter);
     }
 
     writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
@@ -371,10 +371,6 @@ export class IpcPacketBufferWrap {
         this.readHeader(bufferReader);
         let arg: any;
         switch (this.type) {
-            case BufferType.ArrayWithLen: {
-                arg = this._readArrayWithLen(bufferReader);
-                break;
-            }
             case BufferType.ArrayWithLen: {
                 arg = this._readArrayWithLen(bufferReader);
                 break;
@@ -407,57 +403,46 @@ export class IpcPacketBufferWrap {
                 break;
             }
         }
+        bufferReader.skip(this.footerSize);
         return arg;
     }
 
     readBoolean(bufferReader: Reader): boolean {
         this.readHeader(bufferReader);
-        return this._readBoolean(bufferReader);
+        let data = this._readBoolean(bufferReader);
+        bufferReader.skip(this.footerSize);
+        return data;
     }
 
     private _readBoolean(bufferReader: Reader): boolean {
-        let data: boolean;
         switch (this.type) {
             case BufferType.BooleanTrue:
-                data = true;
-                bufferReader.skip(this.footerSize);
-                break;
+                return true;
             case BufferType.BooleanFalse:
-                data = false;
-                bufferReader.skip(this.footerSize);
-                break;
+                return false;
             default:
-                data = null;
-                break;
+                return null;
         }
-        return data;
     }
 
     readNumber(bufferReader: Reader): number {
         this.readHeader(bufferReader);
-        return this._readNumber(bufferReader);
+        let data = this._readNumber(bufferReader);
+        bufferReader.skip(this.footerSize);
+        return data;
     }
 
     private _readNumber(bufferReader: Reader): number {
-        let data: number;
         switch (this.type) {
             case BufferType.Double:
-                data = bufferReader.readDouble();
-                bufferReader.skip(this.footerSize);
-                break;
+                return bufferReader.readDouble();
             case BufferType.NegativeInteger:
-                data = -bufferReader.readUInt32();
-                bufferReader.skip(this.footerSize);
-                break;
+                return -bufferReader.readUInt32();
             case BufferType.PositiveInteger:
-                data = +bufferReader.readUInt32();
-                bufferReader.skip(this.footerSize);
-                break;
+                return +bufferReader.readUInt32();
             default:
-                data = null;
-                break;
+                return null;
         }
-        return data;
     }
 
     readObject(bufferReader: Reader): any {
@@ -465,12 +450,13 @@ export class IpcPacketBufferWrap {
         if (this.isObject() === false) {
             return null;
         }
-        return this._readObject(bufferReader);
+        let data = this._readObject(bufferReader);
+        bufferReader.skip(this.footerSize);
+        return data;
     }
 
     private _readObject(bufferReader: Reader): any {
         let data = bufferReader.readString('utf8', this.contentSize);
-        bufferReader.skip(this.footerSize);
         return JSON.parse(data);
     }
 
@@ -479,13 +465,13 @@ export class IpcPacketBufferWrap {
         if (this.isString() === false) {
             return null;
         }
-        return this._readString(bufferReader, encoding);
+        let data = this._readString(bufferReader, encoding);
+        bufferReader.skip(this.footerSize);
+        return data;
     }
 
     private _readString(bufferReader: Reader, encoding?: string): string {
-        let data = bufferReader.readString(encoding, this.contentSize);
-        bufferReader.skip(this.footerSize);
-        return data;
+        return bufferReader.readString(encoding, this.contentSize);
     }
 
     readBuffer(bufferReader: Reader): Buffer {
@@ -493,71 +479,20 @@ export class IpcPacketBufferWrap {
         if (this.isBuffer() === false) {
             return null;
         }
-        return this._readBuffer(bufferReader);
-    }
-
-    private _readBuffer(bufferReader: Reader): Buffer {
-        let data = bufferReader.readBuffer(this.contentSize);
+        let data = this._readBuffer(bufferReader);
         bufferReader.skip(this.footerSize);
         return data;
     }
 
-    readArrayAt(bufferReader: Reader, index: number): any[] {
-        this.readHeader(bufferReader);
-        return this._readArrayAt(bufferReader, index);
-    }
-
-    private _readArrayAt(bufferReader: Reader, index: number): any[] {
-        switch (this.type) {
-            case BufferType.ArrayWithLen: {
-                return this._readArrayWithLenAt(bufferReader, index);
-            }
-            case BufferType.ArrayWithSize: {
-                return this._readArrayWithSizeAt(bufferReader, index);
-            }
-        }
-        return null;
-    }
-
-    private _readArrayWithSizeAt(bufferReader: Reader, index: number): any {
-        let offsetContentSize = bufferReader.offset + this.contentSize;
-        let headerArg = new IpcPacketBufferWrap();
-        while ((index > 0) && (bufferReader.offset < offsetContentSize)) {
-            headerArg.readHeader(bufferReader);
-            bufferReader.skip(headerArg.contentSize + this.footerSize);
-            --index;
-        }
-        let arg: any;
-        if (index === 0) {
-            arg = headerArg.read(bufferReader);
-        }
-        return arg;
-    }
-
-    private _readArrayWithLenAt(bufferReader: Reader, index: number): any {
-        let argsLen = this.argsLen;
-        bufferReader.skip(this.footerSize);
-
-        if (index >= argsLen) {
-            return null;
-        }
-
-        let headerArg = new IpcPacketBufferWrap();
-        while (index > 0) {
-            headerArg.readHeader(bufferReader);
-            bufferReader.skip(headerArg.contentSize + this.footerSize);
-            --index;
-        }
-        let arg: any;
-        if (index === 0) {
-            arg = headerArg.read(bufferReader);
-        }
-        return arg;
+    private _readBuffer(bufferReader: Reader): Buffer {
+        return bufferReader.readBuffer(this.contentSize);
     }
 
     readArray(bufferReader: Reader): any[] {
         this.readHeader(bufferReader);
-        return this._readArray(bufferReader);
+        let data = this._readArray(bufferReader);
+        bufferReader.skip(this.footerSize);
+        return data;
     }
 
     private _readArray(bufferReader: Reader): any[] {
@@ -580,13 +515,11 @@ export class IpcPacketBufferWrap {
             let arg = headerArg.read(bufferReader);
             args.push(arg);
         }
-        bufferReader.skip(this.footerSize);
         return args;
     }
 
     private _readArrayWithLen(bufferReader: Reader): any[] {
         let argsLen = this.argsLen;
-        bufferReader.skip(this.footerSize);
 
         let args = [];
         let headerArg = new IpcPacketBufferWrap();
@@ -596,5 +529,54 @@ export class IpcPacketBufferWrap {
             --argsLen;
         }
         return args;
+    }
+
+    readArrayAt(bufferReader: Reader, index: number): any[] {
+        this.readHeader(bufferReader);
+        switch (this.type) {
+            case BufferType.ArrayWithLen: {
+                return this._readArrayWithLenAt(bufferReader, index);
+            }
+            case BufferType.ArrayWithSize: {
+                return this._readArrayWithSizeAt(bufferReader, index);
+            }
+        }
+        return null;
+    }
+
+    private _readArrayWithSizeAt(bufferReader: Reader, index: number): any {
+        let offsetContentSize = bufferReader.offset + this.contentSize;
+        let headerArg = new IpcPacketBufferWrap();
+        while ((index > 0) && (bufferReader.offset < offsetContentSize)) {
+            // Do not decode data just skip
+            headerArg.readHeader(bufferReader);
+            bufferReader.skip(headerArg.contentSize + headerArg.footerSize);
+            --index;
+        }
+        let arg: any;
+        if (index === 0) {
+            arg = headerArg.read(bufferReader);
+        }
+        return arg;
+    }
+
+    private _readArrayWithLenAt(bufferReader: Reader, index: number): any {
+        let argsLen = this.argsLen;
+        if (index >= argsLen) {
+            return null;
+        }
+
+        let headerArg = new IpcPacketBufferWrap();
+        while (index > 0) {
+            // Do not decode data just skip
+            headerArg.readHeader(bufferReader);
+            bufferReader.skip(headerArg.contentSize + headerArg.footerSize);
+            --index;
+        }
+        let arg: any;
+        if (index === 0) {
+            arg = headerArg.read(bufferReader);
+        }
+        return arg;
     }
 }

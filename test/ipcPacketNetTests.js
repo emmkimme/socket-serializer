@@ -10,13 +10,15 @@ const ipbModule = require('../lib/code/ipcPacketBuffer');
 const ipnModule = require('../lib/code/ipcPacketNet');
 
 describe('Test server', function () {
-    let server;
     let port;
-
     it(`server listening`, function (done) {
-        portfinder.getPortPromise({ port: 49152 }).then((thePort) => {
+        portfinder.getPortPromise({ port: 49152 })
+        .then((thePort) => {
             port = thePort;
-            server = new ipnModule.IpcPacketNet({ port: port });
+            let server = new ipnModule.IpcPacketNet({ port: port });
+            server.addListener('connection', () => {
+                // server.server.close();
+            });
             server.addListener('listening', () => {
                 done();
             });
@@ -24,12 +26,16 @@ describe('Test server', function () {
                 done(err);
             });
             server.listen();
+        })
+        .catch((err) => {
+            done(err);
         });
     });
 
     it(`client connecting`, function (done) {
         let client = new ipnModule.IpcPacketNet({ port: port });
         client.addListener('connect', (socket) => {
+            // client.socket.end();
             done();
         });
         client.addListener('error', (err) => {
