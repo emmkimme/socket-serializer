@@ -344,11 +344,11 @@ export class IpcPacketBufferWrap {
         this.type = BufferType.ArrayWithLen;
         this.argsLen = args.length;
         this.writeHeader(bufferWriter);
+        this.writeFooter(bufferWriter);
         let headerArg = new IpcPacketBufferWrap();
         args.forEach((arg) => {
             headerArg.write(bufferWriter, arg);
         });
-        this.writeFooter(bufferWriter);
     }
 
     writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
@@ -372,8 +372,9 @@ export class IpcPacketBufferWrap {
         let arg: any;
         switch (this.type) {
             case BufferType.ArrayWithLen: {
-                arg = this._readArrayWithLen(bufferReader);
-                break;
+                // Special case !!!
+                bufferReader.skip(this.footerSize);
+                return this._readArrayWithLen(bufferReader);
             }
             case BufferType.ArrayWithSize: {
                 arg = this._readArrayWithSize(bufferReader);
@@ -520,7 +521,6 @@ export class IpcPacketBufferWrap {
 
     private _readArrayWithLen(bufferReader: Reader): any[] {
         let argsLen = this.argsLen;
-
         let args = [];
         let headerArg = new IpcPacketBufferWrap();
         while (argsLen > 0) {
