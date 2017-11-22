@@ -3,7 +3,6 @@ import * as net from 'net';
 import { EventEmitter } from 'events';
 
 export class IpcNet extends EventEmitter {
-  private _defaultPortOrPath: any;
   private _defaultHost: string;
 
   private _reconnect: boolean;
@@ -19,7 +18,6 @@ export class IpcNet extends EventEmitter {
 
     options = options || {};
 
-    this._defaultPortOrPath = options.socketPath || options.port || 7100;
     this._defaultHost = options.host || 'localhost';
 
     this._numReconnects = 0;
@@ -73,11 +71,6 @@ export class IpcNet extends EventEmitter {
   private _onSocketError(socket: net.Socket, err: NodeJS.ErrnoException, portOrPath: any, host: string): void {
     socket.removeAllListeners('connect');
 
-    if ((err.code === 'ENOENT') && isNaN(portOrPath) && this._defaultPortOrPath) {
-      this.emit('warn', new Error(err.code + ' on ' + portOrPath + ', ' + host));
-      this.connect(this._defaultPortOrPath);
-      return;
-    }
     if ((err.code === 'ECONNREFUSED') && this._numReconnects) {
       this.emit('warn', new Error(err.code + ' on ' + portOrPath + ', ' + host));
       return this.reconnect(portOrPath, host);
@@ -85,8 +78,7 @@ export class IpcNet extends EventEmitter {
     this.emit('error', err, socket);
   }
 
-  connect(portOrPath?: any, host?: string) {
-    portOrPath = portOrPath || this._defaultPortOrPath;
+  connect(portOrPath: any, host?: string) {
     host = host || (!isNaN(portOrPath) ? this._defaultHost : null);
 
     if (portOrPath && host) {
@@ -117,11 +109,6 @@ export class IpcNet extends EventEmitter {
   }
 
   private _onServerError(server: net.Server, err: NodeJS.ErrnoException, portOrPath: any, host: string): void {
-    if ((err.code === 'EACCES') && isNaN(portOrPath) && this._defaultPortOrPath) {
-      this.emit('warn', new Error(err.code + ' on ' + portOrPath + ', ' + host));
-      this.listen(this._defaultPortOrPath);
-      return;
-    }
     this.emit('error', err, server);
   }
 
@@ -140,8 +127,7 @@ export class IpcNet extends EventEmitter {
     this.emit('listening', server);
   };
 
-  listen(portOrPath?: any, host?: string) {
-    portOrPath = portOrPath || this._defaultPortOrPath;
+  listen(portOrPath: any, host?: string) {
     host = host || (!isNaN(portOrPath) ? this._defaultHost : null);
 
     this._server = net.createServer();
@@ -164,8 +150,7 @@ export class IpcNet extends EventEmitter {
     }
   }
 
-  // start(portOrPath: any, host: any) {
-  //   port = port || this.socketPath || this._defaultPortOrPath;
+  // start(portOrPath: any, host?: any) {
   //   host = host || (!isNaN(port) ? this._defaultHost : null);
 
   //   let onError = (err: any): void => {
