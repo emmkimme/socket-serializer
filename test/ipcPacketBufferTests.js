@@ -66,7 +66,7 @@ function ArrayEqual(a1, a2) {
 }
 
 describe('Array', function () {
-  const paramArray = ['this is a test', 255, 56.5, true];
+  const paramArray = ['this is a test', 255, 56.5, true, ''];
 
   describe('serialize', function () {
     it(`explicit should return a type ${typeof paramArray}`, function () {

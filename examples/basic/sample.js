@@ -18,7 +18,8 @@ portfinder.getPortPromise({ port: 49152 }).then((port) => {
         const paramObject = {
             num: 10.2,
             str: "test",
-            bool: true
+            bool: true,
+            array: ["", 10.2, true]
         };
         var ipb = new socketSerialModule.IpcPacketBuffer();
         ipb.serializeObject(paramObject);

@@ -50,16 +50,28 @@ export class BufferReader implements Reader {
     }
 
     readString(encoding?: string, len?: number): string {
+        if (len == null) {
+            len = this._buffer.length;
+        }
+        else if (len <= 0) {
+            return '';
+        }
         encoding = encoding || 'utf8';
         let start = this._offset;
-        let end = start + (len || this._buffer.length);
+        let end = start + len;
         this._offset = end;
         return this._buffer.toString(encoding, start, end);
     }
 
     readBuffer(len?: number): Buffer {
+        if (len == null) {
+            len = this._buffer.length;
+        }
+        else if (len <= 0) {
+            return Buffer.alloc(0);
+        }
         let start = this._offset;
-        let end = start + (len || this._buffer.length);
+        let end = start + len;
         this._offset = end;
         return this._buffer.slice(start, end);
     }
