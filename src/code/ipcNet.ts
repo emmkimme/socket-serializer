@@ -21,8 +21,8 @@ export class IpcNet extends EventEmitter {
     this._defaultHost = options.host || 'localhost';
 
     this._numReconnects = 0;
-    this._reconnect = options._reconnect || true;
-    this._delayReconnect = options._delayReconnect || 3000;
+    this._reconnect = options.reconnect || true;
+    this._delayReconnect = options.delayReconnect || 3000;
   }
 
   get socket(): net.Socket {

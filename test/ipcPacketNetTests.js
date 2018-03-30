@@ -15,7 +15,7 @@ describe('Test server', function () {
         portfinder.getPortPromise({ port: 49152 })
         .then((thePort) => {
             port = thePort;
-            let server = new ipnModule.IpcPacketNet({ port: port });
+            let server = new ipnModule.IpcPacketNet();
             server.addListener('connection', () => {
                 // server.server.close();
             });
@@ -25,7 +25,7 @@ describe('Test server', function () {
             server.addListener('error', (err) => {
                 done(err);
             });
-            server.listen();
+            server.listen(port);
         })
         .catch((err) => {
             done(err);
@@ -33,7 +33,7 @@ describe('Test server', function () {
     });
 
     it(`client connecting`, function (done) {
-        let client = new ipnModule.IpcPacketNet({ port: port });
+        let client = new ipnModule.IpcPacketNet();
         client.addListener('connect', (socket) => {
             // client.socket.end();
             done();
@@ -41,7 +41,7 @@ describe('Test server', function () {
         client.addListener('error', (err) => {
             done(err);
         });
-        client.connect();
+        client.connect(port);
     });
 });
 
