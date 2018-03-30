@@ -300,7 +300,7 @@ export class IpcPacketBufferWrap {
             }
         }
         // Either this is not an integer or it is outside of a 32-bit integer.
-        // Sparsere as a double.
+        // Save as a double.
         this.type = BufferType.Double;
         this.writeHeader(bufferWriter);
         bufferWriter.writeDouble(dataNumber);

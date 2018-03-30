@@ -64,8 +64,9 @@ export class SocketWriter implements Writer {
         if ((len != null) && (len < data.length)) {
             data = data.substring(0, len);
         }
-        this._length += Buffer.byteLength(data, encoding);
-        this._socket.write(data, encoding);
+        let buff = Buffer.from(data, encoding);
+        this._length += buff.length;
+        this._socket.write(buff);
         return this.length;
     }
 
