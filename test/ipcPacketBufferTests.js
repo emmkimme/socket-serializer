@@ -157,14 +157,15 @@ describe('Object', function () {
     });
   });
 
+  const nullObject = null;
   describe('serialize null', function () {
-    it(`explicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
-      ipb.serializeObject(null);
-      assert(ipb.parseObject() == null);
+    it(`explicit should return a type ${typeof nullObject} = ${JSON.stringify(nullObject)}`, function () {
+      ipb.serializeObject(nullObject);
+      assert(ipb.parseObject() == nullObject);
     });
-    it(`implicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
-      ipb.serialize(null);
-      assert(ipb.parse() == null);
+    it(`implicit should return a type ${typeof nullObject} = ${JSON.stringify(nullObject)}`, function () {
+      ipb.serialize(nullObject);
+      assert(ipb.parse() == nullObject);
     });
   });
 });
