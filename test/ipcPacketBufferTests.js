@@ -156,5 +156,16 @@ describe('Object', function () {
       assert(JSON.stringify(ipb.parse()) === JSON.stringify(paramObject));
     });
   });
+
+  describe('serialize null', function () {
+    it(`explicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
+      ipb.serializeObject(null);
+      assert(ipb.parseObject() == null);
+    });
+    it(`implicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
+      ipb.serialize(null);
+      assert(ipb.parse() == null);
+    });
+  });
 });
 

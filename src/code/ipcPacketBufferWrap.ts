@@ -38,7 +38,9 @@ export enum BufferType {
     // 100
     Double = 'd'.charCodeAt(0),
     // 79
-    Object = 'O'.charCodeAt(0)
+    Object = 'O'.charCodeAt(0),
+    // 79
+    ObjectNull = 'N'.charCodeAt(0)
 };
 
 export class IpcPacketBufferWrap {
@@ -89,6 +91,7 @@ export class IpcPacketBufferWrap {
                 break;
             case BufferType.BooleanTrue:
             case BufferType.BooleanFalse:
+            case BufferType.ObjectNull:
                 this._headerSize = MinHeaderLength;
                 this.setContentSize(0);
                 break;
@@ -173,7 +176,13 @@ export class IpcPacketBufferWrap {
     }
 
     isObject(): boolean {
-        return this._type === BufferType.Object;
+        switch (this._type) {
+            case BufferType.Object :
+            case BufferType.ObjectNull :
+               return true;
+            default:
+                return false;
+        }
     }
 
     isString(): boolean {
@@ -346,18 +355,25 @@ export class IpcPacketBufferWrap {
     }
 
     writeObject(bufferWriter: Writer, dataObject: any): void {
-        let bufferWriterKeys = new BufferListWriter();
-        Object.keys(dataObject).forEach((key) => {
-            this.writeString(bufferWriterKeys, key);
-            this.write(bufferWriterKeys, dataObject[key]);
-        })
-        this.type = BufferType.Object;
-        this.contentSize = bufferWriterKeys.length;
-        this.writeHeader(bufferWriter);
-        bufferWriterKeys.buffers.forEach((buffer) => {
-            bufferWriter.writeBuffer(buffer);
-        });
-        this.writeFooter(bufferWriter);
+        if (dataObject == null) {
+            this.type = BufferType.ObjectNull;
+            this.writeHeader(bufferWriter);
+            this.writeFooter(bufferWriter);
+        }
+        else {
+            let bufferWriterKeys = new BufferListWriter();
+            Object.keys(dataObject).forEach((key) => {
+                this.writeString(bufferWriterKeys, key);
+                this.write(bufferWriterKeys, dataObject[key]);
+            })
+            this.type = BufferType.Object;
+            this.contentSize = bufferWriterKeys.length;
+            this.writeHeader(bufferWriter);
+            bufferWriterKeys.buffers.forEach((buffer) => {
+                bufferWriter.writeBuffer(buffer);
+            });
+            this.writeFooter(bufferWriter);
+        }
     }
 
     writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
@@ -389,7 +405,8 @@ export class IpcPacketBufferWrap {
                 arg = this._readArrayWithSize(bufferReader);
                 break;
             }
-            case BufferType.Object: {
+            case BufferType.Object:
+            case BufferType.ObjectNull: {
                 arg = this._readObject(bufferReader);
                 break;
             }
@@ -494,6 +511,9 @@ export class IpcPacketBufferWrap {
     }
 
     private _readObject(bufferReader: Reader): any {
+        if (this.type === BufferType.ObjectNull) {
+            return null;
+        }
         let offsetContentSize = bufferReader.offset + this.contentSize;
         let dataObject: any = {};
         while (bufferReader.offset < offsetContentSize) {
