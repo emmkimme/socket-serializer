@@ -12,7 +12,7 @@ export class BufferReader implements Reader {
     }
 
     checkEOF(offsetStep?: number): boolean {
-        return (this._offset + (offsetStep || 0) > this.length);
+        return (this._offset + (offsetStep || 0) > this._buffer.length);
     }
 
     get length(): number {

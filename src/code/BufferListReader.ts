@@ -12,7 +12,7 @@ export class BufferListReader implements Reader {
     private _curBuffer: Buffer;
 
     constructor(buffers: Buffer[], offset?: number) {
-        this._buffers = buffers;
+        this._buffers = buffers || [];
         this._offset = 0;
         // Sum all the buffers lengths
         this._length = this._buffers.reduce(function (left: any, right: any) { return (left.length || left) + (right.length || right); }, 0);
@@ -29,7 +29,7 @@ export class BufferListReader implements Reader {
     }
 
     checkEOF(offsetStep?: number): boolean {
-        return (this._offset + (offsetStep || 0) > this.length);
+        return (this._offset + (offsetStep || 0) > this._length);
     }
 
     get length(): number {
@@ -143,6 +143,7 @@ export class BufferListReader implements Reader {
         this._consolidate(this._curOffset + len);
         let start = this._curOffset;
         let end = Math.min(start + len, this._curBuffer.length);
+        len = end - start;
 
         this._offset += len;
         this._curOffset += len;
@@ -151,32 +152,33 @@ export class BufferListReader implements Reader {
 
     readBuffer(len?: number): Buffer {
         len = (len || (this._length - this._offset));
+        this._consolidate(this._curOffset + len);
 
-        let start = this._offset;
-        let end = Math.min(start + len, this._length);
-        let bufferLen = end - start;
+        let start = this._curOffset;
+        let end = Math.min(start + len, this._curBuffer.length);
+        this._offset += len;
+        this._curOffset += len;;
+        return this._curBuffer.slice(start, end);
 
-        this._offset += bufferLen;
-
-        let targetBuffer = Buffer.alloc(bufferLen);
-        let targetOffset = 0;
-        for (; this._curBufferIndex < this._buffers.length; ++this._curBufferIndex) {
-            this._curBuffer = this._buffers[this._curBufferIndex];
-            let curBufferLen = this._curBuffer.length - this._curOffset;
-            if (curBufferLen >= bufferLen) {
-                this._curBuffer.copy(targetBuffer, targetOffset, this._curOffset, this._curOffset + bufferLen);
-                this._curOffset += bufferLen;
-                bufferLen = 0;
-                break;
-            }
-            else {
-                this._curBuffer.copy(targetBuffer, targetOffset, this._curOffset, this._curOffset + curBufferLen);
-                bufferLen -= curBufferLen;
-                targetOffset += curBufferLen;
-                this._curOffset = 0;
-            }
-        }
-        return targetBuffer;
+        // let targetBuffer = Buffer.alloc(bufferLen);
+        // let targetOffset = 0;
+        // for (; this._curBufferIndex < this._buffers.length; ++this._curBufferIndex) {
+        //     this._curBuffer = this._buffers[this._curBufferIndex];
+        //     let curBufferLen = this._curBuffer.length - this._curOffset;
+        //     if (curBufferLen >= bufferLen) {
+        //         this._curBuffer.copy(targetBuffer, targetOffset, this._curOffset, this._curOffset + bufferLen);
+        //         this._curOffset += bufferLen;
+        //         bufferLen = 0;
+        //         break;
+        //     }
+        //     else {
+        //         this._curBuffer.copy(targetBuffer, targetOffset, this._curOffset, this._curOffset + curBufferLen);
+        //         bufferLen -= curBufferLen;
+        //         targetOffset += curBufferLen;
+        //         this._curOffset = 0;
+        //     }
+        // }
+        // return targetBuffer;
     }
 }
 
