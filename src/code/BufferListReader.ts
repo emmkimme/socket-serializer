@@ -152,13 +152,21 @@ export class BufferListReader implements Reader {
 
     readBuffer(len?: number): Buffer {
         len = (len || (this._length - this._offset));
-        this._consolidate(this._curOffset + len);
 
+        this._consolidate(this._curOffset + len);
         let start = this._curOffset;
         let end = Math.min(start + len, this._curBuffer.length);
+        len = end - start;
+
         this._offset += len;
         this._curOffset += len;;
         return this._curBuffer.slice(start, end);
+
+        // let start = this._offset;
+        // let end = Math.min(start + len, this._length);
+        // let bufferLen = end - start;
+
+        // this._offset += bufferLen;
 
         // let targetBuffer = Buffer.alloc(bufferLen);
         // let targetOffset = 0;
