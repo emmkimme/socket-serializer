@@ -326,12 +326,6 @@ export class IpcPacketBufferWrap {
         this._writeString(bufferWriter, data, encoding);
     }
 
-    writeObject(bufferWriter: Writer, dataObject: Object): void {
-        let data = JSON.stringify(dataObject);
-        this.type = BufferType.Object;
-        this._writeString(bufferWriter, data, 'utf8');
-    }
-
     writeBuffer(bufferWriter: Writer, data: Buffer): void {
         this.type = BufferType.Buffer;
         this.contentSize = data.length;
@@ -349,6 +343,21 @@ export class IpcPacketBufferWrap {
         args.forEach((arg) => {
             headerArg.write(bufferWriter, arg);
         });
+    }
+
+    writeObject(bufferWriter: Writer, dataObject: any): void {
+        let bufferWriterKeys = new BufferListWriter();
+        Object.keys(dataObject).forEach((key) => {
+            this.writeString(bufferWriterKeys, key);
+            this.write(bufferWriterKeys, dataObject[key]);
+        })
+        this.type = BufferType.Object;
+        this.contentSize = bufferWriterKeys.length;
+        this.writeHeader(bufferWriter);
+        bufferWriterKeys.buffers.forEach((buffer) => {
+            bufferWriter.writeBuffer(buffer);
+        });
+        this.writeFooter(bufferWriter);
     }
 
     writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
@@ -446,21 +455,6 @@ export class IpcPacketBufferWrap {
         }
     }
 
-    readObject(bufferReader: Reader): any {
-        this.readHeader(bufferReader);
-        if (this.isObject() === false) {
-            return null;
-        }
-        let data = this._readObject(bufferReader);
-        bufferReader.skip(this.footerSize);
-        return data;
-    }
-
-    private _readObject(bufferReader: Reader): any {
-        let data = bufferReader.readString('utf8', this.contentSize);
-        return JSON.parse(data);
-    }
-
     readString(bufferReader: Reader, encoding?: string): any {
         this.readHeader(bufferReader);
         if (this.isString() === false) {
@@ -487,6 +481,26 @@ export class IpcPacketBufferWrap {
 
     private _readBuffer(bufferReader: Reader): Buffer {
         return bufferReader.readBuffer(this.contentSize);
+    }
+
+    readObject(bufferReader: Reader): any {
+        this.readHeader(bufferReader);
+        if (this.isObject() === false) {
+            return null;
+        }
+        let data = this._readObject(bufferReader);
+        bufferReader.skip(this.footerSize);
+        return data;
+    }
+
+    private _readObject(bufferReader: Reader): any {
+        let offsetContentSize = bufferReader.offset + this.contentSize;
+        let dataObject: any = {};
+        while (bufferReader.offset < offsetContentSize) {
+            let key = this.readString(bufferReader);
+            dataObject[key] = this.read(bufferReader);
+        }
+        return dataObject;
     }
 
     readArray(bufferReader: Reader): any[] {

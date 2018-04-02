@@ -138,7 +138,12 @@ describe('Object', function () {
   const paramObject = {
     num: 10.2,
     str: "test",
-    bool: true
+    bool: true,
+    properties: {
+      num1: 12.2,
+      str1: "test2",
+      bool1: false
+    }
   };
 
   describe('serialize', function () {
