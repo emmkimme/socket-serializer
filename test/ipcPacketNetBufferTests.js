@@ -5,26 +5,31 @@ const expect = chai.expect;
 const portfinder = require('portfinder');
 
 const Buffer = require('buffer').Buffer;
-const ipbModule = require('../lib/code/ipcPacketBuffer');
-const ipb = new ipbModule.IpcPacketBuffer();
 
-const ipnModule = require('../lib/code/ipcPacketNet');
+const ssModule = require('../lib/socket-serializer');
 
 const timeoutDelay = 500;
 
-describe('Test packet transfer', async function () {
-  function testSerialization(param, ipb, fctSerialize, fctParse) {
+for(let socketWriterType = 0; socketWriterType < 4; ++socketWriterType) {
+
+describe(`Test packet transfer with socket ${socketWriterType}`, async function () {
+  function testSerialization(param, test) {
     it(`transfer type ${typeof param} = ${param}`, function (done) {
       portfinder.getPortPromise({ port: 49152 }).then((port) => {
-        let ipcServer = new ipnModule.IpcPacketNet({ port: port }); // '/tests'
+        let ipcServer = new ssModule.IpcPacketNet({ port: port }); // '/tests'
         let timer = setTimeout(() => {
           ipcServer.server.close();
           reject('timeout');
         }, timeoutDelay);
         ipcServer.addListener('listening', () => {
-          let ipcSocket = new ipnModule.IpcPacketNet();
-          ipcSocket.addListener('packet', (buff) => {
-            assert.equal(fctParse.apply(ipb), param);
+          let ipcSocket = new ssModule.IpcPacketNet();
+          ipcSocket.addListener('packet', (ipcPacket) => {
+            if (test === 0) {
+              assert.equal(ipcPacket.parse(), param);
+            }
+            else {
+              assert(JSON.stringify(ipcPacket.parse()) === JSON.stringify(param));
+            }
             clearTimeout(timer);
             ipcSocket.socket.end();
             ipcSocket.socket.unref();
@@ -61,8 +66,28 @@ describe('Test packet transfer', async function () {
         ipcServer.addListener('connection', (socket) => {
           // console.log(`Port ${port} : ipcSocket connected`);
           // console.log(`Port ${port} : server sends data`);
-          fctSerialize.apply(ipb, [param]);
-          socket.write(ipb.buffer);
+          const ipb = new ssModule.IpcPacketBuffer();
+          switch(socketWriterType) {
+            case 0 :
+              ipb.serialize(param);
+              socket.write(ipb.buffer);
+              break;
+            case 1: {
+              let s = new ssModule.SocketWriter(socket);
+              ipb.write(s, param);
+              break;
+            }
+            case 2: {
+              let s = new ssModule.DelayedSocketWriter(socket);
+              ipb.write(s, param);
+              break;
+            }
+            case 3: {
+              let s = new ssModule.BufferedSocketWriter(socket, 64);
+              ipb.write(s, param);
+              break;
+            }
+          }
         });
         ipcServer.addListener('close', (err) => {
           // console.log(`Port ${port} : server closed`);
@@ -77,87 +102,90 @@ describe('Test packet transfer', async function () {
     });
   }
 
-  describe('Boolean', function () {
-    const paramTrue = true;
-    const paramFalse = false;
+    describe('Boolean', function () {
+      const paramTrue = true;
+      const paramFalse = false;
 
-    describe('emit true', function () {
-      testSerialization(paramTrue, ipb, ipb.serializeBoolean, ipb.parseBoolean);
+      describe('emit true', function () {
+        testSerialization(paramTrue, 0);
+      });
+      describe('emit false', function () {
+        testSerialization(paramFalse, 0);
+      });
     });
-    describe('emit false', function () {
-      testSerialization(paramFalse, ipb, ipb.serializeBoolean, ipb.parseBoolean);
+
+    describe('String', function () {
+      const paramString = 'this is a test';
+
+      describe('emit', function () {
+        testSerialization(paramString, 0);
+      });
     });
-  });
 
-  describe('String', function () {
-    const paramString = 'this is a test';
+    describe('Number', function () {
+      const paramDouble = 12302.23;
+      const paramInt32Positive = 45698;
+      const paramInt32Negative = -45698;
+      const paramInt64Positive = 99999999999999;
+      const paramInt64Negative = -99999999999999;
 
-    describe('emit', function () {
-      testSerialization(paramString, ipb, ipb.serializeString, ipb.parseString);
+      describe('emit double', function () {
+        testSerialization(paramDouble, 0);
+      });
+      describe('emit 32bits positive integer', function () {
+        testSerialization(paramInt32Positive, 0);
+      });
+      describe('emit 32bits negative integer', function () {
+        testSerialization(paramInt32Negative, 0);
+      });
+      describe('emit 64bits positive integer', function () {
+        testSerialization(paramInt64Positive, 0);
+      });
+      describe('emit 64bits negative integer', function () {
+        testSerialization(paramInt64Negative, 0);
+      });
     });
-  });
 
-  describe('Number', function () {
-    const paramDouble = 12302.23;
-    const paramInt32Positive = 45698;
-    const paramInt32Negative = -45698;
-    const paramInt64Positive = 99999999999999;
-    const paramInt64Negative = -99999999999999;
+    describe('Object', function () {
+      const paramObject = {
+        num: 10.2,
+        str: "test",
+        bool: true,
+        properties: {
+          num1: 12.2,
+          str1: "test2",
+          bool1: false
+        }
+      };
 
-    describe('emit double', function () {
-      testSerialization(paramDouble, ipb, ipb.serializeNumber, ipb.parseNumber);
+      describe(`emit ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
+        testSerialization(paramObject, 1);
+      });
+
+      const nullObject = null;
+      describe(`emit ${typeof nullObject} = ${JSON.stringify(nullObject)}`, function () {
+        testSerialization(nullObject, 1);
+      });
     });
-    describe('emit 32bits positive integer', function () {
-      testSerialization(paramInt32Positive, ipb, ipb.serializeNumber, ipb.parseNumber);
-    });
-    describe('emit 32bits negative integer', function () {
-      testSerialization(paramInt32Negative, ipb, ipb.serializeNumber, ipb.parseNumber);
-    });
-    describe('emit 64bits positive integer', function () {
-      testSerialization(paramInt64Positive, ipb, ipb.serializeNumber, ipb.parseNumber);
-    });
-    describe('emit 64bits negative integer', function () {
-      testSerialization(paramInt64Negative, ipb, ipb.serializeNumber, ipb.parseNumber);
-    });
-  });
-
-  //   describe('Buffer', function () {
-  //     const paramBuffer = Buffer.alloc(128);
-  //     for (let i = 0; i < paramBuffer.length; ++i) {
-  //       paramBuffer[i] = 255 * Math.random();
-  //     }
-
-  //     describe('serialize', function () {
-  //       it(`explicit should return a type ${typeof paramBuffer}`, function () {
-  //         var ipb = ipb.serializeBuffer(paramBuffer);
-  //         assert(Buffer.compare(ipb.parseBuffer(), paramBuffer) === 0);
-  //       });
-  //       it(`implicit should return a type ${typeof paramBuffer}`, function () {
-  //         var ipb = ipb.serialize(paramBuffer);
-  //         assert(Buffer.compare(ipb.parse(), paramBuffer) === 0);
-  //       });
-  //     });
-  //   });
-
-  //   describe('Object', function () {
-  //     const paramObject = {
-  //       num: 10.2,
-  //       str: "test",
-  //       bool: true
-  //     };
-
-  //     describe('serialize', function () {
-  //       it(`explicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
-  //         var ipb = ipb.serializeObject(paramObject);
-  //         assert(JSON.stringify(ipb.parseObject()) === JSON.stringify(paramObject));
-  //       });
-  //       it(`implicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
-  //         var ipb = ipb.serialize(paramObject);
-  //         assert(JSON.stringify(ipb.parse()) === JSON.stringify(paramObject));
-  //       });
-  //     });
-  //   });
 
 
+    //   describe('Buffer', function () {
+    //     const paramBuffer = Buffer.alloc(128);
+    //     for (let i = 0; i < paramBuffer.length; ++i) {
+    //       paramBuffer[i] = 255 * Math.random();
+    //     }
+
+    //     describe('serialize', function () {
+    //       it(`explicit should return a type ${typeof paramBuffer}`, function () {
+    //         var ipb = ipb.serializeBuffer(paramBuffer);
+    //         assert(Buffer.compare(ipb.parseBuffer(), paramBuffer) === 0);
+    //       });
+    //       it(`implicit should return a type ${typeof paramBuffer}`, function () {
+    //         var ipb = ipb.serialize(paramBuffer);
+    //         assert(Buffer.compare(ipb.parse(), paramBuffer) === 0);
+    //       });
+    //     });
+    //   });
 });
 
+}
