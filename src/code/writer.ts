@@ -12,6 +12,7 @@ export interface Writer {
     writeString(data: string, encoding?: string, len?: number): number;
     writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
 
-    complete(): void;
+    pushContext(): void;
+    popContext(): void;
 }
 

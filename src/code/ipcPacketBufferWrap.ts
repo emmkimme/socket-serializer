@@ -244,6 +244,7 @@ export class IpcPacketBufferWrap {
     }
 
     protected writeHeader(bufferWriter: Writer): void {
+        bufferWriter.pushContext();
         bufferWriter.writeBytes([headerSeparator, this._type]);
         switch (this._type) {
             case BufferType.ArrayWithLen:
@@ -260,7 +261,7 @@ export class IpcPacketBufferWrap {
 
     protected writeFooter(bufferWriter: Writer): void {
         bufferWriter.writeByte(footerSeparator);
-        bufferWriter.complete();
+        bufferWriter.popContext();
     }
 
     write(bufferWriter: Writer, data: any): void {

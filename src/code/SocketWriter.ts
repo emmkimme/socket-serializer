@@ -81,7 +81,10 @@ export class SocketWriter implements Writer {
         return this.length;
     }
 
-    complete(): void {
+    pushContext(): void {
+    }
+
+    popContext(): void {
     }
 }
 

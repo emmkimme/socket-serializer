@@ -77,6 +77,9 @@ export class BufferListWriter implements Writer {
         return this.length;
     }
 
-    complete(): void {
+    pushContext(): void {
+    }
+
+    popContext(): void {
     }
 }

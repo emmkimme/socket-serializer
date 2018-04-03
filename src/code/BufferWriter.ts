@@ -59,7 +59,10 @@ export class BufferWriter implements Writer {
         return this._offset;
     }
 
-    complete(): void {
+    pushContext(): void {
+    }
+
+    popContext(): void {
     }
 }
 

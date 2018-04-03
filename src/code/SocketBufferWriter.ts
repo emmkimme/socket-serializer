@@ -10,7 +10,10 @@ export class DelayedSocketWriter extends BufferListWriter {
         this._socket = socket;
     }
 
-    complete(): void {
+    pushContext(): void {
+    }
+
+    popContext(): void {
         let buffer = this.buffer;
         this._buffers = [];
         this._length = 0;
@@ -20,15 +23,24 @@ export class DelayedSocketWriter extends BufferListWriter {
 
 export class BufferedSocketWriter extends DelayedSocketWriter {
     private _bufferSize: number;
+    private _context: number;
 
     constructor(socket: net.Socket, bufferSize?: number) {
         super(socket);
         this._bufferSize = bufferSize || 0;
+        this._context = 0;
     }
 
-    complete(): void {
-        if (this._bufferSize >= this._length) {
-            this.complete();
+    pushContext(): void {
+        ++this._context;
+    }
+
+    popContext(): void {
+        if (--this._context === 0) {
+            this.popContext();
+        }
+        else if (this._bufferSize >= this._length) {
+            this.popContext();
         }
     }
 }
