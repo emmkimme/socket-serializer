@@ -8,7 +8,7 @@ const ipb = new ipbModule.IpcPacketBuffer();
 
 function testSerialization(param, ipb, fctSerialize, fctParse) {
   {
-    let msg = `explicit should return a type ${typeof param} = ${param}`;
+    let msg = `explicit should return a type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
     it(msg, function () {
       console.time(msg);
       fctSerialize.call(ipb, param);
@@ -17,7 +17,7 @@ function testSerialization(param, ipb, fctSerialize, fctParse) {
     });
   }
   {
-    let msg = `implicit should return a type ${typeof param} = ${param}`;
+    let msg = `implicit should return a type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
     it(msg, function () {
       console.time(msg);
       ipb.serialize(param);

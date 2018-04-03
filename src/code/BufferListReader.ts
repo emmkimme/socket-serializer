@@ -14,7 +14,10 @@ export class BufferListReader implements Reader {
         this._buffers = buffers || [];
         this._offset = 0;
         // Sum all the buffers lengths
-        this._length = this._buffers.reduce(function (left: any, right: any) { return (left.length || left) + (right.length || right); }, 0);
+        this._length = 0;
+        this._buffers.forEach((buffer) => {
+            this._length += buffer.length;
+        });
 
         this._curBufferIndex = 0;
         this._curOffset = 0;
@@ -89,7 +92,7 @@ export class BufferListReader implements Reader {
     }
 
     private _consolidate(newOffset: number): boolean {
-        if (this._curBuffer.length >= newOffset) {
+        if (newOffset <= this._curBuffer.length) {
             return true;
         }
         let bufferLength = this._curBuffer.length;

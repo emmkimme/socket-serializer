@@ -71,7 +71,9 @@ export class IpcPacketBufferDecoder extends EventEmitter {
         if (this._packet.isNotValid()) {
             this.emit('error', new Error('Get invalid packet header'));
         }
-        this._bufferListReader.reduce();
-        this.emit('packet[]', packets);
+        if (packets.length) {
+            this._bufferListReader.reduce();
+            this.emit('packet[]', packets);
+        }
     }
 }
