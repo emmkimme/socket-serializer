@@ -1,10 +1,8 @@
-import * as net from 'net';
+import { IpcPacketBufferWrap, BufferType } from './ipcPacketBufferWrap';
 
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
 import { BufferListWriter } from './bufferListWriter';
-import { SocketWriter } from './SocketWriter';
-import { IpcPacketBufferWrap, BufferType } from './ipcPacketBufferWrap';
 
 export class IpcPacketBuffer extends IpcPacketBufferWrap {
     private _buffer: Buffer;
@@ -84,12 +82,21 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         this._buffer = bufferWriter.buffer;
     }
 
-    static serializeToSocket(data: any, socket: net.Socket): number {
-        let header = new IpcPacketBufferWrap();
-        let bufferWriter = new SocketWriter(socket);
-        header.write(bufferWriter, data);
-        return bufferWriter.length;
-    }
+    // static serializeToSocket(data: any, socket: net.Socket, bufferSize?: number): number {
+    //     let header = new IpcPacketBufferWrap();
+    //     let bufferWriter: Writer;
+    //     if (bufferSize == null) {
+    //         bufferWriter = new SocketWriter(socket);
+    //     }
+    //     else if (bufferSize <= 0) {
+    //         bufferWriter = new DelayedSocketWriter(socket);
+    //     }
+    //     else {
+    //         bufferWriter = new BufferedSocketWriter(socket, bufferSize);
+    //     }
+    //     header.write(bufferWriter, data);
+    //     return bufferWriter.length;
+    // }
 
     parse(): any {
         let bufferReader = new BufferReader(this._buffer);

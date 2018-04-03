@@ -260,6 +260,7 @@ export class IpcPacketBufferWrap {
 
     protected writeFooter(bufferWriter: Writer): void {
         bufferWriter.writeByte(footerSeparator);
+        bufferWriter.complete();
     }
 
     write(bufferWriter: Writer, data: any): void {
@@ -316,7 +317,7 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
-    protected  writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
+    protected writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
         this.type = dataBoolean ? BufferType.BooleanTrue : BufferType.BooleanFalse;
         this.writeHeader(bufferWriter);
         this.writeFooter(bufferWriter);

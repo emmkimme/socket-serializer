@@ -1,10 +1,9 @@
 import { Buffer } from 'buffer';
 import { Writer } from './writer';
 
-/** @internal */
 export class BufferListWriter implements Writer {
-    private _length: number;
-    private _buffers: Buffer[];
+    protected _length: number;
+    protected _buffers: Buffer[];
 
     constructor() {
         this._buffers = [];
@@ -77,5 +76,7 @@ export class BufferListWriter implements Writer {
         this._buffers.push(buff);
         return this.length;
     }
-}
 
+    complete(): void {
+    }
+}

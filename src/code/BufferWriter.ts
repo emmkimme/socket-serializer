@@ -1,7 +1,5 @@
-import { Buffer } from 'buffer';
 import { Writer } from './writer';
 
-/** @internal */
 export class BufferWriter implements Writer {
     private _offset: number;
     private _buffer: Buffer;
@@ -59,6 +57,9 @@ export class BufferWriter implements Writer {
     writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number {
         this._offset += data.copy(this._buffer, this._offset, sourceStart, sourceEnd);
         return this._offset;
+    }
+
+    complete(): void {
     }
 }
 

@@ -1,7 +1,6 @@
 // import { Buffer } from 'buffer';
 import { Reader } from './reader';
 
-/** @internal */
 export class BufferReader implements Reader {
     private _offset: number;
     private _buffer: Buffer;

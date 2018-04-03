@@ -3,7 +3,6 @@ import { EventEmitter } from 'events';
 import { IpcPacketBuffer } from './ipcPacketBuffer';
 import { BufferListReader } from './BufferListReader';
 
-/** @internal */
 export class IpcPacketBufferDecoder extends EventEmitter {
     private _bufferListReader: BufferListReader;
     private _packet: IpcPacketBuffer;

@@ -2,7 +2,6 @@ import * as net from 'net';
 
 import { Writer } from './writer';
 
-/** @internal */
 export class SocketWriter implements Writer {
     private _socket: net.Socket;
     private _length: number;
@@ -80,6 +79,9 @@ export class SocketWriter implements Writer {
         this._length += buff.length;
         this._socket.write(buff);
         return this.length;
+    }
+
+    complete(): void {
     }
 }
 

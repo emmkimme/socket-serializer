@@ -11,5 +11,7 @@ export interface Writer {
     writeDouble(data: number): number;
     writeString(data: string, encoding?: string, len?: number): number;
     writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
+
+    complete(): void;
 }
 
