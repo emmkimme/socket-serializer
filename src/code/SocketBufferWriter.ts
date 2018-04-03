@@ -37,10 +37,10 @@ export class BufferedSocketWriter extends DelayedSocketWriter {
 
     popContext(): void {
         if (--this._context === 0) {
-            this.popContext();
+            super.popContext();
         }
         else if (this._bufferSize >= this._length) {
-            this.popContext();
+            super.popContext();
         }
     }
 }
