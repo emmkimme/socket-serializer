@@ -59,7 +59,7 @@ Result of serializations is in 'buffer' readonly property.
 'serializeToSocket' writes directly the stream to a socket.
 
 
-#Sample
+# Sample
 ```js
 const portfinder = require('portfinder');
 
