@@ -40,7 +40,7 @@ export class IpcPacketBufferDecoder extends EventEmitter {
                     return packet.buffer;
                 });
                 let packet = new IpcPacketBuffer();
-                packet.parseFromBuffer(Buffer.concat(buffers, buffersLen));
+                packet.decodeFromBuffer(Buffer.concat(buffers, buffersLen));
                 this.packetArgs = [];
                 this.expectedArgs = 0;
                 return packet;
@@ -59,7 +59,7 @@ export class IpcPacketBufferDecoder extends EventEmitter {
         this._bufferListReader.appendBuffer(data);
 
         let packets: IpcPacketBuffer[] = [];
-        while (this._packet.parseFromReader(this._bufferListReader)) {
+        while (this._packet.decodeFromReader(this._bufferListReader)) {
             packets.push(this._packet);
             this.emit('packet', this._packet);
             this._packet = new IpcPacketBuffer();

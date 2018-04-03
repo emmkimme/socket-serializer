@@ -17,7 +17,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this._buffer;
     }
 
-    parseFromReader(bufferReader: Reader): boolean {
+    decodeFromReader(bufferReader: Reader): boolean {
         let offset = bufferReader.offset;
         this.readHeader(bufferReader);
         // if packet size error, find a way to resynchronize later
@@ -38,8 +38,8 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return true;
     }
 
-    parseFromBuffer(buffer: Buffer): boolean {
-        return this.parseFromReader(new BufferReader(buffer));
+    decodeFromBuffer(buffer: Buffer): boolean {
+        return this.decodeFromReader(new BufferReader(buffer));
     }
 
     serializeNumber(dataNumber: number) {
@@ -96,47 +96,41 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this.read(bufferReader);
     }
 
-    parseBoolean(): boolean {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.readBoolean(bufferReader);
+    private _parseAndCheck(checker: () => boolean): any {
+        let arg = this.parse();
+        if (!checker.call(this)) {
+            arg = null;
+        }
+        return arg;
     }
 
-    parseNumber(): number {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.readNumber(bufferReader);
+    parseBoolean(): boolean | null {
+        return this._parseAndCheck(this.isBoolean);
     }
 
-    parseObject(): any {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.readObject(bufferReader);
+    parseNumber(): number | null {
+        return this._parseAndCheck(this.isNumber);
+   }
+
+    parseObject(): any | null {
+        return this._parseAndCheck(this.isObject);
     }
 
-    parseString(encoding?: string): string {
+    parseString(encoding?: string): string | null {
         let bufferReader = new BufferReader(this._buffer);
         return this.readString(bufferReader, encoding);
     }
 
-    parseBuffer(): Buffer {
-        if (this.isBuffer() === false) {
-            return null;
-        }
-        let bufferReader = new BufferReader(this._buffer);
-        return this.readBuffer(bufferReader);
+    parseBuffer(): Buffer | null {
+        return this._parseAndCheck(this.isBuffer);
     }
 
-    parseArrayAt(index: number): any {
+    parseArrayAt(index: number): any | null {
         let bufferReader = new BufferReader(this._buffer);
-        if (this.isArray()) {
-            return this.readArrayAt(bufferReader, index);
-        }
-        return null;
+        return this.readArrayAt(bufferReader, index);
     }
 
-    parseArray(): any[] {
-        let bufferReader = new BufferReader(this._buffer);
-        if (this.isArray()) {
-            return this.readArray(bufferReader);
-        }
-        return null;
+    parseArray(): any[] | null {
+        return this._parseAndCheck(this.isArray);
     }
 }

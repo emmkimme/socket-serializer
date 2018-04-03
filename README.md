@@ -6,7 +6,7 @@ It is why we do not use classic serialization like BSON or protobuf.
 
 # Features
 * Basic Socket API
-* Serialization API
+* Parsing/Serialization API
 
 # Installation
 ```Batchfile
@@ -15,6 +15,49 @@ npm install socket-serializer
 
 Dependencies
 * http://nodejs.org/
+
+# Parsing/Serialization API
+```ts
+export class IpcPacketBuffer extends IpcPacketBufferWrap {
+    readonly buffer: Buffer;
+    isNotValid(): boolean;
+    isNotComplete(): boolean;
+    isArray(): boolean;
+    isArrayWithSize(): boolean;
+    isArrayWithLen(): boolean;
+    isObject(): boolean;
+    isString(): boolean;
+    isBuffer(): boolean;
+    isNumber(): boolean;
+    isBoolean(): boolean;
+ 
+    serializeNumber(dataNumber: number): void;
+    serializeBoolean(dataBoolean: boolean): void;
+    serializeString(data: string, encoding?: string): void;
+    serializeObject(dataObject: Object): void;
+    serializeBuffer(data: Buffer): void;
+    serializeArray(args: any[]): void;
+    serialize(data: any): void;
+ 
+    static serializeToSocket(data: any, socket: net.Socket): number;
+ 
+    parse(): any;
+    parseBoolean(): boolean | null;
+    parseNumber(): number | null;
+    parseObject(): any | null;
+    parseString(encoding?: string): string | null;
+    parseBuffer(): Buffer | null;
+    parseArrayAt(index: number): any | null;
+    parseArray(): any[] | null;
+}
+```
+## Parsing methods
+specific 'parse' methods (parseBoolean, parseNumber...) returns null if it does not mach the type of the stream.
+
+## Serialization methods
+Result of serializations is in 'buffer' readonly property.
+'serializeToSocket' writes directly the stream to a socket.
+
 
 #Sample
 ```js
