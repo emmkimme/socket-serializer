@@ -160,23 +160,23 @@ describe(`Test packet transfer with socket ${socketWriterType}`, async function 
       });
     });
 
-    describe('Object', function () {
-      const paramObject = {
-        num: 10.2,
-        str: "test",
-        bool: true,
-        properties: {
-          num1: 12.2,
-          str1: "test2",
-          bool1: false
-        }
-      };
+    const paramObject = {
+      num: 10.2,
+      str: "test",
+      bool: true,
+      properties: {
+        num1: 12.2,
+        str1: "test2",
+        bool1: false
+      }
+    };
+    const nullObject = null;
 
+    describe('Object', function () {
       describe(`emit ${typeof paramObject} = ${JSON.stringify(paramObject)}`, function () {
         testSerialization(paramObject, 1);
       });
 
-      const nullObject = null;
       describe(`emit ${typeof nullObject} = ${JSON.stringify(nullObject)}`, function () {
         testSerialization(nullObject, 1);
       });
@@ -185,7 +185,7 @@ describe(`Test packet transfer with socket ${socketWriterType}`, async function 
 
  
     describe('Array', function () {
-      const paramArray = ['this is a test', 255, 56.5, true, ''];
+      const paramArray = ['this is a test', 255, 56.5, true, '', paramObject, nullObject];
     
       describe(`emit ${typeof paramArray} = ${JSON.stringify(paramArray)}`, function () {
         testSerialization(paramArray, 2);
