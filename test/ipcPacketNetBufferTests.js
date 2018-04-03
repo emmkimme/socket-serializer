@@ -12,9 +12,18 @@ const timeoutDelay = 500;
 
 for(let socketWriterType = 0; socketWriterType < 4; ++socketWriterType) {
 
+function ArrayEqual(a1, a2) {
+  return (a1.length === a2.length) && (a1.join(':') === a2.join(':'));
+}
+
+function ObjectEqual(a1, a2) {
+  return JSON.stringify(a1) === JSON.stringify(a2);
+}
+
+
 describe(`Test packet transfer with socket ${socketWriterType}`, async function () {
   function testSerialization(param, test) {
-    it(`transfer type ${typeof param} = ${param}`, function (done) {
+    it(`transfer type ${typeof param} = ${JSON.stringify(param)}`, function (done) {
       portfinder.getPortPromise({ port: 49152 }).then((port) => {
         let ipcServer = new ssModule.IpcPacketNet({ port: port }); // '/tests'
         let timer = setTimeout(() => {
@@ -24,11 +33,16 @@ describe(`Test packet transfer with socket ${socketWriterType}`, async function 
         ipcServer.addListener('listening', () => {
           let ipcSocket = new ssModule.IpcPacketNet();
           ipcSocket.addListener('packet', (ipcPacket) => {
-            if (test === 0) {
-              assert.equal(ipcPacket.parse(), param);
-            }
-            else {
-              assert(JSON.stringify(ipcPacket.parse()) === JSON.stringify(param));
+            switch(test) {
+              case 0:
+                assert.equal(ipcPacket.parse(), param);
+                break;
+              case 1:
+                assert(ObjectEqual(ipcPacket.parse(), param));
+                break;
+              case 2:
+                assert(ArrayEqual(ipcPacket.parse(), param));
+                break;
             }
             clearTimeout(timer);
             ipcSocket.socket.end();
@@ -169,6 +183,15 @@ describe(`Test packet transfer with socket ${socketWriterType}`, async function 
     });
 
 
+ 
+    describe('Array', function () {
+      const paramArray = ['this is a test', 255, 56.5, true, ''];
+    
+      describe(`emit ${typeof paramArray} = ${JSON.stringify(paramArray)}`, function () {
+        testSerialization(paramArray, 2);
+      });
+    });
+    
     //   describe('Buffer', function () {
     //     const paramBuffer = Buffer.alloc(128);
     //     for (let i = 0; i < paramBuffer.length; ++i) {
