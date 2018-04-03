@@ -10,8 +10,6 @@ const ssModule = require('../lib/socket-serializer');
 
 const timeoutDelay = 500;
 
-for(let socketWriterType = 0; socketWriterType < 4; ++socketWriterType) {
-
 function ArrayEqual(a1, a2) {
   return (a1.length === a2.length) && (a1.join(':') === a2.join(':'));
 }
@@ -20,6 +18,7 @@ function ObjectEqual(a1, a2) {
   return JSON.stringify(a1) === JSON.stringify(a2);
 }
 
+for(let socketWriterType = 0; socketWriterType < 4; ++socketWriterType) {
 
 describe(`Test packet transfer with socket ${socketWriterType}`, async function () {
   function testSerialization(param, test) {
@@ -181,8 +180,6 @@ describe(`Test packet transfer with socket ${socketWriterType}`, async function 
         testSerialization(nullObject, 1);
       });
     });
-
-
  
     describe('Array', function () {
       const paramArray = ['this is a test', 255, 56.5, true, '', paramObject, nullObject];

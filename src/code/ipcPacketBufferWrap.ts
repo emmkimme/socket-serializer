@@ -325,8 +325,8 @@ export class IpcPacketBufferWrap {
     }
 
     protected writeString(bufferWriter: Writer, data: string, encoding?: string): void {
-        this.type = BufferType.String;
         let buffer = Buffer.from(data, encoding);
+        this.type = BufferType.String;
         this.contentSize = buffer.length;
         this.writeHeader(bufferWriter);
         bufferWriter.writeBuffer(buffer);
@@ -341,17 +341,6 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
-    protected writeArrayWithLen(bufferWriter: Writer, args: any[]): void {
-        this.type = BufferType.ArrayWithLen;
-        this.argsLen = args.length;
-        this.writeHeader(bufferWriter);
-        this.writeFooter(bufferWriter);
-        let headerArg = new IpcPacketBufferWrap();
-        args.forEach((arg) => {
-            headerArg.write(bufferWriter, arg);
-        });
-    }
-
     protected writeObject(bufferWriter: Writer, dataObject: any): void {
         if (dataObject == null) {
             this.type = BufferType.ObjectNull;
@@ -360,9 +349,10 @@ export class IpcPacketBufferWrap {
         }
         else {
             let bufferWriterKeys = new BufferListWriter();
+            let headerKey = new IpcPacketBufferWrap();
             Object.keys(dataObject).forEach((key) => {
-                this.writeString(bufferWriterKeys, key);
-                this.write(bufferWriterKeys, dataObject[key]);
+                headerKey.writeString(bufferWriterKeys, key);
+                headerKey.write(bufferWriterKeys, dataObject[key]);
             })
             this.type = BufferType.Object;
             this.contentSize = bufferWriterKeys.length;
@@ -372,6 +362,17 @@ export class IpcPacketBufferWrap {
             });
             this.writeFooter(bufferWriter);
         }
+    }
+
+    protected writeArrayWithLen(bufferWriter: Writer, args: any[]): void {
+        this.type = BufferType.ArrayWithLen;
+        this.argsLen = args.length;
+        this.writeHeader(bufferWriter);
+        this.writeFooter(bufferWriter);
+        let headerArg = new IpcPacketBufferWrap();
+        args.forEach((arg) => {
+            headerArg.write(bufferWriter, arg);
+        });
     }
 
     protected writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
