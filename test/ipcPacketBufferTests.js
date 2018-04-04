@@ -139,6 +139,8 @@ describe('Object', function () {
     num: 10.2,
     str: "test",
     bool: true,
+    Null: null,
+    Undef: undefined,
     properties: {
       num1: 12.2,
       str1: "test2",

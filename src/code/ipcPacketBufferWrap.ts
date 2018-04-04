@@ -40,7 +40,9 @@ export enum BufferType {
     // 79
     Object = 'O'.charCodeAt(0),
     // 79
-    ObjectNull = 'N'.charCodeAt(0)
+    ObjectNull = 'N'.charCodeAt(0),
+    // 79
+    Undefined = 'U'.charCodeAt(0)
 };
 
 export class IpcPacketBufferWrap {
@@ -92,6 +94,7 @@ export class IpcPacketBufferWrap {
             case BufferType.BooleanTrue:
             case BufferType.BooleanFalse:
             case BufferType.ObjectNull:
+            case BufferType.Undefined:
                 this._headerSize = MinHeaderLength;
                 this._contentSize = 0;
                 break;
@@ -248,6 +251,17 @@ export class IpcPacketBufferWrap {
         bufferWriter.popContext();
     }
 
+    // http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.3
+    // Type of val              Result
+    // ------------------------------------
+    // Undefined                "undefined"
+    // Null                     "object"
+    // Boolean                  "boolean"
+    // Number                   "number"
+    // String                   "string"
+    // Object (native and does not implement [[Call]])      "object"
+    // Object (native or host and does implement [[Call]])  "function"
+    // Object (host and does not implement [[Call]])        Implementation-defined except may not be "undefined", "boolean", "number", or "string".
     write(bufferWriter: Writer, data: any): void {
         switch (typeof data) {
             case 'object':
@@ -269,6 +283,9 @@ export class IpcPacketBufferWrap {
                 break;
             case 'boolean':
                 this.writeBoolean(bufferWriter, data);
+                break;
+            case 'undefined':
+                this.writeUndefined(bufferWriter);
                 break;
         }
     }
@@ -322,6 +339,12 @@ export class IpcPacketBufferWrap {
         this.contentSize = buffer.length;
         this.writeHeader(bufferWriter);
         bufferWriter.writeBuffer(buffer);
+        this.writeFooter(bufferWriter);
+    }
+
+    protected writeUndefined(bufferWriter: Writer) {
+        this.type = BufferType.Undefined;
+        this.writeHeader(bufferWriter);
         this.writeFooter(bufferWriter);
     }
 
@@ -389,6 +412,10 @@ export class IpcPacketBufferWrap {
                 break;
             case BufferType.ObjectNull:
                 arg = null;
+                break;
+
+            case BufferType.Undefined:
+                arg = undefined;
                 break;
 
             case BufferType.String:
