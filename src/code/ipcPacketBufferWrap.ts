@@ -45,7 +45,6 @@ export enum BufferType {
 
 export class IpcPacketBufferWrap {
     protected _type: BufferType;
-    protected _packetSize: number;
     protected _contentSize: number;
     protected _headerSize: number;
     protected _argsLen: number;
@@ -70,16 +69,17 @@ export class IpcPacketBufferWrap {
         switch (this._type) {
             case BufferType.Double:
                 this._headerSize = MinHeaderLength;
-                this.setContentSize(8);
+                this._contentSize = 8;
                 break;
             case BufferType.NegativeInteger:
             case BufferType.PositiveInteger:
                 this._headerSize = MinHeaderLength;
-                this.setContentSize(4);
+                this._contentSize = 4;
                 break;
             case BufferType.ArrayWithLen:
                 this._headerSize = ArrayWithLenHeaderLength;
-                this.setContentSize(0);
+                // Empty by default
+                this._contentSize = 0;
                 break;
             case BufferType.ArrayWithSize:
             case BufferType.Object:
@@ -87,13 +87,13 @@ export class IpcPacketBufferWrap {
             case BufferType.Buffer:
                 this._headerSize = ObjectHeaderLength;
                 // Empty by default
-                this.setContentSize(0);
+                this._contentSize = 0;
                 break;
             case BufferType.BooleanTrue:
             case BufferType.BooleanFalse:
             case BufferType.ObjectNull:
                 this._headerSize = MinHeaderLength;
-                this.setContentSize(0);
+                this._contentSize = 0;
                 break;
             default:
                 this._type = BufferType.NotValid;
@@ -110,12 +110,11 @@ export class IpcPacketBufferWrap {
     }
 
     get packetSize(): number {
-        return this._packetSize;
+        return this._contentSize + (this._headerSize + FooterLength);
     }
 
-    protected setPacketSize(packetSize: number) {
-        this._packetSize = packetSize;
-        this._contentSize = this._packetSize - this._headerSize - FooterLength;
+    set packetSize(packetSize: number) {
+        this._contentSize = packetSize - (this._headerSize + FooterLength);
     }
 
     get contentSize(): number {
@@ -123,22 +122,7 @@ export class IpcPacketBufferWrap {
     }
 
     set contentSize(contentSize: number) {
-        if (this._contentSize === contentSize) {
-            return;
-        }
-        switch (this._type) {
-            case BufferType.ArrayWithSize:
-            case BufferType.Object:
-            case BufferType.String:
-            case BufferType.Buffer:
-                this.setContentSize(contentSize);
-                break;
-        }
-    }
-
-    protected setContentSize(contentSize: number) {
         this._contentSize = contentSize;
-        this._packetSize = this._contentSize + this._headerSize + FooterLength;
     }
 
     get footerSize(): number {
@@ -236,7 +220,7 @@ export class IpcPacketBufferWrap {
                 case BufferType.Object:
                 case BufferType.String:
                 case BufferType.Buffer:
-                    this.setPacketSize(bufferReader.readUInt32());
+                    this.packetSize = bufferReader.readUInt32();
                     break;
             }
         }
@@ -254,7 +238,7 @@ export class IpcPacketBufferWrap {
             case BufferType.Object:
             case BufferType.String:
             case BufferType.Buffer:
-                bufferWriter.writeUInt32(this._packetSize);
+                bufferWriter.writeUInt32(this.packetSize);
                 break;
         }
     }
@@ -333,11 +317,11 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
-    protected writeBuffer(bufferWriter: Writer, data: Buffer): void {
+    protected writeBuffer(bufferWriter: Writer, buffer: Buffer): void {
         this.type = BufferType.Buffer;
-        this.contentSize = data.length;
+        this.contentSize = buffer.length;
         this.writeHeader(bufferWriter);
-        bufferWriter.writeBuffer(data);
+        bufferWriter.writeBuffer(buffer);
         this.writeFooter(bufferWriter);
     }
 
@@ -348,18 +332,17 @@ export class IpcPacketBufferWrap {
             this.writeFooter(bufferWriter);
         }
         else {
-            let bufferWriterKeys = new BufferListWriter();
-            let headerKey = new IpcPacketBufferWrap();
-            Object.keys(dataObject).forEach((key) => {
-                headerKey.writeString(bufferWriterKeys, key);
-                headerKey.write(bufferWriterKeys, dataObject[key]);
-            })
+            let contentBufferWriter = new BufferListWriter();
+            let keys = Object.keys(dataObject);
+            for(let i = 0, l = keys.length; i < l; ++i) {
+                let key = keys[i];
+                this.writeString(contentBufferWriter, key);
+                this.write(contentBufferWriter, dataObject[key]);
+            }
             this.type = BufferType.Object;
-            this.contentSize = bufferWriterKeys.length;
+            this.contentSize = contentBufferWriter.length;
             this.writeHeader(bufferWriter);
-            bufferWriterKeys.buffers.forEach((buffer) => {
-                bufferWriter.writeBuffer(buffer);
-            });
+            bufferWriter.write(contentBufferWriter);
             this.writeFooter(bufferWriter);
         }
     }
@@ -369,25 +352,22 @@ export class IpcPacketBufferWrap {
         this.argsLen = args.length;
         this.writeHeader(bufferWriter);
         this.writeFooter(bufferWriter);
+        // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
-        args.forEach((arg) => {
-            headerArg.write(bufferWriter, arg);
-        });
+        for (let i = 0, l = args.length; i < l; ++i) {
+            headerArg.write(bufferWriter, args[i]);
+        }
     }
 
     protected writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
-        let bufferWriterArgs = new BufferListWriter();
-        let headerArg = new IpcPacketBufferWrap();
-        args.forEach((arg) => {
-            headerArg.write(bufferWriterArgs, arg);
-        });
-
+        let contentBufferWriter = new BufferListWriter();
+        for (let i = 0, l = args.length; i < l; ++i) {
+            this.write(contentBufferWriter, args[i]);
+        }
         this.type = BufferType.ArrayWithSize;
-        this.contentSize = bufferWriterArgs.length;
+        this.contentSize = contentBufferWriter.length;
         this.writeHeader(bufferWriter);
-        bufferWriterArgs.buffers.forEach((buffer) => {
-            bufferWriter.writeBuffer(buffer);
-        });
+        bufferWriter.write(contentBufferWriter);
         this.writeFooter(bufferWriter);
     }
 
@@ -457,6 +437,7 @@ export class IpcPacketBufferWrap {
     private _readObject(bufferReader: Reader): any {
         let offsetContentSize = bufferReader.offset + this.contentSize;
         let dataObject: any = {};
+        // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
         while (bufferReader.offset < offsetContentSize) {
             let key = headerArg.readString(bufferReader);
@@ -468,6 +449,7 @@ export class IpcPacketBufferWrap {
     private _readArrayWithSize(bufferReader: Reader): any[] {
         let offsetContentSize = bufferReader.offset + this.contentSize;
         let args = [];
+        // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
         while (bufferReader.offset < offsetContentSize) {
             let arg = headerArg.read(bufferReader);
@@ -479,6 +461,7 @@ export class IpcPacketBufferWrap {
     private _readArrayWithLen(bufferReader: Reader): any[] {
         let argsLen = this.argsLen;
         let args = [];
+        // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
         while (argsLen > 0) {
             let arg = headerArg.read(bufferReader);
@@ -503,6 +486,7 @@ export class IpcPacketBufferWrap {
 
     private _readArrayWithSizeAt(bufferReader: Reader, index: number): any {
         let offsetContentSize = bufferReader.offset + this.contentSize;
+        // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
         while ((index > 0) && (bufferReader.offset < offsetContentSize)) {
             // Do not decode data just skip
@@ -523,6 +507,7 @@ export class IpcPacketBufferWrap {
             return null;
         }
 
+        // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
         while (index > 0) {
             // Do not decode data just skip

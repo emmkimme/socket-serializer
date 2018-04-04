@@ -13,11 +13,12 @@ export class BufferListReader implements Reader {
     constructor(buffers: Buffer[], offset?: number) {
         this._buffers = buffers || [];
         this._offset = 0;
+
         // Sum all the buffers lengths
         this._length = 0;
-        this._buffers.forEach((buffer) => {
-            this._length += buffer.length;
-        });
+        for (let i = 0, l = this._buffers.length; i < l; ++i) {
+            this._length += this._buffers[i].length;
+        }
 
         this._curBufferIndex = 0;
         this._curOffset = 0;
@@ -71,7 +72,7 @@ export class BufferListReader implements Reader {
     }
 
     reduce() {
-        if (this.checkEOF()) {
+        if (this.checkEOF(1)) {
             this._buffers = [];
             this._offset = 0;
             this._length = 0;
@@ -95,22 +96,21 @@ export class BufferListReader implements Reader {
         if (newOffset <= this._curBuffer.length) {
             return true;
         }
-        let bufferLength = this._curBuffer.length;
-        let buffers = [this._curBuffer];
-        let endBufferIndex = this._curBufferIndex + 1;
-        for (; endBufferIndex < this._buffers.length; ++endBufferIndex) {
+        let bufferLength = 0;
+        let buffers = [];
+        for (let endBufferIndex = this._curBufferIndex; endBufferIndex < this._buffers.length; ++endBufferIndex) {
             buffers.push(this._buffers[endBufferIndex]);
             bufferLength += this._buffers[endBufferIndex].length;
-            if (bufferLength >= newOffset) {
+            if (newOffset <= bufferLength) {
                 break;
             }
         }
-        if (bufferLength < newOffset) {
+        this._curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
+        this._buffers.splice(this._curBufferIndex + 1, buffers.length - 1);
+        if (newOffset > bufferLength) {
             // throw new RangeError('Index out of range');
             return false;
         }
-        this._curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
-        this._buffers.splice(this._curBufferIndex + 1, endBufferIndex - this._curBufferIndex);
         return true;
     }
 
@@ -161,7 +161,7 @@ export class BufferListReader implements Reader {
         len = end - start;
 
         this._offset += len;
-        this._curOffset += len;;
+        this._curOffset += len;
         return this._curBuffer.slice(start, end);
 
         // let start = this._offset;

@@ -14,10 +14,10 @@ export class DelayedSocketWriter extends BufferListWriter {
     }
 
     popContext(): void {
-        let buffer = this.buffer;
+        let totalBuffer = this.buffer;
         this._buffers = [];
         this._length = 0;
-        this._socket.write(buffer);
+        this._socket.write(totalBuffer);
     }
 }
 

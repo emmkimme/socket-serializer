@@ -1,13 +1,87 @@
 import { Buffer } from 'buffer';
-import { Writer } from './writer';
+import { Writer, BufferAllocFromArray } from './writer';
 
-export class BufferListWriter implements Writer {
+export abstract class BufferListWriterBase implements Writer {
     protected _length: number;
+
+    constructor() {
+        this._length = 0;
+    }
+
+    abstract readonly buffer: Buffer;
+    abstract readonly buffers: Buffer[];
+
+    get length(): number {
+        return this._length;
+    }
+
+    protected _appendBuffer(buffer: Buffer): number {
+        this._length += buffer.length;
+        return this._length;
+    }
+
+    writeByte(data: number): number {
+        let buffer = Buffer.alloc(1);
+        buffer[0] = data;
+        return this._appendBuffer(buffer);
+    }
+
+    // Uint8Array ?
+    writeBytes(dataArray: number[]): number {
+        return this._appendBuffer(BufferAllocFromArray(dataArray));
+    }
+
+    writeUInt32(data: number): number {
+        let buffer = Buffer.alloc(4);
+        buffer.writeUInt32LE(data, 0);
+        return this._appendBuffer(buffer);
+    }
+
+    writeDouble(data: number): number {
+        let buffer = Buffer.alloc(8);
+        buffer.writeDoubleLE(data, 0);
+        return this._appendBuffer(buffer);
+    }
+
+    writeString(data: string, encoding?: string, len?: number): number {
+        if (len && (len < data.length)) {
+            data = data.substring(0, len);
+        }
+        return this._appendBuffer(Buffer.from(data, encoding));
+    }
+
+    writeBuffer(buffer: Buffer, sourceStart?: number, sourceEnd?: number): number {
+        sourceStart = sourceStart || 0;
+        sourceEnd = sourceEnd || buffer.length;
+
+        if ((sourceStart > 0) || (sourceEnd < buffer.length)) {
+            buffer = buffer.slice(sourceStart, sourceEnd);
+        }
+        return this._appendBuffer(buffer);
+    }
+
+    write(writer: Writer): number {
+        let buffers = writer.buffers;
+        for (let i = 0, l = buffers.length; i < l; ++i) {
+            this._appendBuffer(buffers[i]);
+        }
+        return this._length;
+    }
+
+
+    pushContext(): void {
+    }
+
+    popContext(): void {
+    }
+}
+
+export class BufferListWriter extends BufferListWriterBase {
     protected _buffers: Buffer[];
 
     constructor() {
+        super();
         this._buffers = [];
-        this._length = 0;
     }
 
     get buffer(): Buffer {
@@ -24,62 +98,8 @@ export class BufferListWriter implements Writer {
         return this._buffers;
     }
 
-    get length(): number {
-        return this._length;
-    }
-
-    writeByte(data: number): number {
-        return this.writeBytes([data]);
-    }
-
-    writeBytes(dataArray: number[]): number {
-        let buff = Buffer.from(dataArray);
-        this._length += buff.length;
-        this._buffers.push(buff);
-        return this.length;
-    }
-
-    writeUInt32(data: number): number {
-        let buff = Buffer.alloc(4);
-        buff.writeUInt32LE(data, 0);
-        this._length += buff.length;
-        this._buffers.push(buff);
-        return this.length;
-    }
-
-    writeDouble(data: number): number {
-        let buff = Buffer.alloc(8);
-        buff.writeDoubleLE(data, 0);
-        this._length += buff.length;
-        this._buffers.push(buff);
-        return this.length;
-    }
-
-    writeString(data: string, encoding?: string, len?: number): number {
-        if (len && (len < data.length)) {
-            data = data.substring(0, len);
-        }
-        let buff = Buffer.from(data, encoding);
-        this._length += buff.length;
-        this._buffers.push(buff);
-        return this.length;
-    }
-
-    writeBuffer(buff: Buffer, sourceStart?: number, sourceEnd?: number): number {
-        sourceStart = sourceStart || 0;
-        sourceEnd = sourceEnd || buff.length;
-
-        if ((sourceStart > 0) || (sourceEnd < buff.length)) {
-            buff = buff.slice(sourceStart, sourceEnd);
-        }
-        this._length += buff.length;
-        this._buffers.push(buff);
-        return this.length;
-    }
-
-    pushContext(): void {
-    }
-
-    popContext(): void {
+    protected _appendBuffer(buffer: Buffer): number {
+        this._buffers.push(buffer);
+        return super._appendBuffer(buffer);
     }
 }
