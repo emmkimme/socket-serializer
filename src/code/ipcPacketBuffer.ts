@@ -116,6 +116,11 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this._parseAndCheck(this.isBuffer);
     }
 
+    parseArrayLength(): number | null {
+        let bufferReader = new BufferReader(this._buffer);
+        return this.readArrayLength(bufferReader);
+    }
+
     parseArrayAt(index: number): any | null {
         let bufferReader = new BufferReader(this._buffer);
         return this.readArrayAt(bufferReader, index);
