@@ -1,6 +1,6 @@
 import * as net from 'net';
 
-import { BufferListWriter } from './BufferListWriter';
+import { BufferListWriter } from './bufferListWriter';
 
 export class DelayedSocketWriter extends BufferListWriter {
     private _socket: net.Socket;
