@@ -40,7 +40,7 @@ export enum BufferType {
     // 79
     Object = 'O'.charCodeAt(0),
     // 79
-    ObjectNull = 'N'.charCodeAt(0),
+    Null = 'N'.charCodeAt(0),
     // 79
     Undefined = 'U'.charCodeAt(0)
 };
@@ -93,7 +93,7 @@ export class IpcPacketBufferWrap {
                 break;
             case BufferType.BooleanTrue:
             case BufferType.BooleanFalse:
-            case BufferType.ObjectNull:
+            case BufferType.Null:
             case BufferType.Undefined:
                 this._headerSize = MinHeaderLength;
                 this._contentSize = 0;
@@ -144,6 +144,14 @@ export class IpcPacketBufferWrap {
         return this._type === BufferType.NotComplete;
     }
 
+    isNull(): boolean {
+        return (this._type === BufferType.Null);
+    }
+
+    isUndefined(): boolean {
+        return (this._type === BufferType.Undefined);
+    }
+
     isArray(): boolean {
         switch (this._type) {
             case BufferType.ArrayWithSize:
@@ -163,13 +171,7 @@ export class IpcPacketBufferWrap {
     }
 
     isObject(): boolean {
-        switch (this._type) {
-            case BufferType.Object :
-            case BufferType.ObjectNull :
-               return true;
-            default:
-                return false;
-        }
+        return (this._type === BufferType.Object);
     }
 
     isString(): boolean {
@@ -348,11 +350,15 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
+    protected writeNull(bufferWriter: Writer) {
+        this.type = BufferType.Null;
+        this.writeHeader(bufferWriter);
+        this.writeFooter(bufferWriter);
+    }
+
     protected writeObject(bufferWriter: Writer, dataObject: any): void {
-        if (dataObject == null) {
-            this.type = BufferType.ObjectNull;
-            this.writeHeader(bufferWriter);
-            this.writeFooter(bufferWriter);
+        if (dataObject === null) {
+            this.writeNull(bufferWriter);
         }
         else {
             let contentBufferWriter = new BufferListWriter();
@@ -410,7 +416,8 @@ export class IpcPacketBufferWrap {
             case BufferType.Object:
                 arg = this._readObject(bufferReader);
                 break;
-            case BufferType.ObjectNull:
+
+            case BufferType.Null:
                 arg = null;
                 break;
 

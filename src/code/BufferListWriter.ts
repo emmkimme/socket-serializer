@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { Writer, BufferAllocFromArray } from './writer';
+import { Writer } from './writer';
 
 export abstract class BufferListWriterBase implements Writer {
     protected _length: number;
@@ -22,13 +22,13 @@ export abstract class BufferListWriterBase implements Writer {
 
     writeByte(data: number): number {
         let buffer = Buffer.alloc(1);
-        buffer[0] = data;
+        buffer.writeUInt8(data, 0);
         return this._appendBuffer(buffer);
     }
 
-    // Uint8Array ?
     writeBytes(dataArray: number[]): number {
-        return this._appendBuffer(BufferAllocFromArray(dataArray));
+        let uint8Array = new Uint8Array(dataArray);
+        return this._appendBuffer(Buffer.from(uint8Array.buffer));
     }
 
     writeUInt32(data: number): number {

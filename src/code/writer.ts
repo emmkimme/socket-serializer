@@ -1,27 +1,4 @@
-import { Buffer } from 'buffer';
-
-// Uint8Array ?
-export function BufferAllocFromArray(dataArray: number[]): Buffer {
-    // return Buffer.from(dataArray);
-    let l = dataArray.length;
-    let buffer = Buffer.alloc(l);
-    for (let i = 0; i < l; ++i) {
-        buffer[i] = dataArray[i];
-    }
-    return buffer;
-}
-
-// Uint8Array ?
-export function BufferWriteArray(buffer: Buffer, dataArray: number[], start?: number): number {
-    // return buffer.copy()
-    start = start || 0;
-    let l = dataArray.length;
-    for (let i = 0; i < l; ++i) {
-        buffer[start] = dataArray[i];
-        ++start;
-    }
-    return l;
-}
+// import { Buffer } from 'buffer';
 
 export interface Writer {
     readonly buffer: Buffer;

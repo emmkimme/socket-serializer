@@ -1,4 +1,4 @@
-import { Writer, BufferWriteArray } from './writer';
+import { Writer } from './writer';
 
 export class BufferWriter implements Writer {
     private _offset: number;
@@ -26,13 +26,15 @@ export class BufferWriter implements Writer {
     }
 
     writeByte(data: number): number {
-        this._buffer[this._offset] = data;
-        return ++this._offset;
+        this._offset = this._buffer.writeUInt8(data, this._offset);
+        return this._offset;
     }
 
     // Uint8Array ?
     writeBytes(dataArray: number[]): number {
-        this._offset += BufferWriteArray(this._buffer, dataArray, this._offset);
+        for (let i = 0, l = dataArray.length; i < l; ++i) {
+            this._offset = this._buffer.writeUInt8(dataArray[i], this._offset);
+        }
         return this._offset;
     }
 
