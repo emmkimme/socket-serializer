@@ -2,6 +2,7 @@
 import { Reader } from './reader';
 import { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
+import { BufferWriter } from './bufferWriter';
 
 const headerSeparator: number = '['.charCodeAt(0);
 const footerSeparator: number = ']'.charCodeAt(0);
@@ -235,25 +236,37 @@ export class IpcPacketBufferWrap {
 
     protected writeHeader(bufferWriter: Writer): void {
         bufferWriter.pushContext();
-        bufferWriter.writeBytes([headerSeparator, this._type]);
+        let bufferWriterHeader = new BufferWriter(Buffer.alloc(this._headerSize));
+        bufferWriterHeader.writeByte(headerSeparator);
+        bufferWriterHeader.writeByte(this._type);
         switch (this._type) {
             case BufferType.ArrayWithLen:
             case BufferType.ArrayWithSize:
-                bufferWriter.writeUInt32(this.packetSize);
-                bufferWriter.writeUInt32(this._argsLen);
+                bufferWriterHeader.writeUInt32(this.packetSize);
+                bufferWriterHeader.writeUInt32(this._argsLen);
                 break;
             case BufferType.Object:
             case BufferType.String:
             case BufferType.Buffer:
-                bufferWriter.writeUInt32(this.packetSize);
+                bufferWriterHeader.writeUInt32(this.packetSize);
                 break;
         }
+        bufferWriter.write(bufferWriterHeader);
     }
 
     protected writeFooter(bufferWriter: Writer): void {
         bufferWriter.writeByte(footerSeparator);
         bufferWriter.popContext();
     }
+
+    protected writeHeaderAndFooter(bufferWriter: Writer): void {
+        let bufferWriterHeaderAndFooter = new BufferWriter(Buffer.alloc(this._headerSize + FooterLength));
+        this.writeHeader(bufferWriterHeaderAndFooter);
+        bufferWriterHeaderAndFooter.writeByte(footerSeparator);
+        bufferWriter.write(bufferWriterHeaderAndFooter);
+        bufferWriter.popContext();
+    }
+
 
     // http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.3
     // Type of val              Result
@@ -325,9 +338,8 @@ export class IpcPacketBufferWrap {
 
     protected writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
         this.type = dataBoolean ? BufferType.BooleanTrue : BufferType.BooleanFalse;
-        this.writeHeader(bufferWriter);
-        this.writeFooter(bufferWriter);
-    }
+        this.writeHeaderAndFooter(bufferWriter);
+       }
 
     protected writeString(bufferWriter: Writer, data: string, encoding?: string): void {
         let buffer = Buffer.from(data, encoding);
@@ -348,14 +360,12 @@ export class IpcPacketBufferWrap {
 
     protected writeUndefined(bufferWriter: Writer) {
         this.type = BufferType.Undefined;
-        this.writeHeader(bufferWriter);
-        this.writeFooter(bufferWriter);
+        this.writeHeaderAndFooter(bufferWriter);
     }
 
     protected writeNull(bufferWriter: Writer) {
         this.type = BufferType.Null;
-        this.writeHeader(bufferWriter);
-        this.writeFooter(bufferWriter);
+        this.writeHeaderAndFooter(bufferWriter);
     }
 
     protected writeObject(bufferWriter: Writer, dataObject: any): void {
@@ -381,8 +391,7 @@ export class IpcPacketBufferWrap {
     protected writeArrayWithLen(bufferWriter: Writer, args: any[]): void {
         this.type = BufferType.ArrayWithLen;
         this.argsLen = args.length;
-        this.writeHeader(bufferWriter);
-        this.writeFooter(bufferWriter);
+        this.writeHeaderAndFooter(bufferWriter);
         // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
         for (let i = 0, l = args.length; i < l; ++i) {
