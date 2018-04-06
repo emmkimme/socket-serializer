@@ -10,7 +10,7 @@ export class BufferListReader implements Reader {
     private _curOffset: number;
     private _curBuffer: Buffer;
 
-    constructor(buffers: Buffer[], offset?: number) {
+    constructor(buffers?: Buffer[], offset?: number) {
         this._buffers = buffers || [];
         this._offset = 0;
 

@@ -214,7 +214,7 @@ export class IpcPacketBufferWrap {
             return bufferReader.offset;
         }
         this.type = bufferReader.readByte();
-        if (bufferReader.offset + (this._headerSize - 2) > bufferReader.length) {
+        if (bufferReader.checkEOF(this._headerSize - 2)) {
             this._type = BufferType.NotComplete;
         }
         else {
@@ -234,23 +234,28 @@ export class IpcPacketBufferWrap {
         return bufferReader.offset;
     }
 
-    protected writeHeader(bufferWriter: Writer): void {
+    protected _writeHeader(bufferWriter: Writer): void {
         bufferWriter.pushContext();
-        let bufferWriterHeader = new BufferWriter(Buffer.alloc(this._headerSize));
-        bufferWriterHeader.writeByte(headerSeparator);
-        bufferWriterHeader.writeByte(this._type);
+        bufferWriter.writeByte(headerSeparator);
+        bufferWriter.writeByte(this._type);
         switch (this._type) {
             case BufferType.ArrayWithLen:
             case BufferType.ArrayWithSize:
-                bufferWriterHeader.writeUInt32(this.packetSize);
-                bufferWriterHeader.writeUInt32(this._argsLen);
+                bufferWriter.writeUInt32(this.packetSize);
+                bufferWriter.writeUInt32(this._argsLen);
                 break;
             case BufferType.Object:
             case BufferType.String:
             case BufferType.Buffer:
-                bufferWriterHeader.writeUInt32(this.packetSize);
+                bufferWriter.writeUInt32(this.packetSize);
                 break;
         }
+    }
+
+    protected writeHeader(bufferWriter: Writer): void {
+        // Write header in one block
+        let bufferWriterHeader = new BufferWriter(Buffer.alloc(this._headerSize));
+        this._writeHeader(bufferWriterHeader);
         bufferWriter.write(bufferWriterHeader);
     }
 
@@ -260,8 +265,9 @@ export class IpcPacketBufferWrap {
     }
 
     protected writeHeaderAndFooter(bufferWriter: Writer): void {
+        // Write header and footer in one block
         let bufferWriterHeaderAndFooter = new BufferWriter(Buffer.alloc(this._headerSize + FooterLength));
-        this.writeHeader(bufferWriterHeaderAndFooter);
+        this._writeHeader(bufferWriterHeaderAndFooter);
         bufferWriterHeaderAndFooter.writeByte(footerSeparator);
         bufferWriter.write(bufferWriterHeaderAndFooter);
         bufferWriter.popContext();
