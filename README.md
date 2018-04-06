@@ -5,8 +5,9 @@ For instance buffers remain untouched and go through socket without any changes 
 It is why we do not use classic serialization like BSON or protobuf.
 
 # Features
-* Basic Socket API
 * Parsing/Serialization API
+* Buffer Writer/Reader API
+* Basic Socket API
 
 # Installation
 ```Batchfile
@@ -22,6 +23,8 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     readonly buffer: Buffer;
     isNotValid(): boolean;
     isNotComplete(): boolean;
+    isNull(): boolean;
+    isUndefined(): boolean;
     isArray(): boolean;
     isArrayWithSize(): boolean;
     isArrayWithLen(): boolean;
@@ -39,8 +42,6 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     serializeArray(args: any[]): void;
     serialize(data: any): void;
  
-    static serializeToSocket(data: any, socket: net.Socket): number;
- 
     parse(): any;
     parseBoolean(): boolean | null;
     parseNumber(): number | null;
@@ -49,6 +50,9 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     parseBuffer(): Buffer | null;
     parseArrayAt(index: number): any | null;
     parseArray(): any[] | null;
+
+    write(bufferWriter: Writer, data: any): void;
+    read(bufferReader: Reader): any;
 }
 ```
 ## Parsing methods
@@ -58,6 +62,26 @@ specific 'parse' methods (parseBoolean, parseNumber...) returns null if it does 
 Result of serializations is in 'buffer' readonly property.
 'serializeToSocket' writes directly the stream to a socket.
 
+# Buffer Writer/Reader API
+```ts
+export interface Writer {
+    readonly buffer: Buffer;
+    readonly buffers: Buffer[];
+    readonly length: number;
+
+    writeByte(data: number): number;
+    writeBytes(dataArray: number[]): number;
+    writeUInt32(data: number): number;
+    writeDouble(data: number): number;
+    writeString(data: string, encoding?: string, len?: number): number;
+    writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
+    write(writer: Writer): number;
+
+}
+```
+
+## Buffer[Write/Reader] vs BufferList[Write/Reader]
+BufferList accumulates intermediate buffers in a list. It concatenates them when calling buffer method.
 
 # Sample
 ```js
