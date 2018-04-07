@@ -475,7 +475,7 @@ export class IpcPacketBufferWrap {
         return arg;
     }
 
-    protected readString(bufferReader: Reader, encoding?: string): any {
+    protected readString(bufferReader: Reader, encoding?: string): string | null {
         this.readHeader(bufferReader);
         if (this.isString() === false) {
             return null;
@@ -527,7 +527,7 @@ export class IpcPacketBufferWrap {
         return args;
     }
 
-    protected readArrayLength(bufferReader: Reader): number {
+    protected readArrayLength(bufferReader: Reader): number | null {
         this.readHeader(bufferReader);
         switch (this.type) {
             case BufferType.ArrayWithLen:
@@ -537,7 +537,7 @@ export class IpcPacketBufferWrap {
         return null;
     }
 
-    protected readArrayAt(bufferReader: Reader, index: number): any[] {
+    protected readArrayAt(bufferReader: Reader, index: number): any | null {
         this.readHeader(bufferReader);
         switch (this.type) {
             case BufferType.ArrayWithLen:

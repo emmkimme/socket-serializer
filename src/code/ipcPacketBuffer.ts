@@ -40,43 +40,43 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this.decodeFromReader(new BufferReader(buffer));
     }
 
-    serializeNumber(dataNumber: number) {
+    serializeNumber(dataNumber: number): void {
         let bufferWriter = new BufferListWriter();
         this.writeNumber(bufferWriter, dataNumber);
         this._buffer = bufferWriter.buffer;
     }
 
-    serializeBoolean(dataBoolean: boolean) {
+    serializeBoolean(dataBoolean: boolean): void {
         let bufferWriter = new BufferListWriter();
         this.writeBoolean(bufferWriter, dataBoolean);
         this._buffer = bufferWriter.buffer;
     }
 
-    serializeString(data: string, encoding?: string) {
+    serializeString(data: string, encoding?: string): void {
         let bufferWriter = new BufferListWriter();
         this.writeString(bufferWriter, data, encoding);
         this._buffer = bufferWriter.buffer;
     }
 
-    serializeObject(dataObject: Object) {
+    serializeObject(dataObject: Object): void {
         let bufferWriter = new BufferListWriter();
         this.writeObject(bufferWriter, dataObject);
         this._buffer = bufferWriter.buffer;
     }
 
-    serializeBuffer(data: Buffer) {
+    serializeBuffer(data: Buffer): void {
         let bufferWriter = new BufferListWriter();
         this.writeBuffer(bufferWriter, data);
         this._buffer = bufferWriter.buffer;
     }
 
-    serializeArray(args: any[]) {
+    serializeArray(args: any[]): void {
         let bufferWriter = new BufferListWriter();
         this.writeArray(bufferWriter, args);
         this._buffer = bufferWriter.buffer;
     }
 
-    serialize(data: any) {
+    serialize(data: any): void {
         let bufferWriter = new BufferListWriter();
         this.write(bufferWriter, data);
         this._buffer = bufferWriter.buffer;

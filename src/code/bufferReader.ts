@@ -33,7 +33,9 @@ export class BufferReader implements Reader {
     }
 
     readByte(): number {
-        return this._buffer[this._offset++];
+        let start = this._offset;
+        ++this._offset;
+        return this._buffer.readUInt8(start);
     }
 
     readUInt32(): number {

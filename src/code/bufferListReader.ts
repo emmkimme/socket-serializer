@@ -119,7 +119,7 @@ export class BufferListReader implements Reader {
         let start = this._curOffset;
         ++this._offset;
         ++this._curOffset;
-        return this._curBuffer[start];
+        return this._curBuffer.readUInt8(start);
     }
 
     readUInt32(): number {
