@@ -144,9 +144,9 @@ export class BufferListReader implements Reader {
             return '';
         }
         else {
-            this._consolidate(end);
-            let start = this._curOffset;
             len = end - this._offset;
+            this._consolidate(this._curOffset + len);
+            let start = this._curOffset;
             this._offset = end;
             this._curOffset += len;
             return this._curBuffer.toString(encoding, start, end);
@@ -159,9 +159,9 @@ export class BufferListReader implements Reader {
             return Buffer.alloc(0);
         }
         else {
-            this._consolidate(end);
-            let start = this._curOffset;
             len = end - this._offset;
+            this._consolidate(this._curOffset + len);
+            let start = this._curOffset;
             this._offset = end;
             this._curOffset += len;
             return this._curBuffer.slice(start, end);

@@ -10,7 +10,7 @@ export function AdjustEnd(offset: number, maxLen: number, len?: number): number 
         end = offset;
     }
     else {
-        end = Math.min(offset + end, maxLen);
+        end = Math.min(offset + len, maxLen);
     }
     return end;
 }

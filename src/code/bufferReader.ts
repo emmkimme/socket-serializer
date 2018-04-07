@@ -54,8 +54,9 @@ export class BufferReader implements Reader {
             return '';
         }
         else {
+            let start = this._offset;
             this._offset = end;
-            return this._buffer.toString(encoding, this._offset, end);
+            return this._buffer.toString(encoding, start, end);
         }
     }
 
@@ -65,8 +66,9 @@ export class BufferReader implements Reader {
             return Buffer.alloc(0);
         }
         else {
+            let start = this._offset;
             this._offset = end;
-            return this._buffer.slice(this._offset, end);
+            return this._buffer.slice(start, end);
         }
     }
 }

@@ -28,7 +28,7 @@ function testSerializationWithSocket(param, socketWriterType, test) {
       let ipcServer = new ssModule.IpcPacketNet({ port: port }); // '/tests'
       let timer = setTimeout(() => {
         ipcServer.server.close();
-        reject('timeout');
+        done('timeout');
       }, timeoutDelay);
       ipcServer.addListener('listening', () => {
         let ipcSocket = new ssModule.IpcPacketNet();

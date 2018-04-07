@@ -383,7 +383,9 @@ export class IpcPacketBufferWrap {
             let keys = Object.keys(dataObject);
             for(let i = 0, l = keys.length; i < l; ++i) {
                 let key = keys[i];
-                this.writeString(contentBufferWriter, key);
+                let buffer = Buffer.from(key, 'utf8');
+                contentBufferWriter.writeUInt32(buffer.length);
+                contentBufferWriter.writeBuffer(buffer);
                 this.write(contentBufferWriter, dataObject[key]);
             }
             this.type = BufferType.Object;
@@ -492,7 +494,8 @@ export class IpcPacketBufferWrap {
         // Create a tempory wrapper for keeping the original header info
         let headerArg = new IpcPacketBufferWrap();
         while (bufferReader.offset < offsetContentSize) {
-            let key = headerArg.readString(bufferReader);
+            let keyLen = bufferReader.readUInt32();
+            let key = bufferReader.readString('utf8', keyLen);
             dataObject[key] = headerArg.read(bufferReader);
         }
         return dataObject;
