@@ -44,17 +44,14 @@ export abstract class BufferListWriterBase implements Writer {
     }
 
     writeString(data: string, encoding?: string, len?: number): number {
-        if (len && (len < data.length)) {
+        if (len != null) {
             data = data.substring(0, len);
         }
         return this._appendBuffer(Buffer.from(data, encoding));
     }
 
     writeBuffer(buffer: Buffer, sourceStart?: number, sourceEnd?: number): number {
-        sourceStart = sourceStart || 0;
-        sourceEnd = sourceEnd || buffer.length;
-
-        if ((sourceStart > 0) || (sourceEnd < buffer.length)) {
+        if ((sourceStart != null) || (sourceEnd != null)) {
             buffer = buffer.slice(sourceStart, sourceEnd);
         }
         return this._appendBuffer(buffer);

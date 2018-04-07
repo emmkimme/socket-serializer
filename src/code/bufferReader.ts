@@ -1,5 +1,5 @@
 // import { Buffer } from 'buffer';
-import { Reader } from './reader';
+import { Reader, AdjustEnd } from './reader';
 
 export class BufferReader implements Reader {
     private _offset: number;
@@ -49,30 +49,25 @@ export class BufferReader implements Reader {
     }
 
     readString(encoding?: string, len?: number): string {
-        if (len == null) {
-            len = this._buffer.length;
-        }
-        else if (len <= 0) {
+        let end = AdjustEnd(this._offset, this._buffer.length, len);
+        if (this._offset === end) {
             return '';
         }
-        encoding = encoding || 'utf8';
-        let start = this._offset;
-        let end = start + len;
-        this._offset = end;
-        return this._buffer.toString(encoding, start, end);
+        else {
+            this._offset = end;
+            return this._buffer.toString(encoding, this._offset, end);
+        }
     }
 
     readBuffer(len?: number): Buffer {
-        if (len == null) {
-            len = this._buffer.length;
-        }
-        else if (len <= 0) {
+        let end = AdjustEnd(this._offset, this._buffer.length, len);
+        if (this._offset === end) {
             return Buffer.alloc(0);
         }
-        let start = this._offset;
-        let end = start + len;
-        this._offset = end;
-        return this._buffer.slice(start, end);
+        else {
+            this._offset = end;
+            return this._buffer.slice(this._offset, end);
+        }
     }
 }
 

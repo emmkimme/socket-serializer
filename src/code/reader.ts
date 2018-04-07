@@ -1,5 +1,20 @@
 // import { Buffer } from 'buffer';
 
+export function AdjustEnd(offset: number, maxLen: number, len?: number): number {
+    let end: number;
+    // Check null/undefined case first
+    if (len == null) {
+        end = maxLen;
+    }
+    else if (len <= 0) {
+        end = offset;
+    }
+    else {
+        end = Math.min(offset + end, maxLen);
+    }
+    return end;
+}
+
 export interface Reader {
     readonly length: number;
     readonly offset: number;

@@ -256,7 +256,7 @@ export class IpcPacketBufferWrap {
         // Write header in one block
         let bufferWriterHeader = new BufferWriter(Buffer.alloc(this._headerSize));
         this._writeHeader(bufferWriterHeader);
-        bufferWriter.write(bufferWriterHeader);
+        bufferWriter.writeBuffer(bufferWriterHeader.buffer);
     }
 
     protected writeFooter(bufferWriter: Writer): void {
@@ -269,7 +269,7 @@ export class IpcPacketBufferWrap {
         let bufferWriterHeaderAndFooter = new BufferWriter(Buffer.alloc(this._headerSize + FooterLength));
         this._writeHeader(bufferWriterHeaderAndFooter);
         bufferWriterHeaderAndFooter.writeByte(footerSeparator);
-        bufferWriter.write(bufferWriterHeaderAndFooter);
+        bufferWriter.writeBuffer(bufferWriterHeaderAndFooter.buffer);
         bufferWriter.popContext();
     }
 
