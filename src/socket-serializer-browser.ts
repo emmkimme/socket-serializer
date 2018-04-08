@@ -13,9 +13,10 @@ export { BufferListReader } from './code/bufferListReader';
 
 export {IpcPacketSerializer, IpcPacketParser} from './code/ipcPacket';
 
-export {IpcNet} from './code/ipcNet';
-export {IpcPacketNet} from './code/ipcPacketNet';
-export { SocketWriter } from './code/socketWriter';
-export { DelayedSocketWriter, BufferedSocketWriter } from './code/socketBufferWriter';
+// Socket are not supported in browser
+// export {IpcNet} from './code/ipcNet';
+// export {IpcPacketNet} from './code/ipcPacketNet';
+// export { SocketWriter } from './code/socketWriter';
+// export { DelayedSocketWriter, BufferedSocketWriter } from './code/socketBufferWriter';
 
 

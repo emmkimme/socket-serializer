@@ -26,6 +26,7 @@
     }
   ],
   "main": "./lib/socket-serializer.js",
+  "browser": "./lib/socket-serializer-browser.js",
   "types": "./lib/socket-serializer.d.ts",
   "devDependencies": {
     "@types/node": "0.0.3",
