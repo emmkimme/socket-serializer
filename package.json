@@ -30,6 +30,7 @@
   "types": "./lib/socket-serializer.d.ts",
   "devDependencies": {
     "@types/node": "0.0.3",
+    "chai": "^4.1.2",
     "del": "^2.2.2",
     "del-cli": "^0.2.1",
     "dts-bundle": "^0.6.1",
@@ -53,9 +54,5 @@
     "tsc": "tsc",
     "tslint": "tslint",
     "publication": "npm publish ./ --registry https://registry.npmjs.org/"
-  },
-  "dependencies": {
-    "chai": "^4.1.2",
-    "user": "0.0.0"
   }
 }
