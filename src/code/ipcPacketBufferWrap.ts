@@ -86,10 +86,13 @@ export class IpcPacketBufferWrap {
                 // 4 by default
                 this._contentSize = 4;
                 break;
+            case BufferType.ArrayWithLen:
+                this._headerSize = MinHeaderLength;
+                this._contentSize = 0;
+                break;
             case BufferType.Object:
             case BufferType.String:
             case BufferType.Buffer:
-            case BufferType.ArrayWithLen:
             case BufferType.ArrayWithSize:
                 this._headerSize = ObjectHeaderLength;
                 this._contentSize = contentSize;
@@ -331,7 +334,7 @@ export class IpcPacketBufferWrap {
     }
 
     // We do not use writeFixedSize
-    // In order to prevent a costly copy of the buffer, we write it directly in the writer.
+    // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
     protected writeString(bufferWriter: Writer, data: string, encoding?: string): void {
         let buffer = Buffer.from(data, encoding);
         this.setTypeAndContentSize(BufferType.String, buffer.length);
