@@ -287,6 +287,9 @@ export class IpcPacketBufferWrap {
                 else if (Array.isArray(data)) {
                     this.writeArray(bufferWriter, data);
                 }
+                // else if (data instanceof Date) {
+                //     // this.writeArray(bufferWriter, data);
+                // }
                 else {
                     this.writeObject(bufferWriter, data);
                 }

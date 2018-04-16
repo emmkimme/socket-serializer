@@ -33,18 +33,19 @@ function testSerializationWithSocket(param, socketWriterType, test) {
       ipcServer.addListener('listening', () => {
         let ipcSocket = new ssModule.IpcPacketNet();
         ipcSocket.addListener('packet', (ipcPacket) => {
+          let paramResult = ipcPacket.parse();
           switch (test) {
             case 0:
-              assert.equal(ipcPacket.parse(), param);
+              assert.equal(paramResult, param);
               break;
             case 1:
-              assert(ObjectEqual(ipcPacket.parse(), param));
+              assert(ObjectEqual(paramResult, param));
               break;
             case 2:
-              assert(ArrayEqual(ipcPacket.parse(), param));
+              assert(ArrayEqual(paramResult, param));
               break;
             case 3:
-              assert(BufferEqual(ipcPacket.parse(), param));
+              assert(BufferEqual(paramResult, param));
               break;
           }
           clearTimeout(timer);

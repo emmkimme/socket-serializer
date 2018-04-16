@@ -1,17 +1,14 @@
 // import { Buffer } from 'buffer';
 import { Reader, AdjustEnd } from './reader';
 
-export class BufferReader implements Reader {
+export class BufferReader extends Reader {
     private _offset: number;
     private _buffer: Buffer;
 
     constructor(buffer: Buffer, offset?: number) {
+        super();
         this._buffer = buffer;
         this._offset = offset || 0;
-    }
-
-    checkEOF(offsetStep?: number): boolean {
-        return (this._offset + (offsetStep || 0) > this._buffer.length);
     }
 
     get length(): number {
@@ -22,32 +19,27 @@ export class BufferReader implements Reader {
         return this._offset;
     }
 
-    seek(offset: number): number {
-        return this._offset = offset;
+    seek(offset: number): boolean {
+        this._offset = offset;
+        return this.checkEOF();
     }
 
-    skip(offsetStep?: number): number {
-        offsetStep = offsetStep || 1;
-        this._offset += offsetStep;
-        return this.offset;
-    }
-
-    readByte(): number {
+    readByte(noAssert?: boolean): number {
         let start = this._offset;
         ++this._offset;
-        return this._buffer.readUInt8(start);
+        return this._buffer.readUInt8(start, noAssert);
     }
 
-    readUInt32(): number {
+    readUInt32(noAssert?: boolean): number {
         let start = this._offset;
         this._offset += 4;
-        return this._buffer.readUInt32LE(start);
+        return this._buffer.readUInt32LE(start, noAssert);
     }
 
-    readDouble(): number {
+    readDouble(noAssert?: boolean): number {
         let start = this._offset;
         this._offset += 8;
-        return this._buffer.readDoubleLE(start);
+        return this._buffer.readDoubleLE(start, noAssert);
     }
 
     readString(encoding?: string, len?: number): string {

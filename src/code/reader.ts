@@ -15,17 +15,23 @@ export function AdjustEnd(offset: number, maxLen: number, len?: number): number 
     return end;
 }
 
-export interface Reader {
+export abstract class Reader {
     readonly length: number;
     readonly offset: number;
 
-    checkEOF(offsetStep?: number): boolean;
-    seek(offset: number): number;
-    skip(offsetStep?: number): number;
-    readByte(): number;
-    readUInt32(): number;
-    readDouble(): number;
-    readString(encoding?: string, len?: number): string;
-    readBuffer(len?: number): Buffer;
+    checkEOF(offsetStep?: number): boolean {
+        return (this.offset + (offsetStep || 0) > this.length);
+    }
+
+    skip(offsetStep?: number): boolean {
+        return this.seek(this.offset + (offsetStep || 1));
+    }
+
+    abstract seek(offset: number): boolean;
+    abstract readByte(noAssert?: boolean): number;
+    abstract readUInt32(noAssert?: boolean): number;
+    abstract readDouble(noAssert?: boolean): number;
+    abstract readString(encoding?: string, len?: number): string;
+    abstract readBuffer(len?: number): Buffer;
 }
 
