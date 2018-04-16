@@ -24,22 +24,22 @@ export class BufferReader extends Reader {
         return this.checkEOF();
     }
 
-    readByte(noAssert?: boolean): number {
+    private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number, noAssert?: boolean): number {
         let start = this._offset;
-        ++this._offset;
-        return this._buffer.readUInt8(start, noAssert);
+        this._offset += byteSize;
+        return bufferFunction.call(this._buffer, start, noAssert);
+    }
+
+    readByte(noAssert?: boolean): number {
+        return this._readNumber(Buffer.prototype.readUInt8, 1, noAssert);
     }
 
     readUInt32(noAssert?: boolean): number {
-        let start = this._offset;
-        this._offset += 4;
-        return this._buffer.readUInt32LE(start, noAssert);
+        return this._readNumber(Buffer.prototype.readUInt32LE, 4, noAssert);
     }
 
     readDouble(noAssert?: boolean): number {
-        let start = this._offset;
-        this._offset += 8;
-        return this._buffer.readDoubleLE(start, noAssert);
+        return this._readNumber(Buffer.prototype.readDoubleLE, 8, noAssert);
     }
 
     readString(encoding?: string, len?: number): string {

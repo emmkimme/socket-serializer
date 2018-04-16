@@ -13,7 +13,11 @@
                 "args": ["test/**/*.js", "--no-timeouts", "--recursive"],
                 "cwd": "${workspaceRoot}",
                 "runtimeExecutable": null,
-                "env": { "NODE_ENV": "testing"}
+                "env": { "NODE_ENV": "testing"},
+                "outFiles": [
+                "${workspaceRoot}/lib/**/*.js",
+                "!${workspaceRoot}/node_modules/**/*.js"
+            ],
             }
         ]
     }

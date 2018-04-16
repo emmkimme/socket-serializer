@@ -100,31 +100,31 @@ export class BufferListReader extends Reader {
             }
             curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
             this._buffers.splice(this._curBufferIndex + 1, buffers.length - 1);
-            // if (noAssert && (newOffset > curBuffer.length)) {
-            //     // throw new RangeError('Index out of range');
-            // }
+            if (noAssert && (newOffset > curBuffer.length)) {
+                // throw new RangeError('Index out of range');
+            }
         }
         this._offset += offsetStep;
         this._curOffset = newOffset;
         return curBuffer;
     }
 
-    readByte(noAssert?: boolean): number {
+    private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number, noAssert?: boolean): number {
         let start = this._curOffset;
-        let currBuffer = this._consolidate(1, noAssert);
-        return currBuffer.readUInt8(start, noAssert);
+        let currBuffer = this._consolidate(byteSize, noAssert);
+        return bufferFunction.call(currBuffer, start, noAssert);
+    }
+
+    readByte(noAssert?: boolean): number {
+        return this._readNumber(Buffer.prototype.readUInt8, 1, noAssert);
     }
 
     readUInt32(noAssert?: boolean): number {
-        let start = this._curOffset;
-        let currBuffer = this._consolidate(4, noAssert);
-        return currBuffer.readUInt32LE(start, noAssert);
+        return this._readNumber(Buffer.prototype.readUInt32LE, 4, noAssert);
     }
 
     readDouble(noAssert?: boolean): number {
-        let start = this._curOffset;
-        let currBuffer = this._consolidate(8, noAssert);
-        return currBuffer.readDoubleLE(start, noAssert);
+        return this._readNumber(Buffer.prototype.readDoubleLE, 8, noAssert);
     }
 
     readString(encoding?: string, len?: number): string {
@@ -163,7 +163,7 @@ export class BufferListReader extends Reader {
 
         // this._offset += bufferLen;
 
-        // let targetBuffer = Buffer.alloc(bufferLen);
+        // let targetBuffer = Buffer.allocUnsafe(bufferLen);
         // let targetOffset = 0;
         // for (; this._curBufferIndex < this._buffers.length; ++this._curBufferIndex) {
         //     currBuffer = this._buffers[this._curBufferIndex];

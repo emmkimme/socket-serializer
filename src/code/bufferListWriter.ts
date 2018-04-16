@@ -21,7 +21,7 @@ export abstract class BufferListWriterBase implements Writer {
     }
 
     writeByte(data: number): number {
-        let buffer = Buffer.alloc(1);
+        let buffer = Buffer.allocUnsafe(1);
         buffer.writeUInt8(data, 0);
         return this._appendBuffer(buffer);
     }
@@ -32,13 +32,13 @@ export abstract class BufferListWriterBase implements Writer {
     }
 
     writeUInt32(data: number): number {
-        let buffer = Buffer.alloc(4);
+        let buffer = Buffer.allocUnsafe(4);
         buffer.writeUInt32LE(data, 0);
         return this._appendBuffer(buffer);
     }
 
     writeDouble(data: number): number {
-        let buffer = Buffer.alloc(8);
+        let buffer = Buffer.allocUnsafe(8);
         buffer.writeDoubleLE(data, 0);
         return this._appendBuffer(buffer);
     }

@@ -211,7 +211,7 @@ export class IpcPacketBufferWrap {
     protected writeHeader(bufferWriter: Writer): void {
         bufferWriter.pushContext();
         // Write header in one block
-        let bufferWriterHeader = new BufferWriter(Buffer.alloc(this._headerSize));
+        let bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
         bufferWriterHeader.writeByte(headerSeparator);
         bufferWriterHeader.writeByte(this._type);
         switch (this._type) {
@@ -238,7 +238,7 @@ export class IpcPacketBufferWrap {
         bufferWriter.pushContext();
         this.setTypeAndContentSize(bufferType);
         // Write the whole in one block
-        let bufferWriteAllInOne = new BufferWriter(Buffer.alloc(this.packetSize));
+        let bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
         // Write header
         bufferWriteAllInOne.writeByte(headerSeparator);
         bufferWriteAllInOne.writeByte(this._type);
