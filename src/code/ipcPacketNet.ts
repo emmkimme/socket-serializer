@@ -10,7 +10,8 @@ export class IpcPacketNet extends IpcNet {
     super(options);
   }
 
-  //   on(event: 'packet', handler: (buffer: IpcPacketBuffer, socket: net.Socket, server?: net.Server) => void): this;
+  //   on(event: 'packet', handler: (packet: IpcPacketBuffer, socket: net.Socket, server?: net.Server) => void): this;
+  //   on(event: 'packets', handler: (packets: IpcPacketBuffer[], socket: net.Socket, server?: net.Server) => void): this;
   //   on(event: string, handler: Function): this {
   //     return super.on(event, handler);
   //   }
