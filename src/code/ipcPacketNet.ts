@@ -3,7 +3,7 @@ import * as net from 'net';
 // import { EventEmitter } from 'events';
 import { IpcNet } from './ipcNet';
 import { IpcPacketBufferDecoder } from './ipcPacketBufferDecoder';
-import { IpcPacketBuffer } from './ipcPacketBuffer';
+// import { IpcPacketBuffer } from './ipcPacketBuffer';
 
 export class IpcPacketNet extends IpcNet {
   constructor(options?: any) {
@@ -16,18 +16,17 @@ export class IpcPacketNet extends IpcNet {
   //   }
 
   protected _parseStream(socket: net.Socket, server?: net.Server) {
-    let ipcPacketDecoder = new IpcPacketBufferDecoder();
-    ipcPacketDecoder.on('packet', (buffer: IpcPacketBuffer) => {
-      this.emit('packet', buffer, socket, server);
-    });
+    let ipcPacketDecoder = new IpcPacketBufferDecoder(this, socket, server);
+
+    function handleData(buffer: Buffer) {
+      ipcPacketDecoder.handleData(buffer);
+    }
 
     socket.on('close', (had_error: any) => {
-      socket.removeAllListeners('data');
+      socket.removeListener('data', handleData);
       ipcPacketDecoder = null;
     });
-    socket.on('data', (buffer: Buffer) => {
-      ipcPacketDecoder.handleData(buffer);
-    });
+    socket.addListener('data', handleData);
   }
 
 }
