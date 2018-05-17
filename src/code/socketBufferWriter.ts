@@ -14,6 +14,10 @@ export class DelayedSocketWriter extends BufferListWriter {
     }
 
     popContext(): void {
+        this.flushBuffer();
+    }
+
+    protected flushBuffer() {
         let totalBuffer = this.buffer;
         this._buffers = [];
         this._length = 0;
@@ -37,10 +41,10 @@ export class BufferedSocketWriter extends DelayedSocketWriter {
 
     popContext(): void {
         if (--this._context === 0) {
-            super.popContext();
+            this.flushBuffer();
         }
-        else if (this._bufferSize <= this._length) {
-            super.popContext();
+        else if (this._length >= this._bufferSize) {
+            this.flushBuffer();
         }
     }
 }

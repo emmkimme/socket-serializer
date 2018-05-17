@@ -309,12 +309,12 @@ export class IpcPacketBufferWrap {
         }
     }
 
-    protected writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
+    writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
         this.writeFixedSize(bufferWriter, dataBoolean ? BufferType.BooleanTrue : BufferType.BooleanFalse);
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
-    protected writeNumber(bufferWriter: Writer, dataNumber: number): void {
+    writeNumber(bufferWriter: Writer, dataNumber: number): void {
         // An integer
         if (Math.floor(dataNumber) === dataNumber) {
             let absDataNumber = Math.abs(dataNumber);
@@ -338,7 +338,7 @@ export class IpcPacketBufferWrap {
 
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
-    protected writeString(bufferWriter: Writer, data: string, encoding?: string): void {
+    writeString(bufferWriter: Writer, data: string, encoding?: string): void {
         let buffer = Buffer.from(data, encoding);
         this.setTypeAndContentSize(BufferType.String, buffer.length);
         this.writeHeader(bufferWriter);
@@ -346,14 +346,14 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
-    protected writeBuffer(bufferWriter: Writer, buffer: Buffer): void {
+    writeBuffer(bufferWriter: Writer, buffer: Buffer): void {
         this.setTypeAndContentSize(BufferType.Buffer, buffer.length);
         this.writeHeader(bufferWriter);
         bufferWriter.writeBuffer(buffer);
         this.writeFooter(bufferWriter);
     }
 
-    protected writeObject(bufferWriter: Writer, dataObject: any): void {
+    writeObject(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
@@ -374,7 +374,7 @@ export class IpcPacketBufferWrap {
         }
     }
 
-    protected writeArrayWithLen(bufferWriter: Writer, args: any[]): void {
+    writeArrayWithLen(bufferWriter: Writer, args: any[]): void {
         this.setTypeAndContentSize(BufferType.ArrayWithLen);
         this.writeHeader(bufferWriter);
         bufferWriter.writeUInt32(args.length);
@@ -386,7 +386,7 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
-    protected writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
+    writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
         let contentBufferWriter = new BufferListWriter();
         for (let i = 0, l = args.length; i < l; ++i) {
             this.write(contentBufferWriter, args[i]);
