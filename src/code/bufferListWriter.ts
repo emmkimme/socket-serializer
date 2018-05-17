@@ -15,56 +15,50 @@ export abstract class BufferListWriterBase implements Writer {
         return this._length;
     }
 
-    protected _appendBuffer(buffer: Buffer): number {
-        this._length += buffer.length;
-        return this._length;
-    }
+    protected abstract _appendBuffer(length: number, ...buffers: Buffer[]): number;
 
     writeByte(data: number): number {
         let buffer = Buffer.allocUnsafe(1);
         buffer.writeUInt8(data, 0);
-        return this._appendBuffer(buffer);
+        return this._appendBuffer(1, buffer);
     }
 
     writeBytes(dataArray: number[]): number {
         let uint8Array = new Uint8Array(dataArray);
-        return this._appendBuffer(Buffer.from(uint8Array.buffer));
+        let buffer = Buffer.from(uint8Array.buffer);
+        return this._appendBuffer(buffer.length, buffer);
     }
 
     writeUInt32(data: number): number {
         let buffer = Buffer.allocUnsafe(4);
         buffer.writeUInt32LE(data, 0);
-        return this._appendBuffer(buffer);
+        return this._appendBuffer(4, buffer);
     }
 
     writeDouble(data: number): number {
         let buffer = Buffer.allocUnsafe(8);
         buffer.writeDoubleLE(data, 0);
-        return this._appendBuffer(buffer);
+        return this._appendBuffer(8, buffer);
     }
 
     writeString(data: string, encoding?: string, len?: number): number {
         if (len != null) {
             data = data.substring(0, len);
         }
-        return this._appendBuffer(Buffer.from(data, encoding));
+        let buffer = Buffer.from(data, encoding);
+        return this._appendBuffer(buffer.length, buffer);
     }
 
     writeBuffer(buffer: Buffer, sourceStart?: number, sourceEnd?: number): number {
         if ((sourceStart != null) || (sourceEnd != null)) {
             buffer = buffer.slice(sourceStart, sourceEnd);
         }
-        return this._appendBuffer(buffer);
+        return this._appendBuffer(buffer.length, buffer);
     }
 
     write(writer: Writer): number {
-        let buffers = writer.buffers;
-        for (let i = 0, l = buffers.length; i < l; ++i) {
-            this._appendBuffer(buffers[i]);
-        }
-        return this._length;
+        return this._appendBuffer(writer.length, ...writer.buffers);
     }
-
 
     pushContext(): void {
     }
@@ -95,8 +89,9 @@ export class BufferListWriter extends BufferListWriterBase {
         return this._buffers;
     }
 
-    protected _appendBuffer(buffer: Buffer): number {
-        this._buffers.push(buffer);
-        return super._appendBuffer(buffer);
+    protected _appendBuffer(length: number, ...buffers: Buffer[]): number {
+        this._buffers.push(...buffers);
+        this._length += length;
+        return this._length;
     }
 }

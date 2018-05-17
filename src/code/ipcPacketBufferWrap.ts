@@ -499,7 +499,7 @@ export class IpcPacketBufferWrap {
         return null;
     }
 
-    protected byPass(bufferReader: Reader) {
+    protected byPass(bufferReader: Reader): void {
         // Do not decode data just skip
         this.readHeader(bufferReader);
         if (this.type === BufferType.ArrayWithLen) {

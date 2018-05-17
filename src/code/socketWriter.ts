@@ -18,9 +18,12 @@ export class SocketWriter extends BufferListWriterBase {
         return [];
     }
 
-    protected _appendBuffer(buffer: Buffer) {
-        this._socket.write(buffer);
-        return super._appendBuffer(buffer);
+    protected _appendBuffer(length: number, ...buffers: Buffer[]): number {
+        for (let i = 0, l = buffers.length; i < l; ++i) {
+            this._socket.write(buffers[i]);
+        }
+        this._length += length;
+        return this._length;
     }
 
 }
