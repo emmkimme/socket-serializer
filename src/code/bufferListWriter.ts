@@ -15,8 +15,7 @@ export abstract class BufferListWriterBase implements Writer {
     abstract readonly buffer: Buffer;
     abstract readonly buffers: Buffer[];
 
-    protected abstract _appendBuffer(length: number, buffer: Buffer): number;
-    protected abstract _appendBuffers(length: number, buffers: Buffer[]): number;
+    protected abstract _appendBuffer(length: number, ...buffers: Buffer[]): number;
 
     writeByte(data: number): number {
         let buffer = Buffer.allocUnsafe(1);
@@ -58,7 +57,7 @@ export abstract class BufferListWriterBase implements Writer {
     }
 
     write(writer: Writer): number {
-        return this._appendBuffers(writer.length, writer.buffers);
+        return this._appendBuffer(writer.length, ...writer.buffers);
     }
 
     pushContext(): void {
@@ -90,15 +89,9 @@ export class BufferListWriter extends BufferListWriterBase {
         return this._buffers;
     }
 
-    protected _appendBuffer(length: number, buffer: Buffer): number {
-        this._buffers.push(buffer);
+    protected _appendBuffer(length: number, ...buffers: Buffer[]): number {
         this._length += length;
-        return this._length;
-    }
-
-    protected _appendBuffers(length: number, buffers: Buffer[]): number {
         this._buffers.push(...buffers);
-        this._length += length;
         return this._length;
     }
 }

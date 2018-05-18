@@ -46,7 +46,7 @@ export class IpcPacketBufferWrap {
     protected _headerSize: number;
 
     // writeArrayOpt: Function = this.writeArrayWithLen;
-    protected writeArray: Function = this.writeArrayWithSize;
+    writeArray: Function = this.writeArrayWithSize;
 
     constructor() {
         this._type = BufferType.NotValid;
@@ -243,7 +243,7 @@ export class IpcPacketBufferWrap {
         bufferWriteAllInOne.writeByte(headerSeparator);
         bufferWriteAllInOne.writeByte(this._type);
         // Write content
-        switch(bufferType) {
+        switch (bufferType) {
             case BufferType.NegativeInteger :
             case BufferType.PositiveInteger :
                 bufferWriteAllInOne.writeUInt32(num);
@@ -360,7 +360,7 @@ export class IpcPacketBufferWrap {
         else {
             let contentBufferWriter = new BufferListWriter();
             let keys = Object.keys(dataObject);
-            for(let i = 0, l = keys.length; i < l; ++i) {
+            for (let i = 0, l = keys.length; i < l; ++i) {
                 let key = keys[i];
                 let buffer = Buffer.from(key, 'utf8');
                 contentBufferWriter.writeUInt32(buffer.length);
