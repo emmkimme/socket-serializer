@@ -35,6 +35,8 @@ export enum BufferType {
     // 79
     Object = 'O'.charCodeAt(0),
     // 79
+    ObjectSTRINGIFY = 'o'.charCodeAt(0),
+    // 79
     Null = 'N'.charCodeAt(0),
     // 79
     Undefined = 'U'.charCodeAt(0)
@@ -45,8 +47,8 @@ export class IpcPacketBufferWrap {
     protected _contentSize: number;
     protected _headerSize: number;
 
-    // writeArrayOpt: Function = this.writeArrayWithLen;
     writeArray: Function = this.writeArrayWithSize;
+    writeObject: Function = this.writeObjectSTRINGIFY;
 
     constructor() {
         this._type = BufferType.NotValid;
@@ -91,6 +93,7 @@ export class IpcPacketBufferWrap {
                 this._contentSize = 0;
                 break;
             case BufferType.Object:
+            case BufferType.ObjectSTRINGIFY:
             case BufferType.String:
             case BufferType.Buffer:
             case BufferType.ArrayWithSize:
@@ -149,7 +152,13 @@ export class IpcPacketBufferWrap {
     // }
 
     isObject(): boolean {
-        return (this._type === BufferType.Object);
+        switch (this._type) {
+            case BufferType.Object:
+            case BufferType.ObjectSTRINGIFY:
+                return true;
+            default:
+                return false;
+        }
     }
 
     isString(): boolean {
@@ -197,6 +206,7 @@ export class IpcPacketBufferWrap {
         else {
             switch (this.type) {
                 case BufferType.Object:
+                case BufferType.ObjectSTRINGIFY:
                 case BufferType.String:
                 case BufferType.Buffer:
                 case BufferType.ArrayWithLen:
@@ -216,6 +226,7 @@ export class IpcPacketBufferWrap {
         bufferWriterHeader.writeByte(this._type);
         switch (this._type) {
             case BufferType.Object:
+            case BufferType.ObjectSTRINGIFY:
             case BufferType.String:
             case BufferType.Buffer:
             case BufferType.ArrayWithLen:
@@ -353,7 +364,7 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
-    writeObject(bufferWriter: Writer, dataObject: any): void {
+    writeObjectDirect(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
@@ -370,6 +381,19 @@ export class IpcPacketBufferWrap {
             this.setTypeAndContentSize(BufferType.Object, contentBufferWriter.length);
             this.writeHeader(bufferWriter);
             bufferWriter.write(contentBufferWriter);
+            this.writeFooter(bufferWriter);
+        }
+    }
+
+    writeObjectSTRINGIFY(bufferWriter: Writer, dataObject: any): void {
+        if (dataObject === null) {
+            this.writeFixedSize(bufferWriter, BufferType.Null);
+        }
+        else {
+            let buffer = Buffer.from(JSON.stringify(dataObject), 'utf8');
+            this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
+            this.writeHeader(bufferWriter);
+            bufferWriter.writeBuffer(buffer);
             this.writeFooter(bufferWriter);
         }
     }
@@ -409,7 +433,10 @@ export class IpcPacketBufferWrap {
                 break;
 
             case BufferType.Object:
-                arg = this._readObject(bufferReader);
+                arg = this._readObjectDirect(bufferReader);
+                break;
+            case BufferType.ObjectSTRINGIFY:
+                arg = this._readObjectSTRINGIFY(bufferReader);
                 break;
 
             case BufferType.Null:
@@ -449,6 +476,10 @@ export class IpcPacketBufferWrap {
         return arg;
     }
 
+    private _readString(bufferReader: Reader, encoding?: string): string {
+        return bufferReader.readString(encoding, this.contentSize);
+    }
+
     protected readString(bufferReader: Reader, encoding?: string): string | null {
         this.readHeader(bufferReader);
         if (this.isString() === false) {
@@ -459,11 +490,13 @@ export class IpcPacketBufferWrap {
         return data;
     }
 
-    private _readString(bufferReader: Reader, encoding?: string): string {
-        return bufferReader.readString(encoding, this.contentSize);
+    private _readObjectSTRINGIFY(bufferReader: Reader, encoding?: string): string {
+        let data = this._readString(bufferReader, 'utf8');
+        bufferReader.skip(this.footerSize);
+        return JSON.parse(data);
     }
 
-    private _readObject(bufferReader: Reader): any {
+    private _readObjectDirect(bufferReader: Reader): any {
         let offsetContentSize = bufferReader.offset + this.contentSize;
         let dataObject: any = {};
         // Create a tempory wrapper for keeping the original header info
