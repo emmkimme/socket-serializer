@@ -24,7 +24,7 @@ export enum BufferType {
     BooleanFalse = 'F'.charCodeAt(0),
     // 65
     ArrayWithSize = 'A'.charCodeAt(0),
-    // 97 --- EXPERIMENTAL, avoid to read in advance the full arry
+    // 97 --- EXPERIMENTAL, avoid to read in advance the full array
     ArrayWithLen = 'a'.charCodeAt(0),
     // 42
     PositiveInteger = '+'.charCodeAt(0),
@@ -350,7 +350,8 @@ export class IpcPacketBufferWrap {
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
     writeString(bufferWriter: Writer, data: string, encoding?: string): void {
-        let buffer = Buffer.from(data, encoding);
+        // encoding is not managed, force 'utf8'
+        let buffer = Buffer.from(data, 'utf8'); // encoding);
         this.setTypeAndContentSize(BufferType.String, buffer.length);
         this.writeHeader(bufferWriter);
         bufferWriter.writeBuffer(buffer);
@@ -448,7 +449,8 @@ export class IpcPacketBufferWrap {
                 break;
 
             case BufferType.String:
-                arg = this._readString(bufferReader);
+                // encoding is not managed, force 'utf8'
+                arg = bufferReader.readString('utf8', this.contentSize);
                 break;
 
             case BufferType.Buffer:
@@ -476,22 +478,19 @@ export class IpcPacketBufferWrap {
         return arg;
     }
 
-    private _readString(bufferReader: Reader, encoding?: string): string {
-        return bufferReader.readString(encoding, this.contentSize);
-    }
-
     protected readString(bufferReader: Reader, encoding?: string): string | null {
         this.readHeader(bufferReader);
         if (this.isString() === false) {
             return null;
         }
-        let data = this._readString(bufferReader, encoding);
+        // encoding is not managed, force 'utf8'
+        let data = bufferReader.readString('utf8', this.contentSize);
         bufferReader.skip(this.footerSize);
         return data;
     }
 
-    private _readObjectSTRINGIFY(bufferReader: Reader, encoding?: string): string {
-        let data = this._readString(bufferReader, 'utf8');
+    private _readObjectSTRINGIFY(bufferReader: Reader): string {
+        let data = bufferReader.readString('utf8', this.contentSize);
         bufferReader.skip(this.footerSize);
         return JSON.parse(data);
     }
