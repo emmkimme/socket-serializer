@@ -18,7 +18,13 @@ export class SocketWriter extends BufferListWriterBase {
         return [];
     }
 
-    protected _appendBuffer(length: number, ...buffers: Buffer[]): number {
+    protected _appendBuffer(length: number, buffer: Buffer): number {
+        this._socket.write(buffer);
+        // length never changed
+        return 0;
+    }
+
+    protected _appendBuffers(length: number, buffers: Buffer[]): number {
         let len = buffers.length;
         switch (len) {
             // fast cases
