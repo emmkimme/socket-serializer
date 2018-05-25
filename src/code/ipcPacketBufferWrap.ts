@@ -491,7 +491,6 @@ export class IpcPacketBufferWrap {
 
     private _readObjectSTRINGIFY(bufferReader: Reader): string {
         let data = bufferReader.readString('utf8', this.contentSize);
-        bufferReader.skip(this.footerSize);
         return JSON.parse(data);
     }
 
