@@ -478,17 +478,6 @@ export class IpcPacketBufferWrap {
         return arg;
     }
 
-    protected readString(bufferReader: Reader, encoding?: string): string | null {
-        this.readHeader(bufferReader);
-        if (this.isString() === false) {
-            return null;
-        }
-        // encoding is not managed, force 'utf8'
-        let data = bufferReader.readString('utf8', this.contentSize);
-        bufferReader.skip(this.footerSize);
-        return data;
-    }
-
     private _readObjectSTRINGIFY(bufferReader: Reader): string {
         let data = bufferReader.readString('utf8', this.contentSize);
         return JSON.parse(data);
@@ -567,4 +556,16 @@ export class IpcPacketBufferWrap {
         }
         return arg;
     }
+
+    protected readString(bufferReader: Reader, encoding?: string): string | null {
+        this.readHeader(bufferReader);
+        if (this.isString() === false) {
+            return null;
+        }
+        // encoding is not managed, force 'utf8'
+        let data = bufferReader.readString('utf8', this.contentSize);
+        bufferReader.skip(this.footerSize);
+        return data;
+    }
+
 }
