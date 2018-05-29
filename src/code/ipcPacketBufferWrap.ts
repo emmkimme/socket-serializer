@@ -449,8 +449,7 @@ export class IpcPacketBufferWrap {
                 break;
 
             case BufferType.String:
-                // encoding is not managed, force 'utf8'
-                arg = bufferReader.readString('utf8', this.contentSize);
+                arg = this._readString(bufferReader, this.contentSize);
                 break;
 
             case BufferType.Buffer:
@@ -478,8 +477,14 @@ export class IpcPacketBufferWrap {
         return arg;
     }
 
+    private _readString(bufferReader: Reader, len: number, encoding?: string): string {
+        let buffer = bufferReader.readBuffer(len);
+        // encoding is not managed, force 'utf8'
+        return buffer.toString('utf8');
+    }
+
     private _readObjectSTRINGIFY(bufferReader: Reader): string {
-        let data = bufferReader.readString('utf8', this.contentSize);
+        let data = this._readString(bufferReader, this.contentSize, 'utf8');
         return JSON.parse(data);
     }
 
@@ -490,7 +495,7 @@ export class IpcPacketBufferWrap {
         let headerArg = new IpcPacketBufferWrap();
         while (bufferReader.offset < offsetContentSize) {
             let keyLen = bufferReader.readUInt32();
-            let key = bufferReader.readString('utf8', keyLen);
+            let key = this._readString(bufferReader, keyLen, 'utf8');
             dataObject[key] = headerArg.read(bufferReader);
         }
         return dataObject;
@@ -562,8 +567,7 @@ export class IpcPacketBufferWrap {
         if (this.isString() === false) {
             return null;
         }
-        // encoding is not managed, force 'utf8'
-        let data = bufferReader.readString('utf8', this.contentSize);
+        let data = this._readString(bufferReader, this.contentSize, encoding);
         bufferReader.skip(this.footerSize);
         return data;
     }
