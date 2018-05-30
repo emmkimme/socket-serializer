@@ -425,19 +425,23 @@ export class IpcPacketBufferWrap {
     }
 
     read(bufferReader: Reader): any {
+        return this._read(0, bufferReader);
+    }
+
+    protected _read(depth: number, bufferReader: Reader): any {
         this.readHeader(bufferReader);
         let arg: any;
         switch (this.type) {
             case BufferType.ArrayWithLen:
             case BufferType.ArrayWithSize:
-                arg = this._readArray(bufferReader);
+                arg = this._readArray(depth, bufferReader);
                 break;
 
             case BufferType.Object:
-                arg = this._readObjectDirect(bufferReader);
+                arg = this._readObjectDirect(depth, bufferReader);
                 break;
             case BufferType.ObjectSTRINGIFY:
-                arg = this._readObjectSTRINGIFY(bufferReader);
+                arg = this._readObjectSTRINGIFY(depth, bufferReader);
                 break;
 
             case BufferType.Null:
@@ -449,11 +453,11 @@ export class IpcPacketBufferWrap {
                 break;
 
             case BufferType.String:
-                arg = this._readString(bufferReader, this.contentSize);
+                arg = this._readString(bufferReader, this._contentSize);
                 break;
 
             case BufferType.Buffer:
-                arg = bufferReader.readBuffer(this.contentSize);
+                arg = bufferReader.readBuffer(this._contentSize);
                 break;
 
             case BufferType.Double:
@@ -483,33 +487,47 @@ export class IpcPacketBufferWrap {
         return buffer.toString('utf8');
     }
 
-    private _readObjectSTRINGIFY(bufferReader: Reader): string {
-        let data = this._readString(bufferReader, this.contentSize, 'utf8');
+    private _readObjectSTRINGIFY(depth: number, bufferReader: Reader): string {
+        let data = this._readString(bufferReader, this._contentSize, 'utf8');
         return JSON.parse(data);
     }
 
-    private _readObjectDirect(bufferReader: Reader): any {
-        let offsetContentSize = bufferReader.offset + this.contentSize;
+    private _readObjectDirect(depth: number, bufferReader: Reader): any {
+        // Save current type/content size
+        let type = this._type;
+        let contentSize = this._contentSize;
+
+        let offsetContentSize = bufferReader.offset + contentSize;
         let dataObject: any = {};
-        // Create a tempory wrapper for keeping the original header info
-        let headerArg = new IpcPacketBufferWrap();
         while (bufferReader.offset < offsetContentSize) {
             let keyLen = bufferReader.readUInt32();
             let key = this._readString(bufferReader, keyLen, 'utf8');
-            dataObject[key] = headerArg.read(bufferReader);
+            dataObject[key] = this._read(depth + 1, bufferReader);
+        }
+
+        // Restore type and content size may be corrupted by depth reading
+        if (depth === 0) {
+            this.setTypeAndContentSize(type, contentSize);
         }
         return dataObject;
     }
 
-    private _readArray(bufferReader: Reader): any[] {
+    private _readArray(depth: number, bufferReader: Reader): any[] {
+        // Save current type/content size
+        let type = this._type;
+        let contentSize = this._contentSize;
+
         let argsLen = bufferReader.readUInt32();
         let args = [];
-        // Create a tempory wrapper for keeping the original header info
-        let headerArg = new IpcPacketBufferWrap();
         while (argsLen > 0) {
-            let arg = headerArg.read(bufferReader);
+            let arg = this._read(depth + 1, bufferReader);
             args.push(arg);
             --argsLen;
+        }
+
+        // Restore type and content size may be corrupted by depth reading
+        if (depth === 0) {
+            this.setTypeAndContentSize(type, contentSize);
         }
         return args;
     }
@@ -528,16 +546,15 @@ export class IpcPacketBufferWrap {
         // Do not decode data just skip
         this.readHeader(bufferReader);
         if (this.type === BufferType.ArrayWithLen) {
-            let headerArg = new IpcPacketBufferWrap();
             let argsLen = bufferReader.readUInt32();
             while (argsLen > 0) {
-                headerArg.byPass(bufferReader);
+                this.byPass(bufferReader);
                 --argsLen;
             }
             bufferReader.skip(this.footerSize);
         }
         else {
-            bufferReader.skip(this.contentSize + this.footerSize);
+            bufferReader.skip(this._contentSize + this.footerSize);
         }
     }
 
@@ -567,7 +584,7 @@ export class IpcPacketBufferWrap {
         if (this.isString() === false) {
             return null;
         }
-        let data = this._readString(bufferReader, this.contentSize, encoding);
+        let data = this._readString(bufferReader, this._contentSize, encoding);
         bufferReader.skip(this.footerSize);
         return data;
     }
