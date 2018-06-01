@@ -15,9 +15,36 @@ export function AdjustEnd(offset: number, maxLen: number, len?: number): number 
     return end;
 }
 
-export abstract class Reader {
+export interface Reader {
     readonly length: number;
     readonly offset: number;
+    noAssert: boolean;
+
+    checkEOF(offsetStep?: number): boolean;
+    skip(offsetStep?: number): boolean;
+    seek(offset: number): boolean;
+    readByte(): number;
+    readUInt32(): number;
+    readDouble(): number;
+    readString(encoding?: string, len?: number): string;
+    readBuffer(len?: number): Buffer;
+}
+
+// Implement common methods
+export abstract class ReaderBase implements Reader {
+    protected _noAssert: boolean;
+
+    constructor() {
+        this._noAssert = true;
+    }
+
+    get noAssert(): boolean {
+        return this._noAssert;
+    }
+
+    set noAssert(noAssert: boolean) {
+        this._noAssert = noAssert;
+    }
 
     checkEOF(offsetStep?: number): boolean {
         return (this.offset + (offsetStep || 0) > this.length);
@@ -27,11 +54,13 @@ export abstract class Reader {
         return this.seek(this.offset + (offsetStep || 1));
     }
 
+    readonly length: number;
+    readonly offset: number;
+
     abstract seek(offset: number): boolean;
-    abstract readByte(noAssert?: boolean): number;
-    abstract readUInt32(noAssert?: boolean): number;
-    abstract readDouble(noAssert?: boolean): number;
+    abstract readByte(): number;
+    abstract readUInt32(): number;
+    abstract readDouble(): number;
     abstract readString(encoding?: string, len?: number): string;
     abstract readBuffer(len?: number): Buffer;
 }
-

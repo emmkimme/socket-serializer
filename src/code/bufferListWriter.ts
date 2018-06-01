@@ -1,10 +1,12 @@
 import { Buffer } from 'buffer';
-import { Writer } from './writer';
+import { Writer, WriterBase } from './writer';
 
-export abstract class BufferListWriterBase implements Writer {
+export abstract class BufferListWriterBase extends WriterBase {
     protected _length: number;
 
     constructor() {
+        super();
+
         this._length = 0;
     }
 
@@ -18,28 +20,28 @@ export abstract class BufferListWriterBase implements Writer {
     protected abstract _appendBuffer(length: number, buffer: Buffer): number;
     protected abstract _appendBuffers(length: number, buffers: Buffer[]): number;
 
-    writeByte(data: number): number {
-        let buffer = Buffer.allocUnsafe(1);
-        buffer.writeUInt8(data, 0);
-        return this._appendBuffer(1, buffer);
-    }
-
     writeBytes(dataArray: number[]): number {
         let uint8Array = new Uint8Array(dataArray);
         let buffer = Buffer.from(uint8Array.buffer);
         return this._appendBuffer(buffer.length, buffer);
     }
 
+    private _writeNumber(bufferFunction: (value: number, offset: number, noAssert?: boolean) => number, data: number, byteSize: number): number {
+        let buffer = Buffer.allocUnsafe(byteSize);
+        bufferFunction.call(buffer, data, 0, this._noAssert);
+        return this._appendBuffer(byteSize, buffer);
+    }
+
+    writeByte(data: number): number {
+        return this._writeNumber(Buffer.prototype.writeUInt8, data, 1);
+    }
+
     writeUInt32(data: number): number {
-        let buffer = Buffer.allocUnsafe(4);
-        buffer.writeUInt32LE(data, 0);
-        return this._appendBuffer(4, buffer);
+        return this._writeNumber(Buffer.prototype.writeUInt32LE, data, 4);
     }
 
     writeDouble(data: number): number {
-        let buffer = Buffer.allocUnsafe(8);
-        buffer.writeDoubleLE(data, 0);
-        return this._appendBuffer(8, buffer);
+        return this._writeNumber(Buffer.prototype.writeDoubleLE, data, 8);
     }
 
     writeString(data: string, encoding?: string, len?: number): number {

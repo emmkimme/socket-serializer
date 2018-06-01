@@ -1,11 +1,10 @@
 import { Buffer } from 'buffer';
-import { Reader, AdjustEnd } from './reader';
+import { ReaderBase, AdjustEnd } from './reader';
 
-export class BufferListReader extends Reader {
+export class BufferListReader extends ReaderBase {
     private _offset: number;
     private _length: number;
     private _buffers: Buffer[];
-
     private _curBufferIndex: number;
     private _curOffset: number;
 
@@ -46,7 +45,9 @@ export class BufferListReader extends Reader {
             this._offset = offset;
             while (this._curOffset >= curBuffer.length) {
                 if (this._curBufferIndex >= this._buffers.length - 1) {
-                    // throw new RangeError('Index out of range');
+                    if (!this._noAssert) {
+                        throw new RangeError('Index out of range');
+                    }
                     return false;
                 }
                 ++this._curBufferIndex;
@@ -55,7 +56,9 @@ export class BufferListReader extends Reader {
             }
             while (this._curOffset < 0) {
                 if (this._curBufferIndex <= 0) {
-                    // throw new RangeError('Index out of range');
+                    if (!this._noAssert) {
+                        throw new RangeError('Index out of range');
+                    }
                     return false;
                 }
                 --this._curBufferIndex;

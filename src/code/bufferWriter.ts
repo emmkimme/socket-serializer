@@ -1,10 +1,12 @@
-import { Writer } from './writer';
+import { Writer, WriterBase } from './writer';
 
-export class BufferWriter implements Writer {
+export class BufferWriter extends WriterBase {
     private _offset: number;
     private _buffer: Buffer;
 
     constructor(buffer: Buffer, offset?: number) {
+        super();
+
         this._buffer = buffer;
         this._offset = offset || 0;
     }
@@ -25,11 +27,6 @@ export class BufferWriter implements Writer {
         return this._offset;
     }
 
-    writeByte(data: number): number {
-        this._offset = this._buffer.writeUInt8(data, this._offset);
-        return this._offset;
-    }
-
     // Uint8Array ?
     writeBytes(dataArray: number[]): number {
         for (let i = 0, l = dataArray.length; i < l; ++i) {
@@ -38,14 +35,21 @@ export class BufferWriter implements Writer {
         return this._offset;
     }
 
-    writeUInt32(data: number): number {
-        this._offset = this._buffer.writeUInt32LE(data, this._offset);
+    private _writeNumber(bufferFunction: (value: number, offset: number, noAssert?: boolean) => number, data: number, byteSize: number): number {
+        this._offset = bufferFunction.call(this._buffer, data, this._offset, this._noAssert);
         return this._offset;
     }
 
+    writeByte(data: number): number {
+        return this._writeNumber(Buffer.prototype.writeUInt8, data, 1);
+    }
+
+    writeUInt32(data: number): number {
+        return this._writeNumber(Buffer.prototype.writeUInt32LE, data, 4);
+    }
+
     writeDouble(data: number): number {
-        this._offset = this._buffer.writeDoubleLE(data, this._offset);
-        return this._offset;
+        return this._writeNumber(Buffer.prototype.writeDoubleLE, data, 8);
     }
 
     writeString(data: string, encoding?: string, len?: number): number {

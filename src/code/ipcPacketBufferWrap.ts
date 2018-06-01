@@ -200,6 +200,7 @@ export class IpcPacketBufferWrap {
             return bufferReader.offset;
         }
         this.setTypeAndContentSize(bufferReader.readByte(), 0);
+        // Substract 2 : headerSeparator + type
         if (bufferReader.checkEOF(this._headerSize - 2)) {
             this._type = BufferType.NotComplete;
         }
