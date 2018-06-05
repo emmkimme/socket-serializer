@@ -39,7 +39,9 @@ export enum BufferType {
     // 79
     Null = 'N'.charCodeAt(0),
     // 79
-    Undefined = 'U'.charCodeAt(0)
+    Undefined = 'U'.charCodeAt(0),
+    //
+    Date = 'D'.charCodeAt(0),
 };
 
 export class IpcPacketBufferWrap {
@@ -77,6 +79,7 @@ export class IpcPacketBufferWrap {
     protected setTypeAndContentSize(bufferType: BufferType, contentSize?: number) {
         this._type = bufferType;
         switch (this._type) {
+            case BufferType.Date:
             case BufferType.Double:
                 this._headerSize = MinHeaderLength;
                 // 8 by default
@@ -167,6 +170,10 @@ export class IpcPacketBufferWrap {
 
     isBuffer(): boolean {
         return this._type === BufferType.Buffer;
+    }
+
+    isDate(): boolean {
+        return this._type === BufferType.Date;
     }
 
     isNumber(): boolean {
@@ -261,6 +268,7 @@ export class IpcPacketBufferWrap {
                 bufferWriteAllInOne.writeUInt32(num);
                 break;
             case BufferType.Double:
+            case BufferType.Date:
                 bufferWriteAllInOne.writeDouble(num);
                 break;
             // case BufferType.Null:
@@ -299,9 +307,9 @@ export class IpcPacketBufferWrap {
                 else if (Array.isArray(data)) {
                     this.writeArray(bufferWriter, data);
                 }
-                // else if (data instanceof Date) {
-                //     // this.writeArray(bufferWriter, data);
-                // }
+                else if (data instanceof Date) {
+                    this.writeDate(bufferWriter, data);
+                }
                 else {
                     this.writeObject(bufferWriter, data);
                 }
@@ -346,6 +354,11 @@ export class IpcPacketBufferWrap {
         // Either this is not an integer or it is outside of a 32-bit integer.
         // Save as a double.
         this.writeFixedSize(bufferWriter, BufferType.Double, dataNumber);
+    }
+
+    writeDate(bufferWriter: Writer, data: Date) {
+        let t = data.getTime();
+        this.writeFixedSize(bufferWriter, BufferType.Date, t);
     }
 
     // We do not use writeFixedSize
@@ -459,6 +472,10 @@ export class IpcPacketBufferWrap {
 
             case BufferType.Buffer:
                 arg = bufferReader.readBuffer(this._contentSize);
+                break;
+
+            case BufferType.Date:
+                arg = new Date(bufferReader.readDouble());
                 break;
 
             case BufferType.Double:
