@@ -58,7 +58,7 @@ export class BufferReader extends ReaderBase {
     readBuffer(len?: number): Buffer {
         let end = AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
-            return Buffer.alloc(0);
+            return Buffer.allocUnsafe(0);
         }
         else {
             let start = this._offset;

@@ -30,7 +30,7 @@ export class BufferWriter extends WriterBase {
     // Uint8Array ?
     writeBytes(dataArray: number[]): number {
         for (let i = 0, l = dataArray.length; i < l; ++i) {
-            this._offset = this._buffer.writeUInt8(dataArray[i], this._offset);
+            this._writeNumber(Buffer.prototype.writeUInt8, dataArray[i], 1);
         }
         return this._offset;
     }

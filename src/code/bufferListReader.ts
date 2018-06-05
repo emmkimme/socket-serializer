@@ -14,7 +14,7 @@ export class BufferListReader extends ReaderBase {
         this._buffers = buffers || [];
         this._offset = offset || 0;
 
-        // Sum all the buffers lengths
+        // Sum all the buffers length
         this._length = 0;
         for (let i = 0, l = this._buffers.length; i < l; ++i) {
             this._length += this._buffers[i].length;
@@ -103,7 +103,7 @@ export class BufferListReader extends ReaderBase {
             }
             curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
             this._buffers.splice(this._curBufferIndex + 1, buffers.length - 1);
-            if (noAssert && (newOffset > curBuffer.length)) {
+            if (!noAssert && (newOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
             }
         }

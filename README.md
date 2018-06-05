@@ -2,11 +2,12 @@
 A javascript serializer for socket.
 Purpose is to serialize object, buffer, string, number and boolean with the minimum of transformations in order to improve performance.
 For instance buffers remain untouched and go through socket without any changes (copy, merge, split...).
-It is why we do not use classic serialization like BSON or protobuf.
+It is why we do not use classic serializations like BSON or protobuf.
 
 # Features
 * Parsing/Serialization API
-* Buffer Writer/Reader API
+* Buffer Readers API
+* Socket and Buffer Writers API
 * Basic Socket API
 
 # Installation
@@ -21,6 +22,7 @@ Dependencies
 ```ts
 export class IpcPacketBuffer extends IpcPacketBufferWrap {
     readonly buffer: Buffer;
+
     isNotValid(): boolean;
     isNotComplete(): boolean;
     isNull(): boolean;
@@ -33,16 +35,22 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     isBuffer(): boolean;
     isNumber(): boolean;
     isBoolean(): boolean;
- 
+
+ // Generic serialization
+    serialize(data: any): void;
+
+ // Specific serialization methods
     serializeNumber(dataNumber: number): void;
     serializeBoolean(dataBoolean: boolean): void;
     serializeString(data: string, encoding?: string): void;
     serializeObject(dataObject: Object): void;
     serializeBuffer(data: Buffer): void;
     serializeArray(args: any[]): void;
-    serialize(data: any): void;
  
+ // Generic parsing method
     parse(): any;
+
+ // Specific parsing methods
     parseBoolean(): boolean | null;
     parseNumber(): number | null;
     parseObject(): any | null;
@@ -60,7 +68,6 @@ specific 'parse' methods (parseBoolean, parseNumber...) returns null if it does 
 
 ## Serialization methods
 Result of serializations is in 'buffer' readonly property.
-'serializeToSocket' writes directly the stream to a socket.
 
 # Buffer Writer/Reader API
 ```ts
@@ -80,8 +87,17 @@ export interface Writer {
 }
 ```
 
-## Buffer[Write/Reader] vs BufferList[Write/Reader]
+## Buffer[Writer/Reader] vs BufferList[Writer/Reader]
 BufferList accumulates intermediate buffers in a list. It concatenates them when calling buffer method.
+
+## SocketWriter
+When serializing you can write directly to socket using a SocketWriter classes. Each one has a different strategies
+* SocketWriter
+Write immediately on socket, piece by piece
+* DelayedSocketWriter
+Write data on socket packet by packet
+* BufferedSocketWriter
+Write packets when reaching a size
 
 # Sample
 ```js
