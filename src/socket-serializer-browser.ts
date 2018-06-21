@@ -11,7 +11,7 @@ export { Reader } from './code/reader';
 export { BufferReader } from './code/bufferReader';
 export { BufferListReader } from './code/bufferListReader';
 
-export { IpcPacketSerializer, IpcPacketParser}  from './code/ipcPacket';
+export { IpcPacketSerializer, IpcPacketParser} from './code/ipcPacket';
 
 // Socket are not supported in browser
 // export { IpcNet } from './code/ipcNet';
