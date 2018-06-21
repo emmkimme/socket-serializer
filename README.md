@@ -56,8 +56,9 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     parseObject(): any | null;
     parseString(encoding?: string): string | null;
     parseBuffer(): Buffer | null;
-    parseArrayAt(index: number): any | null;
     parseArray(): any[] | null;
+    parseArrayAt(index: number): any | null;
+    parseArraySlice(start?: number, end?: numbers): any | null;
 
     write(bufferWriter: Writer, data: any): void;
     read(bufferReader: Reader): any;
