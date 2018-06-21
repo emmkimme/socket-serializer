@@ -34,7 +34,18 @@ describe('Array', function () {
         ipb.serializeArray(paramArray);
         assert(ipb.parseArrayAt(i) === paramArray[i]);
       });
-      }
+    }
+  });
+
+  describe('slice', function () {
+    it(`slice(2, 3) ${typeof paramArray}`, function () {
+      ipb.serializeArray(paramArray);
+      assert(ArrayEqual(ipb.parseArraySlice(2, 3), paramArray.slice(2, 3)));
+    })
+
+    it(`slice(1, -1) ${typeof paramArray}`, function () {
+      ipb.serializeArray(paramArray);
+      assert(ArrayEqual(ipb.parseArraySlice(1, -1), paramArray.slice(1, -1)));
+    })
   });
 });
-

@@ -576,6 +576,48 @@ export class IpcPacketBufferWrap {
         // }
     }
 
+    protected sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
+        this.readHeader(bufferReader);
+        let argsLen = bufferReader.readUInt32();
+        if (start == null) {
+            start = 0;
+        }
+        else if (start < 0) {
+            start = argsLen + start;
+        }
+        if (start >= argsLen) {
+            return [];
+        }
+        if (end == null) {
+            end = argsLen;
+        }
+        else if (end < 0) {
+            end = argsLen + end;
+        }
+        else {
+            end = Math.min(end, argsLen);
+        }
+        if (end <= start) {
+            return [];
+        }
+
+        // Create a tempory wrapper for keeping the original header info
+        let headerArg = new IpcPacketBufferWrap();
+        while (start > 0) {
+            // Do not decode data just skip
+            headerArg.byPass(bufferReader);
+            --start;
+            --end;
+        }
+        let args = [];
+        while (end > 0) {
+            let arg = headerArg.read(bufferReader);
+            args.push(arg);
+            --end;
+        }
+        return args;
+    }
+
     protected readArrayAt(bufferReader: Reader, index: number): any | null {
         this.readHeader(bufferReader);
         let argsLen = bufferReader.readUInt32();
