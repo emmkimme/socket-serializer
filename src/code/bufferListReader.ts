@@ -1,15 +1,26 @@
 import { Buffer } from 'buffer';
 import { ReaderBase, AdjustEnd } from './reader';
 
+export namespace BufferListReader {
+    export interface Context {
+        offset: number;
+        curBufferIndex: number;
+        curOffset: number;
+    }
+}
+
 export class BufferListReader extends ReaderBase {
     private _offset: number;
     private _length: number;
     private _buffers: Buffer[];
     private _curBufferIndex: number;
     private _curOffset: number;
+    private _contexts: BufferListReader.Context[];
 
     constructor(buffers?: Buffer[], offset?: number) {
         super();
+
+        this._contexts = [];
 
         this._buffers = buffers || [];
         this._offset = offset || 0;
@@ -36,6 +47,19 @@ export class BufferListReader extends ReaderBase {
 
     get offset(): number {
         return this._offset;
+    }
+
+    pushd(): number {
+        this._contexts.push({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex });
+        return this._contexts.length;
+    }
+
+    popd(): number {
+        let context = this._contexts.pop();
+        this._offset = context.offset;
+        this._curOffset = context.curOffset;
+        this._curBufferIndex = context.curBufferIndex;
+        return this._contexts.length;
     }
 
     seek(offset: number): boolean {

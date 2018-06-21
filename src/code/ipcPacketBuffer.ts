@@ -16,13 +16,13 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     }
 
     decodeFromReader(bufferReader: Reader): boolean {
-        let offset = bufferReader.offset;
+        bufferReader.pushd();
         this.readHeader(bufferReader);
+        bufferReader.popd();
         // if packet size error, find a way to resynchronize later
         if (this.isNotValid()) {
             return false;
         }
-        bufferReader.seek(offset);
         // if not enough data accumulated for reading the header, exit
         if (this.isNotComplete()) {
             return false;

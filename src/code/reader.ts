@@ -20,9 +20,13 @@ export interface Reader {
     readonly offset: number;
     noAssert: boolean;
 
+    pushd(): number;
+    popd(): number;
+
     checkEOF(offsetStep?: number): boolean;
     skip(offsetStep?: number): boolean;
     seek(offset: number): boolean;
+
     readByte(): number;
     readUInt32(): number;
     readDouble(): number;
@@ -57,6 +61,8 @@ export abstract class ReaderBase implements Reader {
     readonly length: number;
     readonly offset: number;
 
+    abstract pushd(): number;
+    abstract popd(): number;
     abstract seek(offset: number): boolean;
     abstract readByte(): number;
     abstract readUInt32(): number;

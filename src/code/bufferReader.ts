@@ -4,12 +4,14 @@ import { ReaderBase, AdjustEnd } from './reader';
 export class BufferReader extends ReaderBase {
     private _offset: number;
     private _buffer: Buffer;
+    private _contexts: number[];
 
     constructor(buffer: Buffer, offset?: number) {
         super();
 
         this._buffer = buffer;
         this._offset = offset || 0;
+        this._contexts = [];
     }
 
     get length(): number {
@@ -18,6 +20,16 @@ export class BufferReader extends ReaderBase {
 
     get offset(): number {
         return this._offset;
+    }
+
+    pushd(): number {
+        this._contexts.push(this._offset);
+        return this._contexts.length;
+    }
+
+    popd(): number {
+        this._offset = this._contexts.pop();
+        return this._contexts.length;
     }
 
     seek(offset: number): boolean {
