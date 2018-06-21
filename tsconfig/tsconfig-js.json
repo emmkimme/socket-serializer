@@ -4,6 +4,7 @@
         "declaration": false
     },
 	"files": [
-		"../src/socket-serializer.ts"
+		"../src/socket-serializer.ts",
+		"../src/socket-serializer-browser.ts"
 	]
 }

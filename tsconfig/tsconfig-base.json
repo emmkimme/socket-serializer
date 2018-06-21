@@ -1,23 +1,36 @@
 {
     "compilerOptions": {
-        "types" : ["node"],
 		"module": "commonjs",
-		"moduleResolution": "node",
-//        "lib": ["dom", "es2015.promise", "es5"],
-		"target": "es6",        
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "noImplicitReturns": true,
-        "removeComments": true,
-        "preserveConstEnums": true,
-        "alwaysStrict" : true,
-        "noFallthroughCasesInSwitch" : true,
-        "noUnusedLocals" : true,
-//        "noUnusedParameters" : true,
-//        "inlineSources": true,
-//        "inlineSourceMap": true,
-        "stripInternal": true,
+        "target": "es6",
+
+        /* Module Resolution Options */
+        "moduleResolution": "node",
+
+        /* Source Map Options */
         "sourceMap": true,
+
+        /* Strict Type-Checking Options */
+        /* --strict enables --noImplicitAny, --noImplicitThis, --alwaysStrict, --strictNullChecks, --strictFunctionTypes and --strictPropertyInitialization */
+        "strict": true,
+        "strictNullChecks": false,
+
+        /* Additional Checks */
+        "noUnusedLocals" : true,
+        "noUnusedParameters" : false,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch" : true,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitAny": true,
+
+        /* Experimental Options */
+        "experimentalDecorators": true,
+
+        /* Treat a symlinked file like a real one. */
+        "preserveSymlinks": true,
+
+        "stripInternal": true,
+        "removeComments": true,
+
         "outDir" : "../lib"
     }
 }

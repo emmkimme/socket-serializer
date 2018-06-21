@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
@@ -45,16 +45,17 @@
     "sinon": "^4.0.1",
     "tslint": "^4.1.1",
     "tslint-microsoft-contrib": "^4.0.1",
-    "typescript": "^2.5.3"
+    "typescript": "~2.9.2"
   },
   "scripts": {
     "clean": "del-cli ./lib ./build ./dist",
     "build": "npm run build-js && npm run build-declaration",
     "build-js": "tsc -p ./tsconfig/tsconfig-js.json",
-    "build-declaration": "npm run build-declaration-ts && npm run build-declaration-dts-bundle && npm run clean-declaration-dts",
+    "build-declaration": "npm run build-declaration-ts && npm run build-declaration-dts-bundle && npm run build-declaration-dts-bundle-browser && npm run clean-declaration-dts",
     "build-declaration-ts": "tsc -p ./tsconfig/tsconfig-declaration.json",
     "build-declaration-dts-generator": "dts-generator --name socket-serializer --project . --out ./lib/index.d.ts",
     "build-declaration-dts-bundle": "dts-bundle --outputAsModuleFolder --name socket-serializer --main ./lib/socket-serializer.d.ts",
+    "build-declaration-dts-bundle-browser": "dts-bundle --outputAsModuleFolder --name socket-serializer-browser --main ./lib/socket-serializer-browser.d.ts",
     "clean-declaration-dts": "del-cli ./lib/code/*.d.ts",
     "test": "mocha test --recursive",
     "tsc": "tsc",
