@@ -74,9 +74,22 @@ export class BufferReader extends ReaderBase {
         }
         else {
             let start = this._offset;
+            len = end - this._offset;
             this._offset = end;
-            return this._buffer.slice(start, end);
+            if ((start === 0) && (len === this._buffer.length)) {
+                return this._buffer;
+            }
+            else {
+                return this._buffer.slice(start, end);
+            }
         }
+    }
+
+    reduce(): void {
+        // do nothing now, either a conservative slice or destructive copy to implement
+        // let start = this._offset;
+        // this._offset = 0;
+        // this._buffer = this._buffer.slice(start);
     }
 }
 

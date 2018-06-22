@@ -33,6 +33,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
             return false;
         }
         this._buffer = bufferReader.readBuffer(this.packetSize);
+        // bufferReader.reduce();
         return true;
     }
 
