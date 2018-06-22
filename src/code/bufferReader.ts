@@ -86,7 +86,9 @@ export class BufferReader extends ReaderBase {
     }
 
     reduce(): void {
-        // do nothing now, either a conservative slice or destructive copy to implement
+        // Till now, do nothing 
+        // Either a conservative slice or a destructive copy to implement ?
+
         // let start = this._offset;
         // this._offset = 0;
         // this._buffer = this._buffer.slice(start);
