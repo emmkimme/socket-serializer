@@ -15,13 +15,13 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this._buffer;
     }
 
+    // Allocate its own buffer
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
         bufferReader.pushd();
         let result = this._readHeader(bufferReader);
         bufferReader.popd();
         if (result) {
-            // Allocate its own buffer
             this._buffer = bufferReader.readBuffer(this.packetSize);
             // bufferReader.reduce();
         }
@@ -80,16 +80,19 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     }
 
     parse(): any {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.read(bufferReader);
+        if (this.isComplete()) {
+            let bufferReader = new BufferReader(this._buffer);
+            return this.read(bufferReader);
+        }
+        return null;
     }
 
     private _parseAndCheck(checker: () => boolean): any {
-        let arg = this.parse();
-        if (!checker.call(this)) {
-            arg = null;
+        if (checker.call(this)) {
+            let bufferReader = new BufferReader(this._buffer);
+            return this.read(bufferReader);
         }
-        return arg;
+        return null;
     }
 
     parseBoolean(): boolean | null {
@@ -104,13 +107,17 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this._parseAndCheck(this.isObject);
     }
 
+    parseBuffer(): Buffer | null {
+        return this._parseAndCheck(this.isBuffer);
+    }
+
+    parseArray(): any[] | null {
+        return this._parseAndCheck(this.isArray);
+    }
+
     parseString(encoding?: string): string | null {
         let bufferReader = new BufferReader(this._buffer);
         return this.readString(bufferReader, encoding);
-    }
-
-    parseBuffer(): Buffer | null {
-        return this._parseAndCheck(this.isBuffer);
     }
 
     parseArrayLength(): number | null {
@@ -126,9 +133,5 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     parseArraySlice(start?: number, end?: number): any | null {
         let bufferReader = new BufferReader(this._buffer);
         return this.sliceArray(bufferReader, start, end);
-    }
-
-    parseArray(): any[] | null {
-        return this._parseAndCheck(this.isArray);
     }
 }

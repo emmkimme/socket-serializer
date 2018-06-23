@@ -10,7 +10,12 @@
            
                 "sourceMaps": true,
            
-                "args": ["test/**/*.js", "--no-timeouts", "--recursive"],
+                "args": [
+                    "test/**/*.js",
+                    // "-g=Buffer", 
+                    "--no-timeouts", 
+                    "--recursive"
+                ],
                 "cwd": "${workspaceRoot}",
                 "runtimeExecutable": null,
                 "env": { "NODE_ENV": "testing"},

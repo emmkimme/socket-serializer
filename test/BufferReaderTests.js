@@ -6,7 +6,7 @@ const Buffer = require('buffer').Buffer;
 const BufferListReader = require('../lib/code/BufferListReader');
 
 
-describe('Buffer', function () {
+describe('BufferReader', function () {
   const paramBuffer = Buffer.alloc(128);
   for (let i = 0; i < paramBuffer.length; ++i) {
     paramBuffer[i] = 255 * Math.random();

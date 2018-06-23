@@ -15,12 +15,14 @@ export enum BufferType {
     // 88
     NotValid = 'X'.charCodeAt(0),
     // 85
-    NotComplete = 'P'.charCodeAt(0),
+    Partial = 'P'.charCodeAt(0),
     // 115
     String = 's'.charCodeAt(0),
     // 66
     Buffer = 'B'.charCodeAt(0),
+    // 84
     BooleanTrue = 'T'.charCodeAt(0),
+    // 70
     BooleanFalse = 'F'.charCodeAt(0),
     // 65
     ArrayWithSize = 'A'.charCodeAt(0),
@@ -34,13 +36,13 @@ export enum BufferType {
     Double = 'd'.charCodeAt(0),
     // 79
     Object = 'O'.charCodeAt(0),
-    // 79
+    // 111
     ObjectSTRINGIFY = 'o'.charCodeAt(0),
-    // 79
+    // 78
     Null = 'N'.charCodeAt(0),
-    // 79
+    // 85
     Undefined = 'U'.charCodeAt(0),
-    //
+    // 68
     Date = 'D'.charCodeAt(0),
 };
 
@@ -124,8 +126,12 @@ export class IpcPacketBufferWrap {
         return this._type === BufferType.NotValid;
     }
 
-    isNotComplete(): boolean {
-        return this._type === BufferType.NotComplete;
+    isPartial(): boolean {
+        return this._type === BufferType.Partial;
+    }
+
+    isComplete(): boolean {
+        return (this._type !== BufferType.NotValid) && (this._type !== BufferType.Partial);
     }
 
     isNull(): boolean {
@@ -203,7 +209,7 @@ export class IpcPacketBufferWrap {
 
     protected _readHeader(bufferReader: Reader): boolean {
         if (bufferReader.checkEOF(2)) {
-            this._type = BufferType.NotComplete;
+            this._type = BufferType.Partial;
             return false;
         }
         if (bufferReader.readByte() !== headerSeparator) {
@@ -213,7 +219,7 @@ export class IpcPacketBufferWrap {
         this.setTypeAndContentSize(bufferReader.readByte(), 0);
         // Substract 2 : headerSeparator + type
         if (bufferReader.checkEOF(this._headerSize - 2)) {
-            this._type = BufferType.NotComplete;
+            this._type = BufferType.Partial;
             return false;
         }
         else {
@@ -226,6 +232,10 @@ export class IpcPacketBufferWrap {
                 case BufferType.ArrayWithSize:
                     this.setPacketSize(bufferReader.readUInt32());
                     break;
+            }
+            if (bufferReader.checkEOF(this._contentSize + this.footerSize)) {
+                this._type = BufferType.Partial;
+                return false;
             }
         }
         return true;
