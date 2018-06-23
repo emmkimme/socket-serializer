@@ -522,8 +522,7 @@ export class IpcPacketBufferWrap {
     // Header has been read
     private _readString(bufferReader: Reader, len: number): string {
         // Encoding will be managed later
-        let buffer = bufferReader.readBuffer(len);
-        return buffer.toString('utf8');
+        return bufferReader.readString('utf8', len);
     }
 
     // Header has been read
@@ -665,30 +664,24 @@ export class IpcPacketBufferWrap {
 
     protected sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
         this._readHeader(bufferReader);
-        switch (this.type) {
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                return this._readArraySlice(bufferReader, start, end);
+        if (this.isArray()) {
+            return this._readArraySlice(bufferReader, start, end);
         }
         return null;
     }
 
     protected readArrayLength(bufferReader: Reader): number | null {
         this._readHeader(bufferReader);
-        switch (this.type) {
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                return this._readArrayLength(bufferReader);
+        if (this.isArray()) {
+            return this._readArrayLength(bufferReader);
         }
         return null;
     }
 
     protected readArrayAt(bufferReader: Reader, index: number): any | null {
         this._readHeader(bufferReader);
-        switch (this.type) {
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                return this._readArrayAt(bufferReader, index);
+        if (this.isArray()) {
+            return this._readArrayAt(bufferReader, index);
         }
         return null;
     }
