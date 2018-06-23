@@ -379,8 +379,8 @@ export class IpcPacketBufferWrap {
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
     writeString(bufferWriter: Writer, data: string, encoding?: string): void {
-        // encoding is not managed, force 'utf8'
-        let buffer = Buffer.from(data, 'utf8'); // encoding);
+        // Encoding will be managed later, force 'utf8'
+        let buffer = Buffer.from(data, 'utf8');
         this.setTypeAndContentSize(BufferType.String, buffer.length);
         this.writeHeader(bufferWriter);
         bufferWriter.writeBuffer(buffer);
@@ -459,6 +459,12 @@ export class IpcPacketBufferWrap {
 
     protected _read(depth: number, bufferReader: Reader): any {
         this._readHeader(bufferReader);
+        let arg = this._readContent(depth, bufferReader);
+        bufferReader.skip(this.footerSize);
+        return arg;
+    }
+
+    protected _readContent(depth: number, bufferReader: Reader): any {
         let arg: any;
         switch (this.type) {
             // case BufferType.ArrayWithLen:
@@ -510,21 +516,23 @@ export class IpcPacketBufferWrap {
                 arg = false;
                 break;
         }
-        bufferReader.skip(this.footerSize);
         return arg;
     }
 
-    private _readString(bufferReader: Reader, len: number, encoding?: string): string {
+    // Header has been read
+    private _readString(bufferReader: Reader, len: number): string {
+        // Encoding will be managed later
         let buffer = bufferReader.readBuffer(len);
-        // encoding is not managed, force 'utf8'
         return buffer.toString('utf8');
     }
 
+    // Header has been read
     private _readObjectSTRINGIFY(depth: number, bufferReader: Reader): string {
-        let data = this._readString(bufferReader, this._contentSize, 'utf8');
+        let data = bufferReader.readString('utf8', this._contentSize);
         return JSON.parse(data);
     }
 
+    // Header has been read
     private _readObjectDirect(depth: number, bufferReader: Reader): any {
         // Save current type/content size
         let type = this._type;
@@ -534,7 +542,7 @@ export class IpcPacketBufferWrap {
         let dataObject: any = {};
         while (bufferReader.offset < offsetContentSize) {
             let keyLen = bufferReader.readUInt32();
-            let key = this._readString(bufferReader, keyLen, 'utf8');
+            let key = bufferReader.readString('utf8', keyLen);
             dataObject[key] = this._read(depth + 1, bufferReader);
         }
 
@@ -545,6 +553,7 @@ export class IpcPacketBufferWrap {
         return dataObject;
     }
 
+    // Header has been read
     private _readArray(depth: number, bufferReader: Reader): any[] {
         // Save current type/content size
         let type = this._type;
@@ -565,34 +574,8 @@ export class IpcPacketBufferWrap {
         return args;
     }
 
-    protected readArrayLength(bufferReader: Reader): number | null {
-        this._readHeader(bufferReader);
-        switch (this.type) {
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                return bufferReader.readUInt32();
-        }
-        return null;
-    }
-
-    protected byPass(bufferReader: Reader): void {
-        // Do not decode data just skip
-        this._readHeader(bufferReader);
-        // if (this.type === BufferType.ArrayWithLen) {
-        //     let argsLen = bufferReader.readUInt32();
-        //     while (argsLen > 0) {
-        //         this.byPass(bufferReader);
-        //         --argsLen;
-        //     }
-        //     bufferReader.skip(this.footerSize);
-        // }
-        // else {
-            bufferReader.skip(this._contentSize + this.footerSize);
-        // }
-    }
-
-    protected sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
-        this._readHeader(bufferReader);
+    // Header has been read
+    protected _sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
         let argsLen = bufferReader.readUInt32();
         if (start == null) {
             start = 0;
@@ -633,8 +616,18 @@ export class IpcPacketBufferWrap {
         return args;
     }
 
-    protected readArrayAt(bufferReader: Reader, index: number): any | null {
-        this._readHeader(bufferReader);
+    // Header has been read
+    protected _readArrayLength(bufferReader: Reader): number | null {
+        switch (this.type) {
+            // case BufferType.ArrayWithLen:
+            case BufferType.ArrayWithSize:
+                return bufferReader.readUInt32();
+        }
+        return null;
+    }
+
+    // Header has been read
+    protected _readArrayAt(bufferReader: Reader, index: number): any | null {
         let argsLen = bufferReader.readUInt32();
         if (index >= argsLen) {
             return null;
@@ -654,14 +647,49 @@ export class IpcPacketBufferWrap {
         return arg;
     }
 
-    protected readString(bufferReader: Reader, encoding?: string): string | null {
+    protected byPass(bufferReader: Reader): void {
+        // Do not decode data just skip
         this._readHeader(bufferReader);
-        if (this.isString() === false) {
-            return null;
-        }
-        let data = this._readString(bufferReader, this._contentSize, encoding);
-        bufferReader.skip(this.footerSize);
-        return data;
+        // if (this.type === BufferType.ArrayWithLen) {
+        //     let argsLen = bufferReader.readUInt32();
+        //     while (argsLen > 0) {
+        //         this.byPass(bufferReader);
+        //         --argsLen;
+        //     }
+        //     bufferReader.skip(this.footerSize);
+        // }
+        // else {
+            bufferReader.skip(this._contentSize + this.footerSize);
+        // }
     }
 
+    protected sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
+        this._readHeader(bufferReader);
+        switch (this.type) {
+            // case BufferType.ArrayWithLen:
+            case BufferType.ArrayWithSize:
+                return this._sliceArray(bufferReader, start, end);
+        }
+        return null;
+    }
+
+    protected readArrayLength(bufferReader: Reader): number | null {
+        this._readHeader(bufferReader);
+        switch (this.type) {
+            // case BufferType.ArrayWithLen:
+            case BufferType.ArrayWithSize:
+                return this._readArrayLength(bufferReader);
+        }
+        return null;
+    }
+
+    protected readArrayAt(bufferReader: Reader, index: number): any | null {
+        this._readHeader(bufferReader);
+        switch (this.type) {
+            // case BufferType.ArrayWithLen:
+            case BufferType.ArrayWithSize:
+                return this._readArrayAt(bufferReader, index);
+        }
+        return null;
+    }
 }

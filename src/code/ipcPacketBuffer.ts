@@ -79,20 +79,17 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         this._buffer = bufferWriter.buffer;
     }
 
-    parse(): any {
-        if (this.isComplete()) {
+    private _parseAndCheck(checker: () => boolean): any {
+        if (checker.call(this)) {
             let bufferReader = new BufferReader(this._buffer);
-            return this.read(bufferReader);
+            bufferReader.skip(this._headerSize);
+            return this._readContent(0, bufferReader);
         }
         return null;
     }
 
-    private _parseAndCheck(checker: () => boolean): any {
-        if (checker.call(this)) {
-            let bufferReader = new BufferReader(this._buffer);
-            return this.read(bufferReader);
-        }
-        return null;
+    parse(): any {
+        return this._parseAndCheck(this.isComplete);
     }
 
     parseBoolean(): boolean | null {
@@ -115,23 +112,34 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this._parseAndCheck(this.isArray);
     }
 
-    parseString(encoding?: string): string | null {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.readString(bufferReader, encoding);
+    parseString(): string | null {
+        return this._parseAndCheck(this.isString);
     }
 
     parseArrayLength(): number | null {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.readArrayLength(bufferReader);
+        if (this.isArray()) {
+            let bufferReader = new BufferReader(this._buffer);
+            bufferReader.skip(this._headerSize);
+            return this._readArrayLength(bufferReader);
+        }
+        return null;
     }
 
     parseArrayAt(index: number): any | null {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.readArrayAt(bufferReader, index);
+        if (this.isArray()) {
+            let bufferReader = new BufferReader(this._buffer);
+            bufferReader.skip(this._headerSize);
+            return this._readArrayAt(bufferReader, index);
+        }
+        return null;
     }
 
     parseArraySlice(start?: number, end?: number): any | null {
-        let bufferReader = new BufferReader(this._buffer);
-        return this.sliceArray(bufferReader, start, end);
+        if (this.isArray()) {
+            let bufferReader = new BufferReader(this._buffer);
+            bufferReader.skip(this._headerSize);
+            return this._sliceArray(bufferReader, start, end);
+        }
+        return null;
     }
 }
