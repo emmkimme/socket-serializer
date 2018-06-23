@@ -197,19 +197,24 @@ export class IpcPacketBufferWrap {
         }
     }
 
-    protected readHeader(bufferReader: Reader): number {
+    protected _skipHeader(bufferReader: Reader): boolean {
+        return bufferReader.skip(this._headerSize);
+    }
+
+    protected _readHeader(bufferReader: Reader): boolean {
         if (bufferReader.checkEOF(2)) {
             this._type = BufferType.NotComplete;
-            return bufferReader.offset;
+            return false;
         }
         if (bufferReader.readByte() !== headerSeparator) {
             this._type = BufferType.NotValid;
-            return bufferReader.offset;
+            return false;
         }
         this.setTypeAndContentSize(bufferReader.readByte(), 0);
         // Substract 2 : headerSeparator + type
         if (bufferReader.checkEOF(this._headerSize - 2)) {
             this._type = BufferType.NotComplete;
+            return false;
         }
         else {
             switch (this.type) {
@@ -223,7 +228,7 @@ export class IpcPacketBufferWrap {
                     break;
             }
         }
-        return bufferReader.offset;
+        return true;
     }
 
     protected writeHeader(bufferWriter: Writer): void {
@@ -443,7 +448,7 @@ export class IpcPacketBufferWrap {
     }
 
     protected _read(depth: number, bufferReader: Reader): any {
-        this.readHeader(bufferReader);
+        this._readHeader(bufferReader);
         let arg: any;
         switch (this.type) {
             // case BufferType.ArrayWithLen:
@@ -551,7 +556,7 @@ export class IpcPacketBufferWrap {
     }
 
     protected readArrayLength(bufferReader: Reader): number | null {
-        this.readHeader(bufferReader);
+        this._readHeader(bufferReader);
         switch (this.type) {
             // case BufferType.ArrayWithLen:
             case BufferType.ArrayWithSize:
@@ -562,7 +567,7 @@ export class IpcPacketBufferWrap {
 
     protected byPass(bufferReader: Reader): void {
         // Do not decode data just skip
-        this.readHeader(bufferReader);
+        this._readHeader(bufferReader);
         // if (this.type === BufferType.ArrayWithLen) {
         //     let argsLen = bufferReader.readUInt32();
         //     while (argsLen > 0) {
@@ -577,7 +582,7 @@ export class IpcPacketBufferWrap {
     }
 
     protected sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
-        this.readHeader(bufferReader);
+        this._readHeader(bufferReader);
         let argsLen = bufferReader.readUInt32();
         if (start == null) {
             start = 0;
@@ -619,7 +624,7 @@ export class IpcPacketBufferWrap {
     }
 
     protected readArrayAt(bufferReader: Reader, index: number): any | null {
-        this.readHeader(bufferReader);
+        this._readHeader(bufferReader);
         let argsLen = bufferReader.readUInt32();
         if (index >= argsLen) {
             return null;
@@ -640,7 +645,7 @@ export class IpcPacketBufferWrap {
     }
 
     protected readString(bufferReader: Reader, encoding?: string): string | null {
-        this.readHeader(bufferReader);
+        this._readHeader(bufferReader);
         if (this.isString() === false) {
             return null;
         }

@@ -1,4 +1,4 @@
-import { IpcPacketBufferWrap, BufferType } from './ipcPacketBufferWrap';
+import { IpcPacketBufferWrap } from './ipcPacketBufferWrap';
 
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
@@ -16,29 +16,25 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     }
 
     decodeFromReader(bufferReader: Reader): boolean {
+        // Do not modify offset
         bufferReader.pushd();
-        this.readHeader(bufferReader);
+        let result = this._readHeader(bufferReader);
         bufferReader.popd();
-        // if packet size error, find a way to resynchronize later
-        if (this.isNotValid()) {
-            return false;
+        if (result) {
+            // Allocate its own buffer
+            this._buffer = bufferReader.readBuffer(this.packetSize);
+            // bufferReader.reduce();
         }
-        // if not enough data accumulated for reading the header, exit
-        if (this.isNotComplete()) {
-            return false;
-        }
-        // if not enough data accumulated for reading the packet, exit
-        if (bufferReader.checkEOF(this.packetSize)) {
-            this._type = BufferType.NotComplete;
-            return false;
-        }
-        this._buffer = bufferReader.readBuffer(this.packetSize);
-        // bufferReader.reduce();
-        return true;
+        return result;
     }
 
+    // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        return this.decodeFromReader(new BufferReader(buffer));
+        let result = this._readHeader(new BufferReader(buffer));
+        if (result) {
+            this._buffer = buffer;
+        }
+        return result;
     }
 
     serializeNumber(dataNumber: number): void {
