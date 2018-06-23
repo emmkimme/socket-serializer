@@ -138,7 +138,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         if (this.isArray()) {
             let bufferReader = new BufferReader(this._buffer);
             bufferReader.skip(this._headerSize);
-            return this._sliceArray(bufferReader, start, end);
+            return this._readArraySlice(bufferReader, start, end);
         }
         return null;
     }

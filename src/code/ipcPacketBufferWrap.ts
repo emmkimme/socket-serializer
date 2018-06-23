@@ -575,7 +575,7 @@ export class IpcPacketBufferWrap {
     }
 
     // Header has been read
-    protected _sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
+    protected _readArraySlice(bufferReader: Reader, start?: number, end?: number): any | null {
         let argsLen = bufferReader.readUInt32();
         if (start == null) {
             start = 0;
@@ -668,7 +668,7 @@ export class IpcPacketBufferWrap {
         switch (this.type) {
             // case BufferType.ArrayWithLen:
             case BufferType.ArrayWithSize:
-                return this._sliceArray(bufferReader, start, end);
+                return this._readArraySlice(bufferReader, start, end);
         }
         return null;
     }
