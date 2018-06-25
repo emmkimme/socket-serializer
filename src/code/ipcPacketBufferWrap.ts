@@ -380,6 +380,17 @@ export class IpcPacketBufferWrap {
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
     writeString(bufferWriter: Writer, data: string, encoding?: string): void {
         // Encoding will be managed later, force 'utf8'
+        // case 'hex':
+        // case 'utf8':
+        // case 'utf-8':
+        // case 'ascii':
+        // case 'latin1':
+        // case 'binary':
+        // case 'base64':
+        // case 'ucs2':
+        // case 'ucs-2':
+        // case 'utf16le':
+        // case 'utf-16le':
         let buffer = Buffer.from(data, 'utf8');
         this.setTypeAndContentSize(BufferType.String, buffer.length);
         this.writeHeader(bufferWriter);
@@ -519,25 +530,27 @@ export class IpcPacketBufferWrap {
         return arg;
     }
 
-    // Header has been read
+    // Header has been read and checked
     private _readString(bufferReader: Reader, len: number): string {
         // Encoding will be managed later
         return bufferReader.readString('utf8', len);
     }
 
-    // Header has been read
+    // Header has been read and checked
     private _readObjectSTRINGIFY(depth: number, bufferReader: Reader): string {
         let data = bufferReader.readString('utf8', this._contentSize);
         return JSON.parse(data);
     }
 
-    // Header has been read
+    // Header has been read and checked
     private _readObjectDirect(depth: number, bufferReader: Reader): any {
-        // Save current type/content size
-        let type = this._type;
-        let contentSize = this._contentSize;
+        // Save the top type/content size
+        let context: any;
+        if (depth === 0) {
+            context = { type: this._type, contentSize: this._contentSize };
+        }
 
-        let offsetContentSize = bufferReader.offset + contentSize;
+        let offsetContentSize = bufferReader.offset + this._contentSize;
         let dataObject: any = {};
         while (bufferReader.offset < offsetContentSize) {
             let keyLen = bufferReader.readUInt32();
@@ -546,17 +559,19 @@ export class IpcPacketBufferWrap {
         }
 
         // Restore type and content size may be corrupted by depth reading
-        if (depth === 0) {
-            this.setTypeAndContentSize(type, contentSize);
+        if (context) {
+            this.setTypeAndContentSize(context.type, context.contentSize);
         }
         return dataObject;
     }
 
-    // Header has been read
+    // Header has been read and checked
     private _readArray(depth: number, bufferReader: Reader): any[] {
-        // Save current type/content size
-        let type = this._type;
-        let contentSize = this._contentSize;
+        // Save the top type/content size
+        let context: any;
+        if (depth === 0) {
+            context = { type: this._type, contentSize: this._contentSize };
+        }
 
         let argsLen = bufferReader.readUInt32();
         let args = [];
@@ -567,13 +582,71 @@ export class IpcPacketBufferWrap {
         }
 
         // Restore type and content size may be corrupted by depth reading
-        if (depth === 0) {
-            this.setTypeAndContentSize(type, contentSize);
+        if (context) {
+            this.setTypeAndContentSize(context.type, context.contentSize);
         }
         return args;
     }
 
-    // Header has been read
+    // Header has been read and checked
+    protected _readArrayLength(bufferReader: Reader): number | null {
+        return bufferReader.readUInt32();
+    }
+
+    protected readArrayLength(bufferReader: Reader): number | null {
+        this._readHeader(bufferReader);
+        if (this.isArray()) {
+            return this._readArrayLength(bufferReader);
+        }
+        return null;
+    }
+
+    protected byPass(bufferReader: Reader): void {
+        // Do not decode data just skip
+        this._readHeader(bufferReader);
+        // if (this.type === BufferType.ArrayWithLen) {
+        //     let argsLen = bufferReader.readUInt32();
+        //     while (argsLen > 0) {
+        //         this.byPass(bufferReader);
+        //         --argsLen;
+        //     }
+        //     bufferReader.skip(this.footerSize);
+        // }
+        // else {
+            bufferReader.skip(this._contentSize + this.footerSize);
+        // }
+    }
+
+    // Header has been read and checked
+    protected _readArrayAt(bufferReader: Reader, index: number): any | null {
+        let argsLen = bufferReader.readUInt32();
+        if (index >= argsLen) {
+            return null;
+        }
+
+        // Create a tempory wrapper for keeping the original header info
+        let headerArg = new IpcPacketBufferWrap();
+        while (index > 0) {
+            // Do not decode data just skip
+            headerArg.byPass(bufferReader);
+            --index;
+        }
+        let arg: any;
+        if (index === 0) {
+            arg = headerArg.read(bufferReader);
+        }
+        return arg;
+    }
+
+    protected readArrayAt(bufferReader: Reader, index: number): any | null {
+        this._readHeader(bufferReader);
+        if (this.isArray()) {
+            return this._readArrayAt(bufferReader, index);
+        }
+        return null;
+    }
+
+    // Header has been read and checked
     protected _readArraySlice(bufferReader: Reader, start?: number, end?: number): any | null {
         let argsLen = bufferReader.readUInt32();
         if (start == null) {
@@ -615,73 +688,10 @@ export class IpcPacketBufferWrap {
         return args;
     }
 
-    // Header has been read
-    protected _readArrayLength(bufferReader: Reader): number | null {
-        switch (this.type) {
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                return bufferReader.readUInt32();
-        }
-        return null;
-    }
-
-    // Header has been read
-    protected _readArrayAt(bufferReader: Reader, index: number): any | null {
-        let argsLen = bufferReader.readUInt32();
-        if (index >= argsLen) {
-            return null;
-        }
-
-        // Create a tempory wrapper for keeping the original header info
-        let headerArg = new IpcPacketBufferWrap();
-        while (index > 0) {
-            // Do not decode data just skip
-            headerArg.byPass(bufferReader);
-            --index;
-        }
-        let arg: any;
-        if (index === 0) {
-            arg = headerArg.read(bufferReader);
-        }
-        return arg;
-    }
-
-    protected byPass(bufferReader: Reader): void {
-        // Do not decode data just skip
-        this._readHeader(bufferReader);
-        // if (this.type === BufferType.ArrayWithLen) {
-        //     let argsLen = bufferReader.readUInt32();
-        //     while (argsLen > 0) {
-        //         this.byPass(bufferReader);
-        //         --argsLen;
-        //     }
-        //     bufferReader.skip(this.footerSize);
-        // }
-        // else {
-            bufferReader.skip(this._contentSize + this.footerSize);
-        // }
-    }
-
-    protected sliceArray(bufferReader: Reader, start?: number, end?: number): any | null {
+    protected readArraySlice(bufferReader: Reader, start?: number, end?: number): any | null {
         this._readHeader(bufferReader);
         if (this.isArray()) {
             return this._readArraySlice(bufferReader, start, end);
-        }
-        return null;
-    }
-
-    protected readArrayLength(bufferReader: Reader): number | null {
-        this._readHeader(bufferReader);
-        if (this.isArray()) {
-            return this._readArrayLength(bufferReader);
-        }
-        return null;
-    }
-
-    protected readArrayAt(bufferReader: Reader, index: number): any | null {
-        this._readHeader(bufferReader);
-        if (this.isArray()) {
-            return this._readArrayAt(bufferReader, index);
         }
         return null;
     }
