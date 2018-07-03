@@ -37,46 +37,46 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return result;
     }
 
-    serializeNumber(dataNumber: number): void {
-        let bufferWriter = new BufferListWriter();
-        this.writeNumber(bufferWriter, dataNumber);
-        this._buffer = bufferWriter.buffer;
-    }
-
-    serializeBoolean(dataBoolean: boolean): void {
-        let bufferWriter = new BufferListWriter();
-        this.writeBoolean(bufferWriter, dataBoolean);
-        this._buffer = bufferWriter.buffer;
-    }
-
-    serializeString(data: string, encoding?: string): void {
-        let bufferWriter = new BufferListWriter();
-        this.writeString(bufferWriter, data, encoding);
-        this._buffer = bufferWriter.buffer;
-    }
-
-    serializeObject(dataObject: Object): void {
-        let bufferWriter = new BufferListWriter();
-        this.writeObject(bufferWriter, dataObject);
-        this._buffer = bufferWriter.buffer;
-    }
-
-    serializeBuffer(data: Buffer): void {
-        let bufferWriter = new BufferListWriter();
-        this.writeBuffer(bufferWriter, data);
-        this._buffer = bufferWriter.buffer;
-    }
-
-    serializeArray(args: any[]): void {
-        let bufferWriter = new BufferListWriter();
-        this.writeArray(bufferWriter, args);
-        this._buffer = bufferWriter.buffer;
-    }
-
-    serialize(data: any): void {
+    private _serializeAndCheck(data: any, checker: () => boolean): boolean {
         let bufferWriter = new BufferListWriter();
         this.write(bufferWriter, data);
         this._buffer = bufferWriter.buffer;
+        return checker.call(this);
+    }
+
+    serializeNumber(dataNumber: number): boolean {
+        return this._serializeAndCheck(dataNumber, this.isNumber);
+    }
+
+    serializeBoolean(dataBoolean: boolean): boolean {
+        return this._serializeAndCheck(dataBoolean, this.isBoolean);
+    }
+
+    serializeDate(dataDate: boolean): boolean {
+        return this._serializeAndCheck(dataDate, this.isDate);
+    }
+
+    serializeString(data: string, encoding?: string): boolean {
+        let bufferWriter = new BufferListWriter();
+        this.writeString(bufferWriter, data, encoding);
+        this._buffer = bufferWriter.buffer;
+        return this.isString();
+    }
+
+    serializeObject(dataObject: Object): boolean {
+        return this._serializeAndCheck(dataObject, this.isObject);
+    }
+
+    serializeBuffer(dataBuffer: Buffer): boolean {
+        return this._serializeAndCheck(dataBuffer, this.isBuffer);
+    }
+
+    serializeArray(args: any[]): boolean {
+        return this._serializeAndCheck(args, this.isArray);
+    }
+
+    serialize(data: any): boolean {
+        return this._serializeAndCheck(data, this.isComplete);
     }
 
     private _parseAndCheck(checker: () => boolean): any {
@@ -98,7 +98,11 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     parseNumber(): number | null {
         return this._parseAndCheck(this.isNumber);
-   }
+    }
+
+    parseDate(): Date | null {
+        return this._parseAndCheck(this.isDate);
+    }
 
     parseObject(): any | null {
         return this._parseAndCheck(this.isObject);
