@@ -1,5 +1,5 @@
 // import { Buffer } from 'buffer';
-import { ReaderBase, AdjustEnd } from './reader';
+import { Reader, ReaderBase } from './reader';
 
 export class BufferReader extends ReaderBase {
     private _offset: number;
@@ -56,7 +56,7 @@ export class BufferReader extends ReaderBase {
     }
 
     readString(encoding?: string, len?: number): string {
-        let end = AdjustEnd(this._offset, this._buffer.length, len);
+        let end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
             return '';
         }
@@ -68,7 +68,7 @@ export class BufferReader extends ReaderBase {
     }
 
     readBuffer(len?: number): Buffer {
-        let end = AdjustEnd(this._offset, this._buffer.length, len);
+        let end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
             return Buffer.allocUnsafe(0);
         }

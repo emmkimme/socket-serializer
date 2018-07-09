@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer';
-import { ReaderBase, AdjustEnd } from './reader';
+import { Reader, ReaderBase } from './reader';
 
 export namespace BufferListReader {
     export interface Context {
@@ -155,7 +155,7 @@ export class BufferListReader extends ReaderBase {
     }
 
     readString(encoding?: string, len?: number): string {
-        let end = AdjustEnd(this._offset, this._length, len);
+        let end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return '';
         }
@@ -168,7 +168,7 @@ export class BufferListReader extends ReaderBase {
     }
 
     readBuffer(len?: number): Buffer {
-        let end = AdjustEnd(this._offset, this._length, len);
+        let end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return Buffer.alloc(0);
         }
