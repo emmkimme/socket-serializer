@@ -301,7 +301,6 @@ export class IpcPacketBufferWrap {
         bufferWriter.popContext();
     }
 
-
     // http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.3
     // Type of val              Result
     // ------------------------------------
