@@ -546,7 +546,7 @@ export class IpcPacketBufferWrap {
         // Save the top type/content size
         let context: any;
         if (depth === 0) {
-            context = { type: this._type, contentSize: this._contentSize };
+            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize };
         }
 
         let offsetContentSize = bufferReader.offset + this._contentSize;
@@ -559,7 +559,9 @@ export class IpcPacketBufferWrap {
 
         // Restore type and content size may be corrupted by depth reading
         if (context) {
-            this.setTypeAndContentSize(context.type, context.contentSize);
+            this._type = context.type;
+            this._headerSize = context.headerSize;
+            this._contentSize = context.contentSize;
         }
         return dataObject;
     }
@@ -569,7 +571,7 @@ export class IpcPacketBufferWrap {
         // Save the top type/content size
         let context: any;
         if (depth === 0) {
-            context = { type: this._type, contentSize: this._contentSize };
+            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize };
         }
 
         let argsLen = bufferReader.readUInt32();
@@ -582,7 +584,9 @@ export class IpcPacketBufferWrap {
 
         // Restore type and content size may be corrupted by depth reading
         if (context) {
-            this.setTypeAndContentSize(context.type, context.contentSize);
+            this._type = context.type;
+            this._headerSize = context.headerSize;
+            this._contentSize = context.contentSize;
         }
         return args;
     }

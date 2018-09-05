@@ -94,6 +94,7 @@ export class BufferListReader extends ReaderBase {
     }
 
     reduce() {
+        // We change array but never modified buffers content (no slice, fill, copy...) in case someone refers them.
         if (this.checkEOF(1)) {
             this._buffers = [];
             this._offset = 0;

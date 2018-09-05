@@ -37,23 +37,23 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return result;
     }
 
-    private _serializeAndCheck(data: any, checker: () => boolean): boolean {
+    private _serializeAndCheck(checker: () => boolean, dataNumber: any): boolean {
         let bufferWriter = new BufferListWriter();
-        this.write(bufferWriter, data);
+        this.write(bufferWriter, dataNumber);
         this._buffer = bufferWriter.buffer;
         return checker.call(this);
     }
 
     serializeNumber(dataNumber: number): boolean {
-        return this._serializeAndCheck(dataNumber, this.isNumber);
+        return this._serializeAndCheck(this.isNumber, dataNumber);
     }
 
     serializeBoolean(dataBoolean: boolean): boolean {
-        return this._serializeAndCheck(dataBoolean, this.isBoolean);
+        return this._serializeAndCheck(this.isBoolean, dataBoolean);
     }
 
     serializeDate(dataDate: boolean): boolean {
-        return this._serializeAndCheck(dataDate, this.isDate);
+        return this._serializeAndCheck(this.isDate, dataDate);
     }
 
     serializeString(data: string, encoding?: string): boolean {
@@ -64,19 +64,19 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     }
 
     serializeObject(dataObject: Object): boolean {
-        return this._serializeAndCheck(dataObject, this.isObject);
+        return this._serializeAndCheck(this.isObject, dataObject);
     }
 
     serializeBuffer(dataBuffer: Buffer): boolean {
-        return this._serializeAndCheck(dataBuffer, this.isBuffer);
+        return this._serializeAndCheck(this.isBuffer, dataBuffer);
     }
 
     serializeArray(args: any[]): boolean {
-        return this._serializeAndCheck(args, this.isArray);
+        return this._serializeAndCheck(this.isArray, args);
     }
 
     serialize(data: any): boolean {
-        return this._serializeAndCheck(data, this.isComplete);
+        return this._serializeAndCheck(this.isComplete, data);
     }
 
     private _parseAndCheck(checker: () => boolean): any {
@@ -137,6 +137,14 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         }
         return null;
     }
+
+    // parseArraySetAt(index: number, data: any): void {
+    //     if (this.isArray()) {
+    //         let bufferReader = new BufferReader(this._buffer);
+    //         return this._readArraySetAt(bufferReader, index);
+    //     }
+    //     return null;
+    // }
 
     parseArraySlice(start?: number, end?: number): any | null {
         if (this.isArray()) {
