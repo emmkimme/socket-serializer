@@ -123,11 +123,11 @@ export class IpcPacketBufferWrap {
     }
 
     isNotValid(): boolean {
-        return this._type === BufferType.NotValid;
+        return (this._type === BufferType.NotValid);
     }
 
     isPartial(): boolean {
-        return this._type === BufferType.Partial;
+        return (this._type === BufferType.Partial);
     }
 
     isComplete(): boolean {
@@ -143,13 +143,14 @@ export class IpcPacketBufferWrap {
     }
 
     isArray(): boolean {
-        switch (this._type) {
-            case BufferType.ArrayWithSize:
-            // case BufferType.ArrayWithLen:
-                return true;
-            default:
-                return false;
-        }
+        return (this._type === BufferType.ArrayWithSize);
+        // switch (this._type) {
+        //     case BufferType.ArrayWithSize:
+        //     case BufferType.ArrayWithLen:
+        //         return true;
+        //     default:
+        //         return false;
+        // }
     }
 
     // isArrayWithSize(): boolean {
@@ -171,15 +172,15 @@ export class IpcPacketBufferWrap {
     }
 
     isString(): boolean {
-        return this._type === BufferType.String;
+        return (this._type === BufferType.String);
     }
 
     isBuffer(): boolean {
-        return this._type === BufferType.Buffer;
+        return (this._type === BufferType.Buffer);
     }
 
     isDate(): boolean {
-        return this._type === BufferType.Date;
+        return (this._type === BufferType.Date);
     }
 
     isNumber(): boolean {
@@ -203,35 +204,47 @@ export class IpcPacketBufferWrap {
         }
     }
 
+    isFixedSize(): boolean {
+        switch (this._type) {
+            case BufferType.Object:
+            case BufferType.ObjectSTRINGIFY:
+            case BufferType.String:
+            case BufferType.Buffer:
+            // case BufferType.ArrayWithLen:
+            case BufferType.ArrayWithSize:
+                return false;
+        }
+        return true;
+    }
+
     protected _skipHeader(bufferReader: Reader): boolean {
         return bufferReader.skip(this._headerSize);
     }
 
     protected _readHeader(bufferReader: Reader): boolean {
+        // Header minimum size is 2
         if (bufferReader.checkEOF(2)) {
             this._type = BufferType.Partial;
             return false;
         }
+        // Read separator
         if (bufferReader.readByte() !== headerSeparator) {
             this._type = BufferType.NotValid;
             return false;
         }
+        // Read type
         this.setTypeAndContentSize(bufferReader.readByte(), 0);
+        if (this._type === BufferType.NotValid) {
+            return false;
+        }
         // Substract 2 : headerSeparator + type
         if (bufferReader.checkEOF(this._headerSize - 2)) {
             this._type = BufferType.Partial;
             return false;
         }
         else {
-            switch (this.type) {
-                case BufferType.Object:
-                case BufferType.ObjectSTRINGIFY:
-                case BufferType.String:
-                case BufferType.Buffer:
-                // case BufferType.ArrayWithLen:
-                case BufferType.ArrayWithSize:
-                    this.setPacketSize(bufferReader.readUInt32());
-                    break;
+            if (this.isFixedSize() === false) {
+                this.setPacketSize(bufferReader.readUInt32());
             }
             if (bufferReader.checkEOF(this._contentSize + this.footerSize)) {
                 this._type = BufferType.Partial;
@@ -247,15 +260,8 @@ export class IpcPacketBufferWrap {
         let bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
         bufferWriterHeader.writeByte(headerSeparator);
         bufferWriterHeader.writeByte(this._type);
-        switch (this._type) {
-            case BufferType.Object:
-            case BufferType.ObjectSTRINGIFY:
-            case BufferType.String:
-            case BufferType.Buffer:
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                bufferWriterHeader.writeUInt32(this.packetSize);
-                break;
+        if (this.isFixedSize() === false) {
+            bufferWriterHeader.writeUInt32(this.packetSize);
         }
         // Push block in origin writer
         bufferWriter.writeBuffer(bufferWriterHeader.buffer);

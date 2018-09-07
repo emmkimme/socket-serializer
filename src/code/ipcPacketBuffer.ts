@@ -81,8 +81,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     private _parseAndCheck(checker: () => boolean): any {
         if (checker.call(this)) {
-            let bufferReader = new BufferReader(this._buffer);
-            bufferReader.skip(this._headerSize);
+            let bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readContent(0, bufferReader);
         }
         return null;
@@ -122,8 +121,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     parseArrayLength(): number | null {
         if (this.isArray()) {
-            let bufferReader = new BufferReader(this._buffer);
-            bufferReader.skip(this._headerSize);
+            let bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readArrayLength(bufferReader);
         }
         return null;
@@ -131,8 +129,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     parseArrayAt(index: number): any | null {
         if (this.isArray()) {
-            let bufferReader = new BufferReader(this._buffer);
-            bufferReader.skip(this._headerSize);
+            let bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readArrayAt(bufferReader, index);
         }
         return null;
@@ -148,8 +145,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     parseArraySlice(start?: number, end?: number): any | null {
         if (this.isArray()) {
-            let bufferReader = new BufferReader(this._buffer);
-            bufferReader.skip(this._headerSize);
+            let bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readArraySlice(bufferReader, start, end);
         }
         return null;
