@@ -52,7 +52,8 @@ export class IpcPacketBufferWrap {
     protected _headerSize: number;
 
     writeArray: Function = this.writeArrayWithSize;
-    writeObject: Function = this.writeObjectSTRINGIFY;
+    // writeObject: Function = this.writeObjectSTRINGIFY;
+    writeObject: Function = this.writeObjectDirect;
 
     constructor() {
         this._type = BufferType.NotValid;
