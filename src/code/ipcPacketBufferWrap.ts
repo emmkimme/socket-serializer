@@ -417,14 +417,25 @@ export class IpcPacketBufferWrap {
         }
         else {
             let contentBufferWriter = new BufferListWriter();
-            let keys = Object.keys(dataObject);
+
+            let keys = Object.getOwnPropertyNames(dataObject);
             for (let i = 0, l = keys.length; i < l; ++i) {
                 let key = keys[i];
-                let buffer = Buffer.from(key, 'utf8');
-                contentBufferWriter.writeUInt32(buffer.length);
-                contentBufferWriter.writeBuffer(buffer);
-                this.write(contentBufferWriter, dataObject[key]);
+                const desc = Object.getOwnPropertyDescriptor(dataObject, key);
+                if (desc && (typeof desc.value !== 'function')) {
+                    let buffer = Buffer.from(key, 'utf8');
+                    contentBufferWriter.writeUInt32(buffer.length);
+                    contentBufferWriter.writeBuffer(buffer);
+                    this.write(contentBufferWriter, dataObject[key]);
+                }
             }
+            // for (let i = 0, l = keys.length; i < l; ++i) {
+            //     let key = keys[i];
+            //     let buffer = Buffer.from(key, 'utf8');
+            //     contentBufferWriter.writeUInt32(buffer.length);
+            //     contentBufferWriter.writeBuffer(buffer);
+            //     this.write(contentBufferWriter, dataObject[key]);
+            // }
             this.setTypeAndContentSize(BufferType.Object, contentBufferWriter.length);
             this.writeHeader(bufferWriter);
             bufferWriter.write(contentBufferWriter);
