@@ -417,7 +417,6 @@ export class IpcPacketBufferWrap {
         }
         else {
             let contentBufferWriter = new BufferListWriter();
-
             let keys = Object.getOwnPropertyNames(dataObject);
             for (let i = 0, l = keys.length; i < l; ++i) {
                 let key = keys[i];
