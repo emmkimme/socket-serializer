@@ -12,31 +12,44 @@ function ObjectEqual(a1, a2) {
 
 describe('Object', () => {
 
-
   describe('Object - big json', () => {
     it('stringify', () => {
       const ipb = new ssbModule.IpcPacketBuffer();
       const bufferWriter = new ssbModule.BufferListWriter();
-      console.time('stringify serialize');
+      console.time('stringify serialize - big json');
       ipb.writeObjectSTRINGIFY(bufferWriter, bigData);
-      console.timeEnd('stringify serialize');
+      console.timeEnd('stringify serialize - big json');
       const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
-      console.time('stringify deserialize');
+      console.time('stringify deserialize - big json');
       let newbigdata = ipb.read(bufferReader);
-      console.timeEnd('stringify deserialize');
+      console.timeEnd('stringify deserialize - big json');
       assert(ObjectEqual(bigData, newbigdata));
     });
 
-    it('direct', () => {
+    it('direct1 - big json', () => {
       const ipb = new ssbModule.IpcPacketBuffer();
       const bufferWriter = new ssbModule.BufferListWriter();
-      console.time('direct serialize');
-      ipb.writeObjectDirect(bufferWriter, bigData);
-      console.timeEnd('direct serialize');
+      console.time('direct1 serialize - big json');
+      ipb.writeObjectDirect1(bufferWriter, bigData);
+      console.timeEnd('direct1 serialize - big json');
       const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
-      console.time('direct deserialize');
+      console.time('direct1 deserialize - big json');
       let newbigdata = ipb.read(bufferReader);
-      console.timeEnd('direct deserialize');
+      console.timeEnd('direct1 deserialize - big json');
+      // Can not compare, properties' order or indentation are not the same
+      // assert(ObjectEqual(bigData, newbigdata));
+    });
+
+    it('direct2 - big json', () => {
+      const ipb = new ssbModule.IpcPacketBuffer();
+      const bufferWriter = new ssbModule.BufferListWriter();
+      console.time('direct2 serialize - big json');
+      ipb.writeObjectDirect2(bufferWriter, bigData);
+      console.timeEnd('direct2 serialize - big json');
+      const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+      console.time('direct2 deserialize - big json');
+      let newbigdata = ipb.read(bufferReader);
+      console.timeEnd('direct2 deserialize - big json');
       // Can not compare, properties' order or indentation are not the same
       // assert(ObjectEqual(bigData, newbigdata));
     });
@@ -58,34 +71,52 @@ describe('Object', () => {
       request: {
         replyChannel: '/electron-common-ipc/myChannel/myRequest/replyChannel',
       }
-    }
+    };
 
-    it('stringify', () => {
-      console.time('stringify serialize');
+    it('stringify - small json', (done) => {
+      console.time('stringify serialize - small json');
       for (i = 0; i < 10000; ++i) {
         const ipb = new ssbModule.IpcPacketBuffer();
         const bufferWriter = new ssbModule.BufferListWriter();
         ipb.writeObjectSTRINGIFY(bufferWriter, busEvent);
         const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
         let newBusEvent = ipb.read(bufferReader);
-        assert(ObjectEqual(busEvent, newBusEvent));
+        newBusEvent;
       }
-      console.timeEnd('stringify serialize');
+      console.timeEnd('stringify serialize - small json');
+      done();
     });
 
-    it('direct', () => {
-      console.time('direct serialize');
+    it('direct1 - small json', (done) => {
+      console.time('direct1 serialize - small json');
       for (i = 0; i < 10000; ++i) {
         const ipb = new ssbModule.IpcPacketBuffer();
         const bufferWriter = new ssbModule.BufferListWriter();
-        ipb.writeObjectDirect(bufferWriter, busEvent);
+        ipb.writeObjectDirect1(bufferWriter, busEvent);
         const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
         let newBusEvent = ipb.read(bufferReader);
         newBusEvent;
         // Can not compare, properties' order or indentation are not the same
         // assert(ObjectEqual(bigData, newBusEvent));
       }
-      console.timeEnd('direct serialize');
+      console.timeEnd('direct1 serialize - small json');
+      done();
+    });
+
+    it('direct2 - small json', (done) => {
+      console.time('direct2 serialize - small json');
+      for (i = 0; i < 10000; ++i) {
+        const ipb = new ssbModule.IpcPacketBuffer();
+        const bufferWriter = new ssbModule.BufferListWriter();
+        ipb.writeObjectDirect2(bufferWriter, busEvent);
+        const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+        let newBusEvent = ipb.read(bufferReader);
+        newBusEvent;
+        // Can not compare, properties' order or indentation are not the same
+        // assert(ObjectEqual(bigData, newBusEvent));
+      }
+      console.timeEnd('direct2 serialize - small json');
+      done();
     });
   });
 

@@ -52,8 +52,8 @@ export class IpcPacketBufferWrap {
     protected _headerSize: number;
 
     writeArray: Function = this.writeArrayWithSize;
-    // writeObject: Function = this.writeObjectSTRINGIFY;
-    writeObject: Function = this.writeObjectDirect;
+    writeObject: Function = this.writeObjectSTRINGIFY;
+    // writeObject: Function = this.writeObjectDirect;
 
     constructor() {
         this._type = BufferType.NotValid;
@@ -414,7 +414,28 @@ export class IpcPacketBufferWrap {
         this.writeFooter(bufferWriter);
     }
 
-    writeObjectDirect(bufferWriter: Writer, dataObject: any): void {
+    writeObjectDirect1(bufferWriter: Writer, dataObject: any): void {
+        if (dataObject === null) {
+            this.writeFixedSize(bufferWriter, BufferType.Null);
+        }
+        else {
+            let contentBufferWriter = new BufferListWriter();
+            let keys = Object.keys(dataObject);
+            for (let i = 0, l = keys.length; i < l; ++i) {
+                let key = keys[i];
+                let buffer = Buffer.from(key, 'utf8');
+                contentBufferWriter.writeUInt32(buffer.length);
+                contentBufferWriter.writeBuffer(buffer);
+                this.write(contentBufferWriter, dataObject[key]);
+            }
+            this.setTypeAndContentSize(BufferType.Object, contentBufferWriter.length);
+            this.writeHeader(bufferWriter);
+            bufferWriter.write(contentBufferWriter);
+            this.writeFooter(bufferWriter);
+        }
+    }
+
+    writeObjectDirect2(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
@@ -431,13 +452,6 @@ export class IpcPacketBufferWrap {
                     this.write(contentBufferWriter, dataObject[key]);
                 }
             }
-            // for (let i = 0, l = keys.length; i < l; ++i) {
-            //     let key = keys[i];
-            //     let buffer = Buffer.from(key, 'utf8');
-            //     contentBufferWriter.writeUInt32(buffer.length);
-            //     contentBufferWriter.writeBuffer(buffer);
-            //     this.write(contentBufferWriter, dataObject[key]);
-            // }
             this.setTypeAndContentSize(BufferType.Object, contentBufferWriter.length);
             this.writeHeader(bufferWriter);
             bufferWriter.write(contentBufferWriter);
