@@ -52,8 +52,8 @@ export class IpcPacketBufferWrap {
     protected _headerSize: number;
 
     writeArray: Function = this.writeArrayWithSize;
-    writeObject: Function = this.writeObjectSTRINGIFY;
-    // writeObject: Function = this.writeObjectDirect;
+    // writeObject: Function = this.writeObjectSTRINGIFY;
+    writeObject: Function = this.writeObjectDirect;
 
     constructor() {
         this._type = BufferType.NotValid;
@@ -346,6 +346,9 @@ export class IpcPacketBufferWrap {
                 break;
             case 'undefined':
                 this.writeFixedSize(bufferWriter, BufferType.Undefined);
+                break;
+            case 'symbol':
+            default:
                 break;
         }
     }
