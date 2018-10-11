@@ -46,14 +46,17 @@ export enum BufferType {
     Date = 'D'.charCodeAt(0),
 };
 
+const JSON_TOKEN_UNDEFINED = '__undefined__';
+
 export class IpcPacketBufferWrap {
     protected _type: BufferType;
     protected _contentSize: number;
     protected _headerSize: number;
 
     writeArray: Function = this.writeArrayWithSize;
-    writeObject: Function = this.writeObjectSTRINGIFY;
-    // writeObject: Function = this.writeObjectDirect;
+
+    writeObject: Function = this.writeObjectSTRINGIFY2;
+    // _readObjectSTRINGIFY: Function = this._readObjectSTRINGIFY2;
 
     constructor() {
         this._type = BufferType.NotValid;
@@ -441,7 +444,8 @@ export class IpcPacketBufferWrap {
         }
         else {
             let contentBufferWriter = new BufferListWriter();
-            let keys = Object.getOwnPropertyNames(dataObject);
+            // let keys = Object.getOwnPropertyNames(dataObject);
+            let keys = Object.keys(dataObject);
             for (let i = 0, l = keys.length; i < l; ++i) {
                 let key = keys[i];
                 const desc = Object.getOwnPropertyDescriptor(dataObject, key);
@@ -449,7 +453,8 @@ export class IpcPacketBufferWrap {
                     let buffer = Buffer.from(key, 'utf8');
                     contentBufferWriter.writeUInt32(buffer.length);
                     contentBufferWriter.writeBuffer(buffer);
-                    this.write(contentBufferWriter, dataObject[key]);
+                    // this.write(contentBufferWriter, desc.value || dataObject[key]);
+                    this.write(contentBufferWriter, desc.value);
                 }
             }
             this.setTypeAndContentSize(BufferType.Object, contentBufferWriter.length);
@@ -459,12 +464,26 @@ export class IpcPacketBufferWrap {
         }
     }
 
-    writeObjectSTRINGIFY(bufferWriter: Writer, dataObject: any): void {
+    writeObjectSTRINGIFY1(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
             let buffer = Buffer.from(JSON.stringify(dataObject), 'utf8');
+            this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
+            this.writeHeader(bufferWriter);
+            bufferWriter.writeBuffer(buffer);
+            this.writeFooter(bufferWriter);
+        }
+    }
+
+    writeObjectSTRINGIFY2(bufferWriter: Writer, dataObject: any): void {
+        if (dataObject === null) {
+            this.writeFixedSize(bufferWriter, BufferType.Null);
+        }
+        else {
+            let stringifycation = JSON.stringify(dataObject, (k, v) => (v === undefined) ? JSON_TOKEN_UNDEFINED : v);
+            let buffer = Buffer.from(stringifycation, 'utf8');
             this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
             this.writeHeader(bufferWriter);
             bufferWriter.writeBuffer(buffer);
@@ -520,7 +539,7 @@ export class IpcPacketBufferWrap {
                 arg = this._readObjectDirect(depth, bufferReader);
                 break;
             case BufferType.ObjectSTRINGIFY:
-                arg = this._readObjectSTRINGIFY(depth, bufferReader);
+                arg = this._readObjectSTRINGIFY2(depth, bufferReader);
                 break;
 
             case BufferType.Null:
@@ -570,9 +589,14 @@ export class IpcPacketBufferWrap {
     }
 
     // Header has been read and checked
-    private _readObjectSTRINGIFY(depth: number, bufferReader: Reader): string {
+    // private _readObjectSTRINGIFY1(depth: number, bufferReader: Reader): string {
+    //     let data = bufferReader.readString('utf8', this._contentSize);
+    //     return JSON.parse(data);
+    // }
+
+    private _readObjectSTRINGIFY2(depth: number, bufferReader: Reader): string {
         let data = bufferReader.readString('utf8', this._contentSize);
-        return JSON.parse(data);
+        return JSON.parse(data, (k, v) => v === JSON_TOKEN_UNDEFINED ? undefined : v);
     }
 
     // Header has been read and checked
