@@ -3,6 +3,7 @@ import { Reader } from './reader';
 import { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferWriter } from './bufferWriter';
+import { BijectiveJSON } from './bijective-json';
 
 const headerSeparator: number = '['.charCodeAt(0);
 const footerSeparator: number = ']'.charCodeAt(0);
@@ -45,8 +46,6 @@ export enum BufferType {
     // 68
     Date = 'D'.charCodeAt(0),
 };
-
-const JSON_TOKEN_UNDEFINED = '__undefined__';
 
 export class IpcPacketBufferWrap {
     protected _type: BufferType;
@@ -469,7 +468,8 @@ export class IpcPacketBufferWrap {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
-            let buffer = Buffer.from(JSON.stringify(dataObject), 'utf8');
+            let stringifycation = JSON.stringify(dataObject);
+            let buffer = Buffer.from(stringifycation);
             this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
             this.writeHeader(bufferWriter);
             bufferWriter.writeBuffer(buffer);
@@ -482,7 +482,7 @@ export class IpcPacketBufferWrap {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
-            let stringifycation = JSON.stringify(dataObject, (k, v) => (v === undefined) ? JSON_TOKEN_UNDEFINED : v);
+            let stringifycation = BijectiveJSON.stringify(dataObject);
             let buffer = Buffer.from(stringifycation, 'utf8');
             this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
             this.writeHeader(bufferWriter);
@@ -596,7 +596,7 @@ export class IpcPacketBufferWrap {
 
     private _readObjectSTRINGIFY2(depth: number, bufferReader: Reader): string {
         let data = bufferReader.readString('utf8', this._contentSize);
-        return JSON.parse(data, (k, v) => v === JSON_TOKEN_UNDEFINED ? undefined : v);
+        return BijectiveJSON.parse(data);
     }
 
     // Header has been read and checked

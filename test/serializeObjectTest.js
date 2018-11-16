@@ -187,7 +187,7 @@ describe('Object', () => {
       console.time('direct2 deserialize - small json');
       const ipb = new ssbModule.IpcPacketBuffer();
       const bufferWriter = new ssbModule.BufferListWriter();
-      ipb.writeObjectSTRINGIFY(bufferWriter, busEvent);
+      ipb.writeObjectSTRINGIFY2(bufferWriter, busEvent);
       for (i = 0; i < 10000; ++i) {
         const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
         let newBusEvent = ipb.read(bufferReader);

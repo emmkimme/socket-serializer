@@ -19,4 +19,5 @@ export { IpcPacketSerializer, IpcPacketParser} from './code/ipcPacket';
 // export { SocketWriter } from './code/socketWriter';
 // export { DelayedSocketWriter, BufferedSocketWriter } from './code/socketBufferWriter';
 
+export { BijectiveJSON } from './code/bijective-json';
 
