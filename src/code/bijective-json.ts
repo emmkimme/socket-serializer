@@ -3,7 +3,7 @@ import { Buffer } from 'buffer';
 
 // Purpose is to manage 'undefined' and 'Buffer'
 export namespace BijectiveJSON {
-    export const JSON_TOKEN_UNDEFINED = '__U4x7idZXn0utw9R76jlqKQ__';
+    export const JSON_TOKEN_UNDEFINED = '_/undefined/_';
 
     export function stringify(value: any, replacer?: (key: string, value: any) => any, space?: string | number): string {
         return JSON.stringify(value, (k, v) => {
