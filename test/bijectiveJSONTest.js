@@ -212,24 +212,24 @@ describe('BijectiveJSON', () => {
     });
   });
 
-  // describe('date json', () => {
-  //   let busEvent = new Date();
+  describe('date json', () => {
+    let busEvent = new Date();
 
-  //   it('BijectiveJSON.stringify - date json', () => {
-  //     let result;
-  //     console.time('BijectiveJSON.stringify - date json');
-  //     for (i = 0; i < 10000; ++i) {
-  //       result = ssbModule.BijectiveJSON.stringify(busEvent);
-  //     }
-  //     console.timeEnd('BijectiveJSON.stringify - date json');
+    it('BijectiveJSON.stringify - date json', () => {
+      let result;
+      console.time('BijectiveJSON.stringify - date json');
+      for (i = 0; i < 10000; ++i) {
+        result = ssbModule.BijectiveJSON.stringify(busEvent);
+      }
+      console.timeEnd('BijectiveJSON.stringify - date json');
 
-  //     let resultParse;
-  //     console.time('BijectiveJSON.parse - date json');
-  //     for (i = 0; i < 10000; ++i) {
-  //       resultParse = ssbModule.BijectiveJSON.parse(result);
-  //     }
-  //     console.timeEnd('BijectiveJSON.parse - date json');
-  //   });
-  // });
+      let resultParse;
+      console.time('BijectiveJSON.parse - date json');
+      for (i = 0; i < 10000; ++i) {
+        resultParse = ssbModule.BijectiveJSON.parse(result);
+      }
+      console.timeEnd('BijectiveJSON.parse - date json');
+    });
+  });
 
 });
