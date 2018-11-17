@@ -3,7 +3,7 @@ import { Reader } from './reader';
 import { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferWriter } from './bufferWriter';
-import { BijectiveJSON } from './bijective-json';
+import { JSONParser } from 'json-helpers';
 
 const headerSeparator: number = '['.charCodeAt(0);
 const footerSeparator: number = ']'.charCodeAt(0);
@@ -482,7 +482,7 @@ export class IpcPacketBufferWrap {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
-            let stringifycation = BijectiveJSON.stringify(dataObject);
+            let stringifycation = JSONParser.stringify(dataObject);
             let buffer = Buffer.from(stringifycation, 'utf8');
             this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
             this.writeHeader(bufferWriter);
@@ -596,7 +596,7 @@ export class IpcPacketBufferWrap {
 
     private _readObjectSTRINGIFY2(depth: number, bufferReader: Reader): string {
         let data = bufferReader.readString('utf8', this._contentSize);
-        return BijectiveJSON.parse(data);
+        return JSONParser.parse(data);
     }
 
     // Header has been read and checked
