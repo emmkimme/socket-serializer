@@ -692,11 +692,7 @@ export class IpcPacketBufferWrap {
             headerArg.byPass(bufferReader);
             --index;
         }
-        let arg: any;
-        if (index === 0) {
-            arg = headerArg.read(bufferReader);
-        }
-        return arg;
+        return headerArg.read(bufferReader);
     }
 
     protected readArrayAt(bufferReader: Reader, index: number): any | null {

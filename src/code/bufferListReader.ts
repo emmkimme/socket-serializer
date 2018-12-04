@@ -23,14 +23,10 @@ export class BufferListReader extends ReaderBase {
         this._contexts = [];
 
         this._buffers = buffers || [];
-        this._offset = offset || 0;
-
         // Sum all the buffers length
-        this._length = 0;
-        for (let i = 0, l = this._buffers.length; i < l; ++i) {
-            this._length += this._buffers[i].length;
-        }
+        this._length = this._buffers.reduce((sum, buffer) => sum + buffer.length, 0);
 
+        this._offset = 0;
         this._curOffset = 0;
         this._curBufferIndex = 0;
         this.seek(offset || 0);

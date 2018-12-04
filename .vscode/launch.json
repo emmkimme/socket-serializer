@@ -6,20 +6,16 @@
                 "type": "node",
                 "request": "launch",
                 "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
-                "stopOnEntry": false,
-           
-                "sourceMaps": true,
            
                 "args": [
-                    // "test/**/serializeObjectTest.js",
-                    "test/**/bijectiveJSONTest.js",
+                    "test/BufferReader.test.js",
                     // "-g=Object", 
                     // "-g=Buffer", 
+                    // "test/**/*.test.js",
                     "--no-timeouts", 
-                    "--recursive"
+                    "--recursive",
+                    "--debug-brk=5858"
                 ],
-                "cwd": "${workspaceRoot}",
-                "runtimeExecutable": null,
                 "env": { "NODE_ENV": "testing"},
                 "outFiles": [
                 "${workspaceRoot}/lib/**/*.js",

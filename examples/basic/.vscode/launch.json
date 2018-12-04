@@ -5,7 +5,7 @@
             "name": "Launch Basic Tests",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}\\Sample.js",
+            "program": "${workspaceRoot}/sample.js",
             "stopOnEntry": false,
             "args": [],
             "cwd": "${workspaceRoot}",

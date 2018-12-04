@@ -2,7 +2,7 @@ const chai = require('chai');
 const assert = chai.assert;
 const expect = chai.expect;
 
-const portfinder = require('portfinder');
+const socketHelpers = require('socket-port-helpers');
 
 const Buffer = require('buffer').Buffer;
 const ipbModule = require('../lib/code/ipcPacketBuffer');
@@ -12,7 +12,7 @@ const ipnModule = require('../lib/code/ipcPacketNet');
 describe('Test server', function () {
     let port;
     it(`server listening`, function (done) {
-        portfinder.getPortPromise({ port: 49152 })
+        socketHelpers.findFirstFreePort({portRange: `>=49152`, log: false, testConnection: true })
         .then((thePort) => {
             port = thePort;
             let server = new ipnModule.IpcPacketNet();

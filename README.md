@@ -102,27 +102,29 @@ Write packets when reaching a size
 
 # Sample
 ```js
-const portfinder = require('portfinder');
-
+const socketHelpers = require('socket-port-helpers');
 const socketSerialModule = require('socket-serializer');
 
-portfinder.getPortPromise({ port: 49152 }).then((port) => {
-    let server = new socketSerialModule.IpcPacketNet({ port: port });
+let port = 49152;
+socketHelpers.findFirstFreePort({portRange: `>=${port}`, log: false, testConnection: true })
+.then((port) => {
+    let server = new socketSerialModule.IpcPacketNet();
     server.addListener('listening', () => {
-        let client = new socketSerialModule.IpcPacketNet({ port: port });
+        let client = new socketSerialModule.IpcPacketNet();
         client.addListener('packet', (ipcPacketBuffer) => {
             let paramObject = ipcPacketBuffer.parseObject();
             console.log(JSON.stringify(paramObject));
         });
         client.addListener('error', (err) => {
         });
-        client.connect();
+        client.connect(port);
     });
     server.addListener('connection', (socket) => {
         const paramObject = {
             num: 10.2,
             str: "test",
-            bool: true
+            bool: true,
+            array: ["", 10.2, true]
         };
         var ipb = new socketSerialModule.IpcPacketBuffer();
         ipb.serializeObject(paramObject);
@@ -130,7 +132,7 @@ portfinder.getPortPromise({ port: 49152 }).then((port) => {
     });
     server.addListener('error', (err) => {
     });
-    server.listen();
+    server.listen(port);
 });
 ```
 

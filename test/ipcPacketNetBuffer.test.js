@@ -2,7 +2,7 @@ const chai = require('chai');
 const assert = chai.assert;
 const expect = chai.expect;
 
-const portfinder = require('portfinder');
+const socketHelpers = require('socket-port-helpers');
 
 const Buffer = require('buffer').Buffer;
 
@@ -24,8 +24,9 @@ function BufferEqual(a1, a2) {
 
 function testSerializationWithSocket(param, socketWriterType, test) {
   it(`transfer type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`, function (done) {
-    portfinder.getPortPromise({ port: 49152 }).then((port) => {
-      let ipcServer = new ssModule.IpcPacketNet({ port: port }); // '/tests'
+  socketHelpers.findFirstFreePort({portRange: `>=49152`, log: false, testConnection: true })
+  .then((port) => {
+      let ipcServer = new ssModule.IpcPacketNet(); // '/tests'
       let timer = setTimeout(() => {
         ipcServer.server.close();
         done('timeout');

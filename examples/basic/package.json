@@ -7,6 +7,7 @@
   "author": "Emmanuel Kimmerlin",
   "devDependencies": {},
   "dependencies": {
-    "socket-serializer": "file:../../"
+    "socket-serializer": "file:../../",
+    "socket-port-helpers": "^1.1.1"
   }
 }

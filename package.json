@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
@@ -41,8 +41,8 @@
     "del-cli": "^0.2.1",
     "dts-bundle": "^0.6.1",
     "mocha": "^4.0.1",
-    "portfinder": "^1.0.13",
     "sinon": "^4.0.1",
+    "socket-port-helpers": "^1.1.1",
     "tslint": "^4.1.1",
     "tslint-microsoft-contrib": "^4.0.1",
     "typescript": "^3.1.1"
