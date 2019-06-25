@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
@@ -47,6 +47,9 @@
     "tslint-microsoft-contrib": "^4.0.1",
     "typescript": "^3.1.1"
   },
+  "dependencies": {
+    "json-helpers": "^2.1.0"
+  },
   "scripts": {
     "clean": "del-cli ./lib ./build ./dist",
     "build": "npm run build-js && npm run build-declaration",
@@ -61,8 +64,5 @@
     "tsc": "tsc",
     "tslint": "tslint",
     "publication": "npm publish ./ --registry https://registry.npmjs.org/"
-  },
-  "dependencies": {
-    "json-helpers": "^2.0.0"
   }
 }

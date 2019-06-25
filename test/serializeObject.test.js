@@ -139,7 +139,7 @@ describe('Object', () => {
         let newBusEvent = ipb.read(bufferReader);
         newBusEvent;
       }
-      console.time('stringify2 deserialize - small json');
+      console.timeEnd('stringify2 deserialize - small json');
       done();
     });
 
@@ -193,7 +193,7 @@ describe('Object', () => {
         let newBusEvent = ipb.read(bufferReader);
         newBusEvent;
       }
-      console.time('direct2 deserialize - small json');
+      console.timeEnd('direct2 deserialize - small json');
       done();
     });
   });
