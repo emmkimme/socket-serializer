@@ -42,7 +42,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
  // Specific serialization methods
     serializeNumber(dataNumber: number): void;
     serializeBoolean(dataBoolean: boolean): void;
-    serializeString(data: string, encoding?: string): void;
+    serializeString(data: string, encoding?: BufferEncoding): void;
     serializeObject(dataObject: Object): void;
     serializeBuffer(data: Buffer): void;
     serializeArray(args: any[]): void;
@@ -54,7 +54,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     parseBoolean(): boolean | null;
     parseNumber(): number | null;
     parseObject(): any | null;
-    parseString(encoding?: string): string | null;
+    parseString(encoding?: BufferEncoding): string | null;
     parseBuffer(): Buffer | null;
     parseArray(): any[] | null;
     parseArrayAt(index: number): any | null;
@@ -81,7 +81,7 @@ export interface Writer {
     writeBytes(dataArray: number[]): number;
     writeUInt32(data: number): number;
     writeDouble(data: number): number;
-    writeString(data: string, encoding?: string, len?: number): number;
+    writeString(data: string, encoding?: BufferEncoding, len?: number): number;
     writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
     write(writer: Writer): number;
 

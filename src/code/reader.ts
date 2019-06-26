@@ -32,7 +32,7 @@ export interface Reader {
     readByte(): number;
     readUInt32(): number;
     readDouble(): number;
-    readString(encoding?: string, len?: number): string;
+    readString(encoding?: BufferEncoding, len?: number): string;
     readBuffer(len?: number): Buffer;
 
     reduce(): void;
@@ -71,7 +71,7 @@ export abstract class ReaderBase implements Reader {
     abstract readByte(): number;
     abstract readUInt32(): number;
     abstract readDouble(): number;
-    abstract readString(encoding?: string, len?: number): string;
+    abstract readString(encoding?: BufferEncoding, len?: number): string;
     abstract readBuffer(len?: number): Buffer;
 
     abstract reduce(): void;

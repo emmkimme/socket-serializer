@@ -389,7 +389,7 @@ export class IpcPacketBufferWrap {
 
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
-    writeString(bufferWriter: Writer, data: string, encoding?: string): void {
+    writeString(bufferWriter: Writer, data: string, encoding?: BufferEncoding): void {
         // Encoding will be managed later, force 'utf8'
         // case 'hex':
         // case 'utf8':
@@ -422,13 +422,11 @@ export class IpcPacketBufferWrap {
         }
         else {
             let contentBufferWriter = new BufferListWriter();
-            let keys = Object.keys(dataObject);
-            for (let i = 0, l = keys.length; i < l; ++i) {
-                let key = keys[i];
+            for (let [key, value] of Object.entries(dataObject)) {
                 let buffer = Buffer.from(key, 'utf8');
                 contentBufferWriter.writeUInt32(buffer.length);
                 contentBufferWriter.writeBuffer(buffer);
-                this.write(contentBufferWriter, dataObject[key]);
+                this.write(contentBufferWriter, value);
             }
             this.setTypeAndContentSize(BufferType.Object, contentBufferWriter.length);
             this.writeHeader(bufferWriter);
@@ -442,9 +440,9 @@ export class IpcPacketBufferWrap {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
-            let contentBufferWriter = new BufferListWriter();
+            const contentBufferWriter = new BufferListWriter();
             // let keys = Object.getOwnPropertyNames(dataObject);
-            let keys = Object.keys(dataObject);
+            const keys = Object.keys(dataObject);
             for (let i = 0, l = keys.length; i < l; ++i) {
                 let key = keys[i];
                 const desc = Object.getOwnPropertyDescriptor(dataObject, key);

@@ -55,7 +55,7 @@ export class BufferReader extends ReaderBase {
         return this._readNumber(Buffer.prototype.readDoubleLE, 8);
     }
 
-    readString(encoding?: string, len?: number): string {
+    readString(encoding?: BufferEncoding, len?: number): string {
         let end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
             return '';

@@ -151,7 +151,7 @@ export class BufferListReader extends ReaderBase {
         return this._readNumber(Buffer.prototype.readDoubleLE, 8, noAssert);
     }
 
-    readString(encoding?: string, len?: number): string {
+    readString(encoding?: BufferEncoding, len?: number): string {
         let end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return '';

@@ -10,7 +10,7 @@ export interface Writer {
     writeBytes(dataArray: number[]): number;
     writeUInt32(data: number): number;
     writeDouble(data: number): number;
-    writeString(data: string, encoding?: string, len?: number): number;
+    writeString(data: string, encoding?: BufferEncoding, len?: number): number;
     writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
     write(writer: Writer): number;
 
@@ -42,7 +42,7 @@ export abstract class WriterBase implements Writer {
     abstract writeBytes(dataArray: number[]): number;
     abstract writeUInt32(data: number): number;
     abstract writeDouble(data: number): number;
-    abstract writeString(data: string, encoding?: string, len?: number): number;
+    abstract writeString(data: string, encoding?: BufferEncoding, len?: number): number;
     abstract writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
     abstract write(writer: Writer): number;
 

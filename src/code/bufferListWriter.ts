@@ -44,7 +44,7 @@ export abstract class BufferListWriterBase extends WriterBase {
         return this._writeNumber(Buffer.prototype.writeDoubleLE, data, 8);
     }
 
-    writeString(data: string, encoding?: string, len?: number): number {
+    writeString(data: string, encoding?: BufferEncoding, len?: number): number {
         if (len != null) {
             data = data.substring(0, len);
         }

@@ -52,7 +52,7 @@ export class BufferWriter extends WriterBase {
         return this._writeNumber(Buffer.prototype.writeDoubleLE, data, 8);
     }
 
-    writeString(data: string, encoding?: string, len?: number): number {
+    writeString(data: string, encoding?: BufferEncoding, len?: number): number {
         this._offset += this._buffer.write(data, this._offset, len, encoding);
         return this._offset;
     }

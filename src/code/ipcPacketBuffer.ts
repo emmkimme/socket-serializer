@@ -56,7 +56,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return this._serializeAndCheck(this.isDate, dataDate);
     }
 
-    serializeString(data: string, encoding?: string): boolean {
+    serializeString(data: string, encoding?: BufferEncoding): boolean {
         let bufferWriter = new BufferListWriter();
         this.writeString(bufferWriter, data, encoding);
         this._buffer = bufferWriter.buffer;
