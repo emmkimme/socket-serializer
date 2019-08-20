@@ -260,7 +260,7 @@ export class IpcPacketBufferWrap {
     protected writeHeader(bufferWriter: Writer): void {
         bufferWriter.pushContext();
         // Write header in one block
-        let bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
+        const bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
         bufferWriterHeader.writeByte(headerSeparator);
         bufferWriterHeader.writeByte(this._type);
         if (this.isFixedSize() === false) {
@@ -281,7 +281,7 @@ export class IpcPacketBufferWrap {
         bufferWriter.pushContext();
         this.setTypeAndContentSize(bufferType);
         // Write the whole in one block
-        let bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
+        const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
         // Write header
         bufferWriteAllInOne.writeByte(headerSeparator);
         bufferWriteAllInOne.writeByte(this._type);
@@ -363,7 +363,7 @@ export class IpcPacketBufferWrap {
     writeNumber(bufferWriter: Writer, dataNumber: number): void {
         // An integer
         if (Number.isInteger(dataNumber)) {
-            let absDataNumber = Math.abs(dataNumber);
+            const absDataNumber = Math.abs(dataNumber);
             // 32-bit integer
             if (absDataNumber <= 0xFFFFFFFF) {
                 // Negative integer
@@ -383,7 +383,7 @@ export class IpcPacketBufferWrap {
     }
 
     writeDate(bufferWriter: Writer, data: Date) {
-        let t = data.getTime();
+        const t = data.getTime();
         this.writeFixedSize(bufferWriter, BufferType.Date, t);
     }
 
@@ -402,7 +402,7 @@ export class IpcPacketBufferWrap {
         // case 'ucs-2':
         // case 'utf16le':
         // case 'utf-16le':
-        let buffer = Buffer.from(data, 'utf8');
+        const buffer = Buffer.from(data, 'utf8');
         this.setTypeAndContentSize(BufferType.String, buffer.length);
         this.writeHeader(bufferWriter);
         bufferWriter.writeBuffer(buffer);
@@ -421,9 +421,9 @@ export class IpcPacketBufferWrap {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
-            let contentBufferWriter = new BufferListWriter();
+            const contentBufferWriter = new BufferListWriter();
             for (let [key, value] of Object.entries(dataObject)) {
-                let buffer = Buffer.from(key, 'utf8');
+                const buffer = Buffer.from(key, 'utf8');
                 contentBufferWriter.writeUInt32(buffer.length);
                 contentBufferWriter.writeBuffer(buffer);
                 this.write(contentBufferWriter, value);
@@ -444,10 +444,10 @@ export class IpcPacketBufferWrap {
             // let keys = Object.getOwnPropertyNames(dataObject);
             const keys = Object.keys(dataObject);
             for (let i = 0, l = keys.length; i < l; ++i) {
-                let key = keys[i];
+                const key = keys[i];
                 const desc = Object.getOwnPropertyDescriptor(dataObject, key);
                 if (desc && (typeof desc.value !== 'function')) {
-                    let buffer = Buffer.from(key, 'utf8');
+                    const buffer = Buffer.from(key, 'utf8');
                     contentBufferWriter.writeUInt32(buffer.length);
                     contentBufferWriter.writeBuffer(buffer);
                     // this.write(contentBufferWriter, desc.value || dataObject[key]);
@@ -466,8 +466,8 @@ export class IpcPacketBufferWrap {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
-            let stringifycation = JSON.stringify(dataObject);
-            let buffer = Buffer.from(stringifycation);
+            const stringifycation = JSON.stringify(dataObject);
+            const buffer = Buffer.from(stringifycation);
             this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
             this.writeHeader(bufferWriter);
             bufferWriter.writeBuffer(buffer);
@@ -480,8 +480,8 @@ export class IpcPacketBufferWrap {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
-            let stringifycation = JSONParser.stringify(dataObject);
-            let buffer = Buffer.from(stringifycation, 'utf8');
+            const stringifycation = JSONParser.stringify(dataObject);
+            const buffer = Buffer.from(stringifycation, 'utf8');
             this.setTypeAndContentSize(BufferType.ObjectSTRINGIFY, buffer.length);
             this.writeHeader(bufferWriter);
             bufferWriter.writeBuffer(buffer);
@@ -502,7 +502,7 @@ export class IpcPacketBufferWrap {
     // }
 
     writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
-        let contentBufferWriter = new BufferListWriter();
+        const contentBufferWriter = new BufferListWriter();
         for (let i = 0, l = args.length; i < l; ++i) {
             this.write(contentBufferWriter, args[i]);
         }
@@ -520,7 +520,7 @@ export class IpcPacketBufferWrap {
 
     protected _read(depth: number, bufferReader: Reader): any {
         this._readHeader(bufferReader);
-        let arg = this._readContent(depth, bufferReader);
+        const arg = this._readContent(depth, bufferReader);
         bufferReader.skip(this.footerSize);
         return arg;
     }
@@ -588,12 +588,12 @@ export class IpcPacketBufferWrap {
 
     // Header has been read and checked
     // private _readObjectSTRINGIFY1(depth: number, bufferReader: Reader): string {
-    //     let data = bufferReader.readString('utf8', this._contentSize);
+    //     const data = bufferReader.readString('utf8', this._contentSize);
     //     return JSON.parse(data);
     // }
 
     private _readObjectSTRINGIFY2(depth: number, bufferReader: Reader): string {
-        let data = bufferReader.readString('utf8', this._contentSize);
+        const data = bufferReader.readString('utf8', this._contentSize);
         return JSONParser.parse(data);
     }
 
@@ -605,8 +605,8 @@ export class IpcPacketBufferWrap {
             context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize };
         }
 
-        let offsetContentSize = bufferReader.offset + this._contentSize;
-        let dataObject: any = {};
+        const offsetContentSize = bufferReader.offset + this._contentSize;
+        const dataObject: any = {};
         while (bufferReader.offset < offsetContentSize) {
             let keyLen = bufferReader.readUInt32();
             let key = bufferReader.readString('utf8', keyLen);
@@ -631,7 +631,7 @@ export class IpcPacketBufferWrap {
         }
 
         let argsLen = bufferReader.readUInt32();
-        let args = [];
+        const args = [];
         while (argsLen > 0) {
             let arg = this._read(depth + 1, bufferReader);
             args.push(arg);
@@ -678,13 +678,13 @@ export class IpcPacketBufferWrap {
 
     // Header has been read and checked
     protected _readArrayAt(bufferReader: Reader, index: number): any | null {
-        let argsLen = bufferReader.readUInt32();
+        const argsLen = bufferReader.readUInt32();
         if (index >= argsLen) {
             return null;
         }
 
         // Create a tempory wrapper for keeping the original header info
-        let headerArg = new IpcPacketBufferWrap();
+        const headerArg = new IpcPacketBufferWrap();
         while (index > 0) {
             // Do not decode data just skip
             headerArg.byPass(bufferReader);
@@ -703,7 +703,7 @@ export class IpcPacketBufferWrap {
 
     // Header has been read and checked
     protected _readArraySlice(bufferReader: Reader, start?: number, end?: number): any | null {
-        let argsLen = bufferReader.readUInt32();
+        const argsLen = bufferReader.readUInt32();
         if (start == null) {
             start = 0;
         }
@@ -727,14 +727,14 @@ export class IpcPacketBufferWrap {
         }
 
         // Create a tempory wrapper for keeping the original header info
-        let headerArg = new IpcPacketBufferWrap();
+        const headerArg = new IpcPacketBufferWrap();
         while (start > 0) {
             // Do not decode data just skip
             headerArg.byPass(bufferReader);
             --start;
             --end;
         }
-        let args = [];
+        const args = [];
         while (end > 0) {
             let arg = headerArg.read(bufferReader);
             args.push(arg);

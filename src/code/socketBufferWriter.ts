@@ -18,7 +18,7 @@ export class DelayedSocketWriter extends BufferListWriter {
     }
 
     protected flushBuffer() {
-        let totalBuffer = this.buffer;
+        const totalBuffer = this.buffer;
         this._buffers = [];
         this._length = 0;
         this._socket.write(totalBuffer);

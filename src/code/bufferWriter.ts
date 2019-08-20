@@ -63,7 +63,7 @@ export class BufferWriter extends WriterBase {
     }
 
     write(writer: Writer): number {
-        let buffers = writer.buffers;
+        const buffers = writer.buffers;
         for (let i = 0, l = buffers.length; i < l; ++i) {
             this.writeBuffer(buffers[i]);
         }

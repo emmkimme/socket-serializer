@@ -38,7 +38,7 @@ export class BufferReader extends ReaderBase {
     }
 
     private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number): number {
-        let start = this._offset;
+        const start = this._offset;
         this._offset += byteSize;
         return bufferFunction.call(this._buffer, start, this._noAssert);
     }
@@ -56,24 +56,24 @@ export class BufferReader extends ReaderBase {
     }
 
     readString(encoding?: BufferEncoding, len?: number): string {
-        let end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
+        const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
             return '';
         }
         else {
-            let start = this._offset;
+            const start = this._offset;
             this._offset = end;
             return this._buffer.toString(encoding, start, end);
         }
     }
 
     readBuffer(len?: number): Buffer {
-        let end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
+        const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
             return Buffer.allocUnsafe(0);
         }
         else {
-            let start = this._offset;
+            const start = this._offset;
             len = end - this._offset;
             this._offset = end;
             if ((start === 0) && (len === this._buffer.length)) {

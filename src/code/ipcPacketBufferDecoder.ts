@@ -25,11 +25,11 @@ export class IpcPacketBufferDecoder {
     handleData(data: Buffer): void {
         this._bufferListReader.appendBuffer(data);
 
-        let packets: IpcPacketBuffer[] = [];
+        const packets: IpcPacketBuffer[] = [];
         while (this._packet.decodeFromReader(this._bufferListReader)) {
             packets.push(this._packet);
             // Prepare the new packet before sending the event
-            let packet = this._packet;
+            const packet = this._packet;
             this._packet = new IpcPacketBuffer();
             this._eventEmitterDelegate.emit('packet', packet, this._socket, this._server);
         }

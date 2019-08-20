@@ -21,8 +21,8 @@ export abstract class BufferListWriterBase extends WriterBase {
     protected abstract _appendBuffers(length: number, buffers: Buffer[]): number;
 
     writeBytes(dataArray: number[]): number {
-        let uint8Array = new Uint8Array(dataArray);
-        let buffer = Buffer.from(uint8Array.buffer);
+        const uint8Array = new Uint8Array(dataArray);
+        const buffer = Buffer.from(uint8Array.buffer);
         return this._appendBuffer(buffer.length, buffer);
     }
 
@@ -48,7 +48,7 @@ export abstract class BufferListWriterBase extends WriterBase {
         if (len != null) {
             data = data.substring(0, len);
         }
-        let buffer = Buffer.from(data, encoding);
+        const buffer = Buffer.from(data, encoding);
         return this._appendBuffer(buffer.length, buffer);
     }
 

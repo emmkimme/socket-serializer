@@ -25,7 +25,7 @@ export class SocketWriter extends BufferListWriterBase {
     }
 
     protected _appendBuffers(length: number, buffers: Buffer[]): number {
-        let len = buffers.length;
+        const len = buffers.length;
         switch (len) {
             // fast cases
             case 0 :

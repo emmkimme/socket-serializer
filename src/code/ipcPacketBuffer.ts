@@ -30,7 +30,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        let result = this._readHeader(new BufferReader(buffer));
+        const result = this._readHeader(new BufferReader(buffer));
         if (result) {
             this._buffer = buffer;
         }
@@ -38,7 +38,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     }
 
     private _serializeAndCheck(checker: () => boolean, dataNumber: any): boolean {
-        let bufferWriter = new BufferListWriter();
+        const bufferWriter = new BufferListWriter();
         this.write(bufferWriter, dataNumber);
         this._buffer = bufferWriter.buffer;
         return checker.call(this);
@@ -57,7 +57,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     }
 
     serializeString(data: string, encoding?: BufferEncoding): boolean {
-        let bufferWriter = new BufferListWriter();
+        const bufferWriter = new BufferListWriter();
         this.writeString(bufferWriter, data, encoding);
         this._buffer = bufferWriter.buffer;
         return this.isString();
@@ -81,7 +81,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     private _parseAndCheck(checker: () => boolean): any {
         if (checker.call(this)) {
-            let bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readContent(0, bufferReader);
         }
         return null;
@@ -121,7 +121,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     parseArrayLength(): number | null {
         if (this.isArray()) {
-            let bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readArrayLength(bufferReader);
         }
         return null;
@@ -129,7 +129,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     parseArrayAt(index: number): any | null {
         if (this.isArray()) {
-            let bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readArrayAt(bufferReader, index);
         }
         return null;
@@ -137,7 +137,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     // parseArraySetAt(index: number, data: any): void {
     //     if (this.isArray()) {
-    //         let bufferReader = new BufferReader(this._buffer);
+    //         const bufferReader = new BufferReader(this._buffer);
     //         return this._readArraySetAt(bufferReader, index);
     //     }
     //     return null;
@@ -145,7 +145,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     parseArraySlice(start?: number, end?: number): any | null {
         if (this.isArray()) {
-            let bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferReader(this._buffer, this._headerSize);
             return this._readArraySlice(bufferReader, start, end);
         }
         return null;

@@ -51,7 +51,7 @@ export class BufferListReader extends ReaderBase {
     }
 
     popd(): number {
-        let context = this._contexts.pop();
+        const context = this._contexts.pop();
         this._offset = context.offset;
         this._curOffset = context.curOffset;
         this._curBufferIndex = context.curBufferIndex;
@@ -114,7 +114,7 @@ export class BufferListReader extends ReaderBase {
         let newOffset = this._curOffset + offsetStep;
         if (newOffset > curBuffer.length) {
             let bufferLength = 0;
-            let buffers = [];
+            const buffers = [];
             for (let endBufferIndex = this._curBufferIndex; endBufferIndex < this._buffers.length; ++endBufferIndex) {
                 buffers.push(this._buffers[endBufferIndex]);
                 bufferLength += this._buffers[endBufferIndex].length;
@@ -134,8 +134,8 @@ export class BufferListReader extends ReaderBase {
     }
 
     private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number, noAssert?: boolean): number {
-        let start = this._curOffset;
-        let currBuffer = this._consolidate(byteSize, noAssert);
+        const start = this._curOffset;
+        const currBuffer = this._consolidate(byteSize, noAssert);
         return bufferFunction.call(currBuffer, start, noAssert);
     }
 
@@ -152,27 +152,27 @@ export class BufferListReader extends ReaderBase {
     }
 
     readString(encoding?: BufferEncoding, len?: number): string {
-        let end = Reader.AdjustEnd(this._offset, this._length, len);
+        const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return '';
         }
         else {
-            let start = this._curOffset;
+            const start = this._curOffset;
             len = end - this._offset;
-            let currBuffer = this._consolidate(len);
+            const currBuffer = this._consolidate(len);
             return currBuffer.toString(encoding, start, end);
         }
     }
 
     readBuffer(len?: number): Buffer {
-        let end = Reader.AdjustEnd(this._offset, this._length, len);
+        const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return Buffer.alloc(0);
         }
         else {
-            let start = this._curOffset;
+            const start = this._curOffset;
             len = end - this._offset;
-            let currBuffer = this._consolidate(len);
+            const currBuffer = this._consolidate(len);
             if ((start === 0) && (len === currBuffer.length)) {
                 return currBuffer;
             }
