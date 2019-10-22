@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "3.4.3",
+  "version": "3.5.0",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
@@ -17,7 +17,9 @@
     "node",
     "communication",
     "socket",
-    "buffer"
+    "buffer",
+    "bufferReader",
+    "bufferWriter"
   ],
   "author": "Emmanuel Kimmerlin",
   "license": "MIT",
@@ -35,17 +37,17 @@
   "browser": "./lib/socket-serializer-browser.js",
   "types": "./lib/socket-serializer.d.ts",
   "devDependencies": {
-    "@types/node": "^12.0.10",
-    "chai": "^4.1.2",
-    "del": "^2.2.2",
-    "del-cli": "^0.2.1",
-    "dts-bundle": "^0.6.1",
-    "mocha": "^4.0.1",
-    "sinon": "^4.0.1",
+    "@types/node": "^12.11.2",
+    "chai": "^4.2.0",
+    "del": "^5.1.0",
+    "del-cli": "^3.0.0",
+    "dts-bundle": "^0.7.3",
+    "mocha": "^6.2.2",
+    "sinon": "^7.5.0",
     "socket-port-helpers": "^1.1.1",
-    "tslint": "^4.1.1",
-    "tslint-microsoft-contrib": "^4.0.1",
-    "typescript": "^3.5.0"
+    "tslint": "^5.20.0",
+    "tslint-microsoft-contrib": "^6.2.0",
+    "typescript": "^3.6.4"
   },
   "dependencies": {
     "json-helpers": "^2.1.0"
