@@ -9,8 +9,8 @@ const headerSeparator: number = '['.charCodeAt(0);
 const footerSeparator: number = ']'.charCodeAt(0);
 const FooterLength: number = 1;
 
-const MinHeaderLength: number = 2;
-const ObjectHeaderLength: number = MinHeaderLength + 4;
+const FixedHeaderSize: number = 2;
+const DynamicHeaderSize: number = FixedHeaderSize + 4;
 
 export enum BufferType {
     // 88
@@ -53,7 +53,6 @@ export class IpcPacketBufferWrap {
     protected _headerSize: number;
 
     writeArray: Function = this.writeArrayWithSize;
-
     writeObject: Function = this.writeObjectSTRINGIFY2;
     // _readObjectSTRINGIFY: Function = this._readObjectSTRINGIFY2;
 
@@ -83,16 +82,16 @@ export class IpcPacketBufferWrap {
 
     protected setTypeAndContentSize(bufferType: BufferType, contentSize?: number) {
         this._type = bufferType;
-        switch (this._type) {
+        switch (bufferType) {
             case BufferType.Date:
             case BufferType.Double:
-                this._headerSize = MinHeaderLength;
+                this._headerSize = FixedHeaderSize;
                 // 8 by default
                 this._contentSize = 8;
                 break;
             case BufferType.NegativeInteger:
             case BufferType.PositiveInteger:
-                this._headerSize = MinHeaderLength;
+                this._headerSize = FixedHeaderSize;
                 // 4 by default
                 this._contentSize = 4;
                 break;
@@ -105,14 +104,14 @@ export class IpcPacketBufferWrap {
             case BufferType.String:
             case BufferType.Buffer:
             case BufferType.ArrayWithSize:
-                this._headerSize = ObjectHeaderLength;
+                this._headerSize = DynamicHeaderSize;
                 this._contentSize = contentSize;
                 break;
             case BufferType.BooleanTrue:
             case BufferType.BooleanFalse:
             case BufferType.Null:
             case BufferType.Undefined:
-                this._headerSize = MinHeaderLength;
+                this._headerSize = FixedHeaderSize;
                 // 0 by default
                 this._contentSize = 0;
                 break;
@@ -208,16 +207,7 @@ export class IpcPacketBufferWrap {
     }
 
     isFixedSize(): boolean {
-        switch (this._type) {
-            case BufferType.Object:
-            case BufferType.ObjectSTRINGIFY:
-            case BufferType.String:
-            case BufferType.Buffer:
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                return false;
-        }
-        return true;
+        return (this._headerSize === FixedHeaderSize);
     }
 
     protected _skipHeader(bufferReader: Reader): boolean {
