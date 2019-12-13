@@ -37,9 +37,9 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         return result;
     }
 
-    private _serializeAndCheck(checker: () => boolean, dataNumber: any): boolean {
+    private _serializeAndCheck(checker: () => boolean, data: any): boolean {
         const bufferWriter = new BufferListWriter();
-        this.write(bufferWriter, dataNumber);
+        this.write(bufferWriter, data);
         this._buffer = bufferWriter.buffer;
         return checker.call(this);
     }
