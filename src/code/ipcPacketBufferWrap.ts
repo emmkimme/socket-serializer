@@ -235,14 +235,12 @@ export class IpcPacketBufferWrap {
             this._type = BufferType.Partial;
             return false;
         }
-        else {
-            if (this.isFixedSize() === false) {
-                this.setPacketSize(bufferReader.readUInt32());
-            }
-            if (bufferReader.checkEOF(this._contentSize + this.footerSize)) {
-                this._type = BufferType.Partial;
-                return false;
-            }
+        if (this.isFixedSize() === false) {
+            this.setPacketSize(bufferReader.readUInt32());
+        }
+        if (bufferReader.checkEOF(this._contentSize + this.footerSize)) {
+            this._type = BufferType.Partial;
+            return false;
         }
         return true;
     }

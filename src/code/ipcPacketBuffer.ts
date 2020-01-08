@@ -19,7 +19,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
         bufferReader.pushd();
-        let result = this._readHeader(bufferReader);
+        const result = this._readHeader(bufferReader);
         bufferReader.popd();
         if (result) {
             this._buffer = bufferReader.readBuffer(this.packetSize);
