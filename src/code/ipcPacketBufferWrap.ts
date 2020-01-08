@@ -47,6 +47,13 @@ export enum BufferType {
     Date = 'D'.charCodeAt(0),
 };
 
+export namespace IpcPacketBufferWrap {
+    export interface RawContent {
+        type: BufferType;
+        contentSize: number;
+    }
+}
+
 export class IpcPacketBufferWrap {
     protected _type: BufferType;
     protected _contentSize: number;
@@ -56,8 +63,25 @@ export class IpcPacketBufferWrap {
     writeObject: Function = this.writeObjectSTRINGIFY2;
     // _readObjectSTRINGIFY: Function = this._readObjectSTRINGIFY2;
 
-    constructor() {
-        this._type = BufferType.NotValid;
+    constructor(rawContent?: IpcPacketBufferWrap.RawContent) {
+        if (rawContent) {
+            this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
+        }
+        else {
+            this._type = BufferType.NotValid;
+        }
+    }
+
+    setRawContent(rawContent: IpcPacketBufferWrap.RawContent): void {
+        this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
+    }
+
+    getRawContent(): IpcPacketBufferWrap.RawContent {
+        const rawContent : IpcPacketBufferWrap.RawContent = {
+            type: this._type,
+            contentSize: this._contentSize,
+        };
+        return rawContent;
     }
 
     get type(): BufferType {

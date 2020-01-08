@@ -4,15 +4,38 @@ import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
 import { BufferListWriter } from './bufferListWriter';
 
+export namespace IpcPacketBuffer {
+    export interface RawContent extends IpcPacketBufferWrap.RawContent {
+        buffer: Buffer;
+    }
+}
+
 export class IpcPacketBuffer extends IpcPacketBufferWrap {
     private _buffer: Buffer;
 
-    constructor() {
-        super();
+    constructor(rawContent?: IpcPacketBuffer.RawContent) {
+        super(rawContent);
+        if (rawContent) {
+            this._buffer = rawContent.buffer;
+        }
     }
 
     get buffer(): Buffer {
         return this._buffer;
+    }
+
+    setRawContent(rawContent: IpcPacketBuffer.RawContent): void {
+        super.setRawContent(rawContent);
+        this._buffer = rawContent.buffer;
+    }
+
+    getRawContent(): IpcPacketBuffer.RawContent {
+        const rawContent : IpcPacketBuffer.RawContent = {
+            type: this._type,
+            contentSize: this._contentSize,
+            buffer: this._buffer
+        };
+        return rawContent;
     }
 
     // Allocate its own buffer
