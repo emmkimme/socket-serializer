@@ -77,7 +77,7 @@ export class IpcPacketBufferWrap {
     }
 
     getRawContent(): IpcPacketBufferWrap.RawContent {
-        const rawContent : IpcPacketBufferWrap.RawContent = {
+        const rawContent: IpcPacketBufferWrap.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
         };
@@ -119,6 +119,14 @@ export class IpcPacketBufferWrap {
                 // 4 by default
                 this._contentSize = 4;
                 break;
+            case BufferType.BooleanTrue:
+            case BufferType.BooleanFalse:
+            case BufferType.Null:
+            case BufferType.Undefined:
+                this._headerSize = FixedHeaderSize;
+                // 0 by default
+                this._contentSize = 0;
+                break;
             // case BufferType.ArrayWithLen:
             //     this._headerSize = MinHeaderLength;
             //     this._contentSize = 0;
@@ -130,14 +138,6 @@ export class IpcPacketBufferWrap {
             case BufferType.ArrayWithSize:
                 this._headerSize = DynamicHeaderSize;
                 this._contentSize = contentSize;
-                break;
-            case BufferType.BooleanTrue:
-            case BufferType.BooleanFalse:
-            case BufferType.Null:
-            case BufferType.Undefined:
-                this._headerSize = FixedHeaderSize;
-                // 0 by default
-                this._contentSize = 0;
                 break;
             default:
                 this._type = BufferType.NotValid;
@@ -292,15 +292,15 @@ export class IpcPacketBufferWrap {
     protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, num?: number): void {
         bufferWriter.pushContext();
         this.setTypeAndContentSize(bufferType);
-        // Write the whole in one block
+        // Write the whole in one block buffer, to avoid multiple buffers
         const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
         // Write header
         bufferWriteAllInOne.writeByte(headerSeparator);
         bufferWriteAllInOne.writeByte(this._type);
         // Write content
         switch (bufferType) {
-            case BufferType.NegativeInteger :
-            case BufferType.PositiveInteger :
+            case BufferType.NegativeInteger:
+            case BufferType.PositiveInteger:
                 bufferWriteAllInOne.writeUInt32(num);
                 break;
             case BufferType.Double:
@@ -684,7 +684,7 @@ export class IpcPacketBufferWrap {
         //     bufferReader.skip(this.footerSize);
         // }
         // else {
-            bufferReader.skip(this._contentSize + this.footerSize);
+        bufferReader.skip(this._contentSize + this.footerSize);
         // }
     }
 
