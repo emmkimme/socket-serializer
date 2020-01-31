@@ -40,12 +40,12 @@ export class BufferListReader extends ReaderBase {
     }
 
     pushd(): number {
-        this._contexts.push({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex });
-        return this._contexts.length;
+        return this._contexts.push({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex });
     }
 
     popd(): number {
-        const context = this._contexts.pop();
+        // ({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex } = this._contexts.pop());
+        const context = this._contexts.pop()
         this._offset = context.offset;
         this._curOffset = context.curOffset;
         this._curBufferIndex = context.curBufferIndex;
@@ -109,7 +109,7 @@ export class BufferListReader extends ReaderBase {
         if (newOffset > curBuffer.length) {
             let bufferLength = 0;
             const buffers = [];
-            for (let endBufferIndex = this._curBufferIndex; endBufferIndex < this._buffers.length; ++endBufferIndex) {
+            for (let endBufferIndex = this._curBufferIndex, l = this._buffers.length; endBufferIndex < l; ++endBufferIndex) {
                 buffers.push(this._buffers[endBufferIndex]);
                 bufferLength += this._buffers[endBufferIndex].length;
                 if (newOffset <= bufferLength) {

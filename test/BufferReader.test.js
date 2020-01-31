@@ -59,6 +59,34 @@ describe('BufferReader', function () {
         assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
       }
     });
+
+    it(`context Buffers`, function () {
+      let bufferListReader = new BufferListReader.BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3]);
+      {
+        let result = bufferListReader.length;
+        assert(globalBuffer.length === result);
+      }
+      bufferListReader.pushd();
+      {
+        let result = bufferListReader.readBuffer(64);
+        assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
+      }
+      bufferListReader.popd();
+      {
+        let result = bufferListReader.readBuffer(64);
+        assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
+      }
+      bufferListReader.pushd();
+      {
+        let result = bufferListReader.readBuffer(128);
+        assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
+      }
+      bufferListReader.popd();
+      {
+        let result = bufferListReader.readBuffer(128);
+        assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
+      }
+    });
   });
 });
 

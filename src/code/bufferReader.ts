@@ -17,8 +17,7 @@ export class BufferReader extends ReaderBase {
     }
 
     pushd(): number {
-        this._contexts.push(this._offset);
-        return this._contexts.length;
+        return this._contexts.push(this._offset);
     }
 
     popd(): number {

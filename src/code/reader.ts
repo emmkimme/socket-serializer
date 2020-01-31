@@ -2,18 +2,16 @@
 
 export namespace Reader {
     export function AdjustEnd(offset: number, maxLen: number, len?: number): number {
-        let end: number;
         // Check null/undefined case first
         if (len == null) {
-            end = maxLen;
+            return maxLen;
         }
         else if (len <= 0) {
-            end = offset;
+            return offset;
         }
         else {
-            end = Math.min(offset + len, maxLen);
+            return Math.min(offset + len, maxLen);
         }
-        return end;
     }
 }
 
