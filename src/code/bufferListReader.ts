@@ -10,7 +10,6 @@ export namespace BufferListReader {
 }
 
 export class BufferListReader extends ReaderBase {
-    private _offset: number;
     private _length: number;
     private _buffers: Buffer[];
     private _curBufferIndex: number;
@@ -18,7 +17,7 @@ export class BufferListReader extends ReaderBase {
     private _contexts: BufferListReader.Context[];
 
     constructor(buffers?: Buffer[], offset?: number) {
-        super();
+        super(0);
 
         this._contexts = [];
 
@@ -26,7 +25,6 @@ export class BufferListReader extends ReaderBase {
         // Sum all the buffers length
         this._length = this._buffers.reduce((sum, buffer) => sum + buffer.length, 0);
 
-        this._offset = 0;
         this._curOffset = 0;
         this._curBufferIndex = 0;
         this.seek(offset || 0);
@@ -39,10 +37,6 @@ export class BufferListReader extends ReaderBase {
 
     get length(): number {
         return this._length;
-    }
-
-    get offset(): number {
-        return this._offset;
     }
 
     pushd(): number {

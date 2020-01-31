@@ -2,24 +2,18 @@
 import { Reader, ReaderBase } from './reader';
 
 export class BufferReader extends ReaderBase {
-    private _offset: number;
     private _buffer: Buffer;
     private _contexts: number[];
 
     constructor(buffer: Buffer, offset?: number) {
-        super();
+        super(offset);
 
         this._buffer = buffer;
-        this._offset = offset || 0;
         this._contexts = [];
     }
 
     get length(): number {
         return this._buffer.length;
-    }
-
-    get offset(): number {
-        return this._offset;
     }
 
     pushd(): number {

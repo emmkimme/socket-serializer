@@ -41,8 +41,10 @@ export interface Reader {
 // Implement common methods
 export abstract class ReaderBase implements Reader {
     protected _noAssert: boolean;
+    protected _offset: number;
 
-    constructor() {
+    constructor(offset?: number) {
+        this._offset = offset || 0;
         this._noAssert = true;
     }
 
@@ -55,15 +57,18 @@ export abstract class ReaderBase implements Reader {
     }
 
     checkEOF(offsetStep?: number): boolean {
-        return (this.offset + (offsetStep || 0) > this.length);
+        return (this._offset + (offsetStep || 0) > this.length);
     }
 
     skip(offsetStep?: number): boolean {
-        return this.seek(this.offset + (offsetStep || 1));
+        return this.seek(this._offset + (offsetStep || 1));
+    }
+
+    get offset(): number {
+        return this._offset;
     }
 
     readonly length: number;
-    readonly offset: number;
 
     abstract pushd(): number;
     abstract popd(): number;
