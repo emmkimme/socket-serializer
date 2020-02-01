@@ -17,7 +17,7 @@ npm install socket-serializer
 ```
 
 Dependencies
-* http://nodejs.org/
+* http://nodejs.org/ >= 12.x.x
 
 # Parsing/Serialization API
 ```ts
