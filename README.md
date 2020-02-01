@@ -3,6 +3,7 @@ A javascript serializer for socket.
 Purpose is to serialize object, buffer, string, number and boolean with the minimum of transformations in order to improve performance.
 For instance buffers remain untouched and go through socket without any changes (copy, merge, split...).
 It is why we do not use classic serializations like BSON or protobuf.
+The IpcPacketBuffer is able to read a partial buffer as socket can not ensure to deliver the same buffer as the one push (see IpcPacketBufferDecoder class).
 
 # Features
 * Parsing/Serialization API
