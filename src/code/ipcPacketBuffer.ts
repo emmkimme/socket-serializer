@@ -45,7 +45,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         const result = this._readHeader(bufferReader);
         bufferReader.popd();
         if (result) {
-            this._buffer = bufferReader.readBuffer(this.packetSize);
+            this._buffer = bufferReader.subarray(this.packetSize);
             // bufferReader.reduce();
         }
         return result;

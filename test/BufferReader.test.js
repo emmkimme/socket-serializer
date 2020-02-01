@@ -32,11 +32,11 @@ describe('BufferReader', function () {
         assert(globalBuffer.length === result);
       }
       {
-        let result = bufferListReader.readBuffer(64);
+        let result = bufferListReader.slice(64);
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
       }
       {
-        let result = bufferListReader.readBuffer(128);
+        let result = bufferListReader.slice(128);
         assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
       }
     });
@@ -51,11 +51,11 @@ describe('BufferReader', function () {
         assert(globalBuffer.length === result);
       }
       {
-        let result = bufferListReader.readBuffer(64);
+        let result = bufferListReader.slice(64);
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
       }
       {
-        let result = bufferListReader.readBuffer(128);
+        let result = bufferListReader.slice(128);
         assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
       }
     });
@@ -68,22 +68,31 @@ describe('BufferReader', function () {
       }
       bufferListReader.pushd();
       {
-        let result = bufferListReader.readBuffer(64);
+        let result = bufferListReader.slice(64);
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
       }
       bufferListReader.popd();
       {
-        let result = bufferListReader.readBuffer(64);
+        let result = bufferListReader.subarray(64);
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
       }
+      {
+        let result = bufferListReader.slice(64);
+        assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
+      }
+
       bufferListReader.pushd();
       {
-        let result = bufferListReader.readBuffer(128);
+        let result = bufferListReader.slice(128);
         assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
       }
       bufferListReader.popd();
       {
-        let result = bufferListReader.readBuffer(128);
+        let result = bufferListReader.subarray(128);
+        assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
+      }
+      {
+        let result = bufferListReader.slice(128);
         assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
       }
     });

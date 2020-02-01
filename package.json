@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "3.6.1",
+  "version": "3.7.0",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
@@ -19,7 +19,9 @@
     "socket",
     "buffer",
     "bufferReader",
-    "bufferWriter"
+    "bufferWriter",
+    "bufferListReader",
+    "bufferListWriter"
   ],
   "author": "Emmanuel Kimmerlin",
   "license": "MIT",

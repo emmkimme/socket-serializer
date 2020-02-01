@@ -86,10 +86,54 @@ export interface Writer {
     write(writer: Writer): number;
 
 }
+
+export interface Reader {
+    readonly length: number;
+    readonly offset: number;
+    noAssert: boolean;
+
+    pushd(): number;
+    popd(): number;
+
+    checkEOF(offsetStep?: number): boolean;
+    skip(offsetStep?: number): boolean;
+    seek(offset: number): boolean;
+
+    readByte(): number;
+    readUInt32(): number;
+    readDouble(): number;
+    readString(encoding?: BufferEncoding, len?: number): string;
+    subarray(len?: number): Buffer;
+    slice(len?: number): Buffer;
+
+    reduce(): void;
+}
 ```
 
 ## Buffer[Writer/Reader] vs BufferList[Writer/Reader]
-BufferList accumulates intermediate buffers in a list. It concatenates them when calling buffer method.
+BufferWriter/BufferReader works on a single buffer, internal buffer may be changed when concatening another buffer (writeBuffer)
+```ts
+export interface BufferWriter extends Writer {
+}
+```
+```ts
+export interface BufferReader extends Reader {
+    constructor(buffer: Buffer, offset?: number);
+}
+```
+
+BufferListWriter accumulates intermediate buffers in a list. It concatenates them only in a single when calling buffer method. It is faster then recreating a buffer at each modification.
+```ts
+export interface BufferListWriter extends Writer {
+}
+```
+BufferListReader is able to read value across a set of buffers without need to concat them in a single. You can add new buffer on the fly.
+```ts
+export interface BufferListReader extends Reader  {
+    constructor(buffers?: Buffer[], offset?: number);
+    appendBuffer(buffer: Buffer): void;
+}
+```
 
 ## SocketWriter
 When serializing you can write directly to socket using a SocketWriter classes. Each one has a different strategies
@@ -138,7 +182,7 @@ socketHelpers.findFirstFreePort({portRange: `>=${port}`, log: false, testConnect
 
 # MIT License
 
-Copyright (c) 2017 Emmanuel Kimmerlin
+Copyright (c) 2020 Emmanuel Kimmerlin
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

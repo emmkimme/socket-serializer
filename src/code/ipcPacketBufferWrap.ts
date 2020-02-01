@@ -565,7 +565,7 @@ export class IpcPacketBufferWrap {
                 break;
 
             case BufferType.Buffer:
-                arg = bufferReader.readBuffer(this._contentSize);
+                arg = bufferReader.slice(this._contentSize);
                 break;
 
             case BufferType.Date:

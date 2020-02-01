@@ -103,9 +103,14 @@ export class BufferListReader extends ReaderBase {
         }
     }
 
-    private _consolidate(offsetStep: number, noAssert?: boolean): Buffer {
+    subarray(len: number): Buffer {
+        const buffer = this._consolidate(len);
+        return buffer.subarray(this._curOffset, this._curOffset + len);
+    }
+
+    private _consolidate(len: number): Buffer {
         let curBuffer = this._buffers[this._curBufferIndex];
-        let newOffset = this._curOffset + offsetStep;
+        let newOffset = this._curOffset + len;
         if (newOffset > curBuffer.length) {
             let bufferLength = 0;
             const buffers = [];
@@ -118,31 +123,31 @@ export class BufferListReader extends ReaderBase {
             }
             curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
             this._buffers.splice(this._curBufferIndex + 1, buffers.length - 1);
-            if (!noAssert && (newOffset > curBuffer.length)) {
+            if (!this._noAssert && (newOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
             }
         }
-        this._offset += offsetStep;
-        this._curOffset = newOffset;
         return curBuffer;
     }
 
-    private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number, noAssert?: boolean): number {
+    private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number): number {
         const start = this._curOffset;
-        const currBuffer = this._consolidate(byteSize, noAssert);
-        return bufferFunction.call(currBuffer, start, noAssert);
+        const currBuffer = this._consolidate(byteSize);
+        this._offset += byteSize;
+        this._curOffset += byteSize;
+        return bufferFunction.call(currBuffer, start, this._noAssert);
     }
 
-    readByte(noAssert?: boolean): number {
-        return this._readNumber(Buffer.prototype.readUInt8, 1, noAssert);
+    readByte(): number {
+        return this._readNumber(Buffer.prototype.readUInt8, 1);
     }
 
-    readUInt32(noAssert?: boolean): number {
-        return this._readNumber(Buffer.prototype.readUInt32LE, 4, noAssert);
+    readUInt32(): number {
+        return this._readNumber(Buffer.prototype.readUInt32LE, 4);
     }
 
-    readDouble(noAssert?: boolean): number {
-        return this._readNumber(Buffer.prototype.readDoubleLE, 8, noAssert);
+    readDouble(): number {
+        return this._readNumber(Buffer.prototype.readDoubleLE, 8);
     }
 
     readString(encoding?: BufferEncoding, len?: number): string {
@@ -154,11 +159,13 @@ export class BufferListReader extends ReaderBase {
             const start = this._curOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
+            this._offset += len;
+            this._curOffset += len;
             return currBuffer.toString(encoding, start, end);
         }
     }
 
-    readBuffer(len?: number): Buffer {
+    slice(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return Buffer.alloc(0);
@@ -167,6 +174,8 @@ export class BufferListReader extends ReaderBase {
             const start = this._curOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
+            this._offset += len;
+            this._curOffset += len;
             if ((start === 0) && (len === currBuffer.length)) {
                 return currBuffer;
             }

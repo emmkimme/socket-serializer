@@ -60,7 +60,7 @@ export class BufferReader extends ReaderBase {
         }
     }
 
-    readBuffer(len?: number): Buffer {
+    slice(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
             return Buffer.allocUnsafe(0);
@@ -78,6 +78,10 @@ export class BufferReader extends ReaderBase {
         }
     }
 
+    subarray(len?: number): Buffer {
+        return this._buffer.subarray(this._offset, this._offset + len);
+    }
+ 
     reduce(): void {
         // Till now, do nothing 
         // Either a conservative slice or a destructive copy to implement ?
