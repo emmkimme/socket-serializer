@@ -92,8 +92,8 @@ export interface Reader {
     readonly offset: number;
     noAssert: boolean;
 
-    pushd(): number;
-    popd(): number;
+    pushd(): number;    // save current offset
+    popd(): number;     // restore offset
 
     checkEOF(offsetStep?: number): boolean;
     skip(offsetStep?: number): boolean;
@@ -106,7 +106,7 @@ export interface Reader {
     subarray(len?: number): Buffer;
     slice(len?: number): Buffer;
 
-    reduce(): void;
+    reduce(): void; // free passed buffers
 }
 ```
 
@@ -132,6 +132,7 @@ BufferListReader is able to read value across a set of buffers without need to c
 export interface BufferListReader extends Reader  {
     constructor(buffers?: Buffer[], offset?: number);
     appendBuffer(buffer: Buffer): void;
+    reduce(): void; // allow to garbage read buffers, offset is substracted with the len of buffers removed.
 }
 ```
 
