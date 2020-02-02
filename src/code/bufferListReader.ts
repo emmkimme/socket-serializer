@@ -175,7 +175,7 @@ export class BufferListReader extends ReaderBase {
                 return currBuffer;
             }
             else {
-                return currBuffer.subarray(start, end);
+                return Buffer.from(currBuffer.buffer, currBuffer.byteOffset + start, len);
             }
         }
     }

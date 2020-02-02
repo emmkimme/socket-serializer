@@ -87,7 +87,7 @@ export class BufferReader extends ReaderBase {
             const start = this._offset;
             len = end - this._offset;
             this._offset = end;
-            return this._buffer.subarray(start, end);
+            return Buffer.from(this._buffer, this._buffer.byteOffset + start, len);
         }
     }
  
