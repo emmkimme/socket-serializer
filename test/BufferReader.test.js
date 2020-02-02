@@ -72,10 +72,12 @@ describe('BufferReader', function () {
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
       }
       bufferListReader.popd();
+      bufferListReader.pushd();
       {
         let result = bufferListReader.subarray(64);
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
       }
+      bufferListReader.popd();
       {
         let result = bufferListReader.slice(64);
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
@@ -87,10 +89,12 @@ describe('BufferReader', function () {
         assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
       }
       bufferListReader.popd();
+      bufferListReader.pushd();
       {
         let result = bufferListReader.subarray(128);
-        assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);
+        assert(Buffer.compare(globalBuffer.subarray(64, 64 + 128), result) === 0);
       }
+      bufferListReader.popd();
       {
         let result = bufferListReader.slice(128);
         assert(Buffer.compare(globalBuffer.slice(64, 64 + 128), result) === 0);

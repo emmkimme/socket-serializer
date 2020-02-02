@@ -103,11 +103,6 @@ export class BufferListReader extends ReaderBase {
         }
     }
 
-    subarray(len: number): Buffer {
-        const buffer = this._consolidate(len);
-        return buffer.subarray(this._curOffset, this._curOffset + len);
-    }
-
     private _consolidate(len: number): Buffer {
         let curBuffer = this._buffers[this._curBufferIndex];
         let newOffset = this._curOffset + len;
@@ -162,6 +157,26 @@ export class BufferListReader extends ReaderBase {
             this._offset += len;
             this._curOffset += len;
             return currBuffer.toString(encoding, start, end);
+        }
+    }
+
+    subarray(len: number): Buffer {
+        const end = Reader.AdjustEnd(this._offset, this._length, len);
+        if (this._offset === end) {
+            return Buffer.alloc(0);
+        }
+        else {
+            const start = this._curOffset;
+            len = end - this._offset;
+            const currBuffer = this._consolidate(len);
+            this._offset += len;
+            this._curOffset += len;
+            if ((start === 0) && (len === currBuffer.length)) {
+                return currBuffer;
+            }
+            else {
+                return currBuffer.subarray(start, end);
+            }
         }
     }
 
