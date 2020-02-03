@@ -40,6 +40,7 @@ export abstract class WriterBase implements Writer {
 
     abstract writeByte(data: number): number;
     abstract writeBytes(dataArray: number[]): number;
+    abstract writeUInt16(data: number): number;
     abstract writeUInt32(data: number): number;
     abstract writeDouble(data: number): number;
     abstract writeString(data: string, encoding?: BufferEncoding, len?: number): number;

@@ -40,6 +40,11 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
 
     // Allocate its own buffer
     decodeFromReader(bufferReader: Reader): boolean {
+        // if ((this._contentSize >= 0) && (this._type === BufferType.Partial)) {
+        //     if (bufferReader.checkEOF(this.packetSize)) {
+        //         return false;
+        //     }
+        // }
         // Do not modify offset
         bufferReader.pushd();
         const result = this._readHeader(bufferReader);

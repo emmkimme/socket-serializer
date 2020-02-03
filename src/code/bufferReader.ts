@@ -40,6 +40,10 @@ export class BufferReader extends ReaderBase {
         return this._readNumber(Buffer.prototype.readUInt8, 1);
     }
 
+    readUInt16(): number {
+        return this._readNumber(Buffer.prototype.readUInt16LE, 2);
+    }
+
     readUInt32(): number {
         return this._readNumber(Buffer.prototype.readUInt32LE, 4);
     }

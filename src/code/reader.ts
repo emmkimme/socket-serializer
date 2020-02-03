@@ -28,6 +28,7 @@ export interface Reader {
     seek(offset: number): boolean;
 
     readByte(): number;
+    readUInt16(): number;
     readUInt32(): number;
     readDouble(): number;
     readString(encoding?: BufferEncoding, len?: number): string;
@@ -73,6 +74,7 @@ export abstract class ReaderBase implements Reader {
     abstract popd(): number;
     abstract seek(offset: number): boolean;
     abstract readByte(): number;
+    abstract readUInt16(): number;
     abstract readUInt32(): number;
     abstract readDouble(): number;
     abstract readString(encoding?: BufferEncoding, len?: number): string;

@@ -44,6 +44,10 @@ export class BufferWriter extends WriterBase {
         return this._writeNumber(Buffer.prototype.writeUInt8, data, 1);
     }
 
+    writeUInt16(data: number): number {
+        return this._writeNumber(Buffer.prototype.writeUInt16LE, data, 2);
+    }
+
     writeUInt32(data: number): number {
         return this._writeNumber(Buffer.prototype.writeUInt32LE, data, 4);
     }
