@@ -6,6 +6,7 @@ export namespace BufferListReader {
         offset: number;
         curBufferIndex: number;
         curOffset: number;
+        rebuild?: boolean;
     }
 }
 
@@ -46,9 +47,24 @@ export class BufferListReader extends ReaderBase {
     popd(): number {
         // ({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex } = this._contexts.pop());
         const context = this._contexts.pop()
-        this._offset = context.offset;
-        this._curOffset = context.curOffset;
-        this._curBufferIndex = context.curBufferIndex;
+        if (!context.rebuild) {
+            this._offset = context.offset;
+            this._curBufferIndex = context.curBufferIndex;
+            this._curOffset = context.curOffset;
+        }
+        else {
+            if (context.offset < (this._length >> 1)) {
+                this._offset = 0;
+                this._curBufferIndex = 0;
+                this._curOffset = 0;
+            }
+            else {
+                this._offset = this._length - 1;
+                this._curBufferIndex = this._buffers.length - 1;
+                this._curOffset = this._buffers[this._curBufferIndex].length - 1;
+            }
+            this.seek(context.offset);
+        }
         return this._contexts.length;
     }
 
@@ -64,9 +80,9 @@ export class BufferListReader extends ReaderBase {
                     }
                     return false;
                 }
+                this._curOffset -= curBuffer.length;
                 ++this._curBufferIndex;
                 curBuffer = this._buffers[this._curBufferIndex];
-                this._curOffset -= curBuffer.length;
             }
             while (this._curOffset < 0) {
                 if (this._curBufferIndex <= 0) {
@@ -97,7 +113,6 @@ export class BufferListReader extends ReaderBase {
                 this._buffers.splice(0, this._curBufferIndex);
                 this._length -= (this._offset - this._curOffset);
                 this._offset = this._curOffset;
-
                 this._curBufferIndex = 0;
              }
         }
@@ -121,15 +136,20 @@ export class BufferListReader extends ReaderBase {
             if (!this._noAssert && (newOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
             }
+            let index = this._contexts.length;
+            while (index) {
+                const context = this._contexts[--index];
+                context.rebuild = context.rebuild || (context.curBufferIndex > this._curBufferIndex);
+            }
         }
+        this._offset += len;
+        this._curOffset = newOffset;
         return curBuffer;
     }
 
     private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number): number {
         const start = this._curOffset;
         const currBuffer = this._consolidate(byteSize);
-        this._offset += byteSize;
-        this._curOffset += byteSize;
         return bufferFunction.call(currBuffer, start, this._noAssert);
     }
 
@@ -154,8 +174,6 @@ export class BufferListReader extends ReaderBase {
             const start = this._curOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
-            this._offset += len;
-            this._curOffset += len;
             return currBuffer.toString(encoding, start, end);
         }
     }
@@ -169,8 +187,6 @@ export class BufferListReader extends ReaderBase {
             const start = this._curOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
-            this._offset += len;
-            this._curOffset += len;
             if ((start === 0) && (len === currBuffer.length)) {
                 return currBuffer;
             }
@@ -189,8 +205,6 @@ export class BufferListReader extends ReaderBase {
             const start = this._curOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
-            this._offset += len;
-            this._curOffset += len;
             if ((start === 0) && (len === currBuffer.length)) {
                 return currBuffer;
             }

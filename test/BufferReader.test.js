@@ -66,12 +66,15 @@ describe('BufferReader', function () {
         let result = bufferListReader.length;
         assert(globalBuffer.length === result);
       }
+      bufferListReader.seek(128);
       bufferListReader.pushd();
       {
+        bufferListReader.seek(0);
         let result = bufferListReader.slice(64);
         assert(Buffer.compare(globalBuffer.slice(0, 64), result) === 0);
       }
       bufferListReader.popd();
+      bufferListReader.seek(0);
       bufferListReader.pushd();
       {
         let result = bufferListReader.subarray(64);
