@@ -12,39 +12,43 @@ const FooterLength = 1;
 const FixedHeaderSize = 2;
 const DynamicHeaderSize = FixedHeaderSize + 4;
 
+function BufferTypeHeader(type: string): number {
+    return (type.charCodeAt(0) << 8) + headerSeparator;
+}
+
 export enum BufferType {
     // 88
-    NotValid = 'X'.charCodeAt(0),
+    NotValid = BufferTypeHeader('X'),
     // 85
-    Partial = 'P'.charCodeAt(0),
+    Partial = BufferTypeHeader('P'),
     // 115
-    String = 's'.charCodeAt(0),
+    String = BufferTypeHeader('s'),
     // 66
-    Buffer = 'B'.charCodeAt(0),
+    Buffer = BufferTypeHeader('B'),
     // 84
-    BooleanTrue = 'T'.charCodeAt(0),
+    BooleanTrue = BufferTypeHeader('T'),
     // 70
-    BooleanFalse = 'F'.charCodeAt(0),
+    BooleanFalse = BufferTypeHeader('F'),
     // 65
-    ArrayWithSize = 'A'.charCodeAt(0),
+    ArrayWithSize = BufferTypeHeader('A'),
     // 97 --- EXPERIMENTAL, avoid to read in advance the full array
-    // ArrayWithLen = 'a'.charCodeAt(0),
+    // ArrayWithLen = BufferTypeHeader('a'),
     // 42
-    PositiveInteger = '+'.charCodeAt(0),
+    PositiveInteger = BufferTypeHeader('+'),
     // 45
-    NegativeInteger = '-'.charCodeAt(0),
+    NegativeInteger = BufferTypeHeader('-'),
     // 100
-    Double = 'd'.charCodeAt(0),
+    Double = BufferTypeHeader('d'),
     // 79
-    Object = 'O'.charCodeAt(0),
+    Object = BufferTypeHeader('O'),
     // 111
-    ObjectSTRINGIFY = 'o'.charCodeAt(0),
+    ObjectSTRINGIFY = BufferTypeHeader('o'),
     // 78
-    Null = 'N'.charCodeAt(0),
+    Null = BufferTypeHeader('N'),
     // 85
-    Undefined = 'U'.charCodeAt(0),
+    Undefined = BufferTypeHeader('U'),
     // 68
-    Date = 'D'.charCodeAt(0),
+    Date = BufferTypeHeader('D'),
 };
 
 export namespace IpcPacketBufferWrap {
@@ -246,12 +250,8 @@ export class IpcPacketBufferWrap {
             return false;
         }
         // Read separator
-        if (bufferReader.readByte() !== headerSeparator) {
-            this._type = BufferType.NotValid;
-            return false;
-        }
         // Read type
-        this.setTypeAndContentSize(bufferReader.readByte(), -1);
+        this.setTypeAndContentSize(bufferReader.readUInt16(), -1);
         if (this._type === BufferType.NotValid) {
             return false;
         }
@@ -281,8 +281,7 @@ export class IpcPacketBufferWrap {
         // assert(this.isFixedSize() === true);
         // Write header in one block
         const bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
-        bufferWriterHeader.writeByte(headerSeparator);
-        bufferWriterHeader.writeByte(this._type);
+        bufferWriterHeader.writeUInt16(this._type);
         bufferWriterHeader.writeUInt32(this.packetSize);
         // Push block in origin writer
         bufferWriter.writeBuffer(bufferWriterHeader.buffer);
@@ -296,8 +295,7 @@ export class IpcPacketBufferWrap {
         // Write the whole in one block buffer, to avoid multiple buffers
         const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
         // Write header
-        bufferWriteAllInOne.writeByte(headerSeparator);
-        bufferWriteAllInOne.writeByte(this._type);
+        bufferWriteAllInOne.writeUInt16(this._type);
         // Write content
         switch (bufferType) {
             case BufferType.NegativeInteger:
