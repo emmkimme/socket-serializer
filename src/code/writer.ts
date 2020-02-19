@@ -8,6 +8,7 @@ export interface Writer {
 
     writeByte(data: number): number;
     writeBytes(dataArray: number[]): number;
+    writeUInt16(data: number): number;
     writeUInt32(data: number): number;
     writeDouble(data: number): number;
     writeString(data: string, encoding?: BufferEncoding, len?: number): number;

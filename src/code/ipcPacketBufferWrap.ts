@@ -10,7 +10,8 @@ const footerSeparator = ']'.charCodeAt(0);
 const FooterLength = 1;
 
 const FixedHeaderSize = 2;
-const DynamicHeaderSize = FixedHeaderSize + 4;
+const PacketSizeHeader = 4;
+const DynamicHeaderSize = FixedHeaderSize + PacketSizeHeader;
 
 function BufferTypeHeader(type: string): number {
     return (type.charCodeAt(0) << 8) + headerSeparator;
@@ -255,12 +256,13 @@ export class IpcPacketBufferWrap {
         if (this._type === BufferType.NotValid) {
             return false;
         }
-        if (this.isFixedSize() === false) {
-            // Substract 'FixedHeaderSize' already read
-            if (bufferReader.checkEOF(this._headerSize - FixedHeaderSize)) {
+        if (this._headerSize === DynamicHeaderSize) {
+            // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = PacketSizeHeader
+            if (bufferReader.checkEOF(PacketSizeHeader)) {
                 this._type = BufferType.Partial;
                 return false;
             }
+            // Read dynamic packet size
             this.setPacketSize(bufferReader.readUInt32());
         }
         if (bufferReader.checkEOF(this._contentSize + this.footerSize)) {
@@ -278,13 +280,16 @@ export class IpcPacketBufferWrap {
     protected writeDynamicSizeHeader(bufferWriter: Writer, bufferType: BufferType, contentSize: number): void {
         bufferWriter.pushContext();
         this.setTypeAndContentSize(bufferType, contentSize);
-        // assert(this.isFixedSize() === true);
+        // assert(this.isFixedSize() === false);
+        bufferWriter.writeUInt16(this._type);
+        bufferWriter.writeUInt32(this.packetSize);
+
         // Write header in one block
-        const bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
-        bufferWriterHeader.writeUInt16(this._type);
-        bufferWriterHeader.writeUInt32(this.packetSize);
-        // Push block in origin writer
-        bufferWriter.writeBuffer(bufferWriterHeader.buffer);
+        // const bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
+        // bufferWriterHeader.writeUInt16(this._type);
+        // bufferWriterHeader.writeUInt32(this.packetSize);
+        // // Push block in origin writer
+        // bufferWriter.writeBuffer(bufferWriterHeader.buffer);
     }
 
     // Write header, content and footer in one block
@@ -292,6 +297,7 @@ export class IpcPacketBufferWrap {
     protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, num?: number): void {
         bufferWriter.pushContext();
         this.setTypeAndContentSize(bufferType, -1);
+        // assert(this.isFixedSize() === true);
         // Write the whole in one block buffer, to avoid multiple buffers
         const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
         // Write header
