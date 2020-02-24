@@ -39,17 +39,17 @@
   "browser": "./lib/socket-serializer-browser.js",
   "types": "./lib/socket-serializer.d.ts",
   "devDependencies": {
-    "@types/node": "^13.7.0",
+    "@types/node": "^13.7.4",
     "chai": "^4.2.0",
     "del": "^5.1.0",
     "del-cli": "^3.0.0",
     "dts-bundle": "^0.7.3",
     "mocha": "^7.0.1",
-    "sinon": "^8.1.1",
+    "sinon": "^9.0.0",
     "socket-port-helpers": "^1.1.1",
     "tslint": "^6.0.0",
     "tslint-microsoft-contrib": "^6.2.0",
-    "typescript": "^3.7.5"
+    "typescript": "^3.8.2"
   },
   "dependencies": {
     "json-helpers": "^2.1.0"
