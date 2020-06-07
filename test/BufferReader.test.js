@@ -19,6 +19,8 @@ describe('BufferReader', function () {
   fill(paramBuffer2);
   const paramBuffer3 = Buffer.alloc(1);
   fill(paramBuffer3);
+  const paramBuffer4 = Buffer.alloc(Buffer.poolSize * 2);
+  fill(paramBuffer4);
   let globalBuffer = Buffer.concat([paramBuffer1, paramBuffer2, paramBuffer3]);
 
   describe('BufferListReader append', function () {
@@ -104,6 +106,50 @@ describe('BufferReader', function () {
       }
     });
   });
+
+  describe('BufferListReader reduce', function () {
+    it(`reduce Buffers when offset matches length`, function () {
+      let bufferListReader = new BufferListReader.BufferListReader();
+      bufferListReader.appendBuffer(paramBuffer1);
+      bufferListReader.appendBuffer(paramBuffer2);
+      const bufferOriginalSize = bufferListReader.length;
+      bufferListReader.reduce();
+      {
+        let result = bufferListReader.length;
+        assert(bufferOriginalSize=== result);
+      }
+      bufferListReader.slice(paramBuffer1.length);
+      bufferListReader.reduce();
+      {
+        let result = bufferListReader.length;
+        assert(paramBuffer2.length === result);
+      }
+    });
+
+    it(`reduce Buffers when offset > length / 2`, function () {
+      let bufferListReader = new BufferListReader.BufferListReader();
+      bufferListReader.appendBuffer(paramBuffer4);
+      const bufferOriginalSize = bufferListReader.length;
+      bufferListReader.reduce();
+      {
+        let result = bufferListReader.length;
+        assert(bufferOriginalSize=== result);
+      }
+      bufferListReader.slice(paramBuffer4.length / 2);
+      bufferListReader.reduce();
+      {
+        let result = bufferListReader.length;
+        assert(bufferOriginalSize === result);
+      }
+      bufferListReader.slice(5);
+      bufferListReader.reduce();
+      {
+        let result = bufferListReader.length;
+        assert((paramBuffer4.length / 2) - 5 === result);
+      }
+    });
+  });
+
 });
 
 

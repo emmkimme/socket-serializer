@@ -100,7 +100,6 @@ export class BufferListReader extends ReaderBase {
     }
 
     reduce() {
-        // We change array but never modified buffers content (no slice, fill, copy...) in case someone refers them.
         if (this.checkEOF(1)) {
             this._buffers = [];
             this._offset = 0;
@@ -115,6 +114,18 @@ export class BufferListReader extends ReaderBase {
                 this._offset = this._curOffset;
                 this._curBufferIndex = 0;
              }
+            if (this._buffers.length >= 0) {
+                const curBuffer = this._buffers[0];
+                if ((curBuffer.length > Buffer.poolSize) && (this._curOffset > (curBuffer.length >> 1))) {
+                // if (this._curOffset > (curBuffer.length >> 1)) {
+                    const newBuffer = Buffer.allocUnsafe(curBuffer.length - this._curOffset);
+                    curBuffer.copy(newBuffer, 0, this._curOffset);
+                    this._buffers[0] = newBuffer;
+                    this._length -= this._curOffset;
+                    this._offset -= this._curOffset;
+                    this._curOffset = 0;
+                }
+            }
         }
     }
 
@@ -141,6 +152,10 @@ export class BufferListReader extends ReaderBase {
                 const context = this._contexts[--index];
                 context.rebuild = context.rebuild || (context.curBufferIndex > this._curBufferIndex);
             }
+        }
+        else if (newOffset === curBuffer.length) {
+            ++this._curBufferIndex;
+            newOffset = 0;
         }
         this._offset += len;
         this._curOffset = newOffset;
