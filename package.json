@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "4.1.1",
+  "version": "5.0.0",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
