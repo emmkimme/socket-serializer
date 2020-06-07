@@ -42,17 +42,17 @@
     "@types/node": "^13.7.4",
     "chai": "^4.2.0",
     "del": "^5.1.0",
-    "del-cli": "^3.0.0",
+    "del-cli": "^3.0.1",
     "dts-bundle": "^0.7.3",
-    "mocha": "^7.0.1",
-    "sinon": "^9.0.0",
+    "mocha": "^7.2.0",
+    "sinon": "^9.0.2",
     "socket-port-helpers": "^1.1.1",
-    "tslint": "^6.0.0",
+    "tslint": "^6.1.2",
     "tslint-microsoft-contrib": "^6.2.0",
-    "typescript": "^3.8.2"
+    "typescript": "^3.9.5"
   },
   "dependencies": {
-    "json-helpers": "^2.1.0"
+    "json-helpers": "^2.1.3"
   },
   "scripts": {
     "clean": "del-cli ./lib ./build ./dist",
