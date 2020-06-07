@@ -46,6 +46,7 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
                 return true;
             }
             else {
+                this._buffer = null;
                 return false;
             }
         }
@@ -61,6 +62,9 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         if (result) {
             this._buffer = bufferReader.subarray(this.packetSize);
         }
+        else {
+            this._buffer = null;
+        }
         return result;
     }
 
@@ -69,6 +73,9 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         const result = this._readHeader(new BufferReader(buffer));
         if (result) {
             this._buffer = buffer;
+        }
+        else {
+            this._buffer = null;
         }
         return result;
     }
