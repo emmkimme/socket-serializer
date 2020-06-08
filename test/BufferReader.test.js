@@ -105,7 +105,23 @@ describe('BufferReader', function () {
     });
   });
 
-  describe('BufferListReader reduce', function () {
+  describe('BufferListReader memory', function () {
+    it(`reset Buffer`, function () {
+      let bufferListReader = new BufferListReader();
+      bufferListReader.appendBuffer(paramBuffer1);
+      bufferListReader.appendBuffer(paramBuffer2);
+      const bufferOriginalSize = bufferListReader.length;
+      {
+        let result = bufferListReader.length;
+        assert(bufferOriginalSize=== result);
+      }
+      bufferListReader.reset();
+      {
+        let result = bufferListReader.length;
+        assert(0 === result);
+      }
+    });
+
     it(`reduce Buffers when offset matches length`, function () {
       let bufferListReader = new BufferListReader();
       bufferListReader.appendBuffer(paramBuffer1);

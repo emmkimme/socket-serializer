@@ -10,6 +10,10 @@ export abstract class BufferListWriterBase extends WriterBase {
         this._length = 0;
     }
 
+    reset(): void {
+        this._length = 0;
+    }
+
     get length(): number {
         return this._length;
     }
@@ -79,6 +83,12 @@ export class BufferListWriter extends BufferListWriterBase {
 
     constructor() {
         super();
+        this._buffers = [];
+    }
+
+    reset(): void {
+        super.reset();
+
         this._buffers = [];
     }
 

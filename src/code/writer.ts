@@ -6,6 +6,8 @@ export interface Writer {
     readonly length: number;
     noAssert: boolean;
 
+    reset(): void;
+
     writeByte(data: number): number;
     writeBytes(dataArray: number[]): number;
     writeUInt16(data: number): number;
@@ -21,6 +23,8 @@ export interface Writer {
 
 // Implement common methods
 export abstract class WriterBase implements Writer {
+    protected static EmptyBuffer = Buffer.allocUnsafe(0);
+
     protected _noAssert: boolean;
 
     constructor() {
@@ -38,6 +42,8 @@ export abstract class WriterBase implements Writer {
     readonly buffer: Buffer;
     readonly buffers: Buffer[];
     readonly length: number;
+
+    abstract reset(): void;
 
     abstract writeByte(data: number): number;
     abstract writeBytes(dataArray: number[]): number;

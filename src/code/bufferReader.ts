@@ -12,6 +12,13 @@ export class BufferReader extends ReaderBase {
         this._contexts = [];
     }
 
+    reset(): void {
+        super.reset();
+
+        this._buffer = ReaderBase.EmptyBuffer;
+        this._contexts = [];
+    }
+
     get length(): number {
         return this._buffer.length;
     }

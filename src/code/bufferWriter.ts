@@ -11,6 +11,11 @@ export class BufferWriter extends WriterBase {
         this._offset = offset || 0;
     }
 
+    reset(): void {
+        this._buffer = WriterBase.EmptyBuffer;
+        this._offset = 0;
+    }
+
     get buffer(): Buffer {
         return this._buffer;
     }

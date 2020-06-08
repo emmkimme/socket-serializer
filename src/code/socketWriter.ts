@@ -43,5 +43,9 @@ export class SocketWriter extends BufferListWriterBase {
         // length never changed
         return 0;
     }
+
+    reset(): void {
+        // no action
+    }
 }
 

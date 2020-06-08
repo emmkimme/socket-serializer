@@ -33,6 +33,17 @@ export class BufferListReader extends ReaderBase {
         this.seek(offset || 0);
     }
 
+    reset(): void {
+        super.reset();
+
+        this._contexts = [];
+
+        this._buffers = [];
+        this._length = 0;
+        this._curOffset = 0;
+        this._curBufferIndex = 0;
+    }
+
     appendBuffer(buffer: Buffer): void {
         this._buffers.push(buffer);
         this._length += buffer.length;

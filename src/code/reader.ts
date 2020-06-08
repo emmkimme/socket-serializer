@@ -20,6 +20,8 @@ export interface Reader {
     readonly offset: number;
     noAssert: boolean;
 
+    reset(): void;
+
     pushd(): number;
     popd(): number;
 
@@ -40,12 +42,18 @@ export interface Reader {
 
 // Implement common methods
 export abstract class ReaderBase implements Reader {
+    protected static EmptyBuffer = Buffer.allocUnsafe(0);
+
     protected _noAssert: boolean;
     protected _offset: number;
 
     constructor(offset?: number) {
         this._offset = offset || 0;
         this._noAssert = true;
+    }
+
+    reset(): void {
+        this._offset = 0;
     }
 
     get noAssert(): boolean {
