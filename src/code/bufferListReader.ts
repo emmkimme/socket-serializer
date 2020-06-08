@@ -11,6 +11,8 @@ export namespace BufferListReader {
 }
 
 export class BufferListReader extends ReaderBase {
+    static readonly ReduceThreshold = 100000; // in bytes
+
     private _length: number;
     private _buffers: Buffer[];
     private _curBufferIndex: number;
@@ -113,10 +115,12 @@ export class BufferListReader extends ReaderBase {
                 this._length -= (this._offset - this._curOffset);
                 this._offset = this._curOffset;
                 this._curBufferIndex = 0;
-             }
+            }
+            // 'consolidate' may accumulate data in a single buffer which may growing up and growing.....
+            // So we have to explicitely/physically reduce it
             if (this._buffers.length >= 0) {
                 const curBuffer = this._buffers[0];
-                if ((curBuffer.length > Buffer.poolSize) && (this._curOffset > (curBuffer.length >> 1))) {
+                if ((curBuffer.length > BufferListReader.ReduceThreshold) && (this._curOffset > (curBuffer.length >> 1))) {
                 // if (this._curOffset > (curBuffer.length >> 1)) {
                     const newBuffer = Buffer.allocUnsafe(curBuffer.length - this._curOffset);
                     curBuffer.copy(newBuffer, 0, this._curOffset);
@@ -259,4 +263,3 @@ export class BufferListReader extends ReaderBase {
         // return targetBuffer;
     }
 }
-
