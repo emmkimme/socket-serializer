@@ -114,11 +114,7 @@ export class BufferListReader extends ReaderBase {
 
     reduce() {
         if (this.checkEOF(1)) {
-            this._buffers = [];
-            this._offset = 0;
-            this._length = 0;
-            this._curOffset = 0;
-            this._curBufferIndex = 0;
+            this.reset();
         }
         else {
             if (this._curBufferIndex > 0) {

@@ -107,7 +107,7 @@ export interface Reader {
     subarray(len?: number): Buffer;
     slice(len?: number): Buffer;
 
-    reduce(): void; // free passed buffers
+    reduce(): void; // released read buffers
 }
 ```
 
