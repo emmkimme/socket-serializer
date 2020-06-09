@@ -73,8 +73,14 @@ export class IpcPacketBufferWrap {
             this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
         }
         else {
-            this._type = BufferType.NotValid;
+            this.setTypeAndContentSize(BufferType.NotValid, -1);
         }
+    }
+
+
+    reset(): void {
+        this._type = BufferType.NotValid;
+        this._contentSize = -1;
     }
 
     setRawContent(rawContent: IpcPacketBufferWrap.RawContent): void {
@@ -150,6 +156,7 @@ export class IpcPacketBufferWrap {
                 break;
         }
     }
+
     protected setPacketSize(packetSize: number) {
         this._contentSize = packetSize - (this._headerSize + FooterLength);
     }

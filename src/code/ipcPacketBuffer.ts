@@ -20,6 +20,11 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         }
     }
 
+    reset(): void {
+        super.reset();
+        this._buffer = null;
+    }
+
     get buffer(): Buffer {
         return this._buffer;
     }
