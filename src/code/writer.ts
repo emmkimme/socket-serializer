@@ -31,6 +31,10 @@ export abstract class WriterBase implements Writer {
         this._noAssert = true;
     }
 
+    abstract get buffer(): Buffer;
+    abstract get buffers(): Buffer[];
+    abstract get length(): number;
+
     get noAssert(): boolean {
         return this._noAssert;
     }
@@ -38,10 +42,6 @@ export abstract class WriterBase implements Writer {
     set noAssert(noAssert: boolean) {
         this._noAssert = noAssert;
     }
-
-    readonly buffer: Buffer;
-    readonly buffers: Buffer[];
-    readonly length: number;
 
     abstract reset(): void;
 

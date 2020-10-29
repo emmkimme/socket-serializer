@@ -52,8 +52,10 @@ export abstract class ReaderBase implements Reader {
         this._noAssert = true;
     }
 
-    reset(): void {
-        this._offset = 0;
+    abstract get length(): number;
+
+    get offset(): number {
+        return this._offset;
     }
 
     get noAssert(): boolean {
@@ -64,6 +66,10 @@ export abstract class ReaderBase implements Reader {
         this._noAssert = noAssert;
     }
 
+    reset(): void {
+        this._offset = 0;
+    }
+
     checkEOF(offsetStep?: number): boolean {
         return (this._offset + (offsetStep || 0) > this.length);
     }
@@ -71,12 +77,6 @@ export abstract class ReaderBase implements Reader {
     skip(offsetStep?: number): boolean {
         return this.seek(this._offset + (offsetStep || 1));
     }
-
-    get offset(): number {
-        return this._offset;
-    }
-
-    readonly length: number;
 
     abstract pushd(): number;
     abstract popd(): number;
