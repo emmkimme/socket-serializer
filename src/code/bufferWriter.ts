@@ -34,31 +34,33 @@ export class BufferWriter extends WriterBase {
 
     // Uint8Array ?
     writeBytes(dataArray: number[]): number {
+        // const uint8Array = new Uint8Array(dataArray);
+        // this._offset += this._buffer.copy(uint8Array, this._offset, 0);
+        // return this._offset;
         for (let i = 0, l = dataArray.length; i < l; ++i) {
-            this._writeNumber(Buffer.prototype.writeUInt8, dataArray[i], 1);
+            this.writeByte(dataArray[i]);
         }
         return this._offset;
     }
 
-    private _writeNumber(bufferFunction: (value: number, offset: number, noAssert?: boolean) => number, data: number, byteSize: number): number {
-        this._offset = bufferFunction.call(this._buffer, data, this._offset, this._noAssert);
+    writeByte(data: number): number {
+        this._offset = this._buffer.writeUInt8(data, this._offset);
         return this._offset;
     }
 
-    writeByte(data: number): number {
-        return this._writeNumber(Buffer.prototype.writeUInt8, data, 1);
-    }
-
     writeUInt16(data: number): number {
-        return this._writeNumber(Buffer.prototype.writeUInt16LE, data, 2);
+        this._offset = this._buffer.writeUInt16LE(data, this._offset);
+        return this._offset;
     }
 
     writeUInt32(data: number): number {
-        return this._writeNumber(Buffer.prototype.writeUInt32LE, data, 4);
+        this._offset = this._buffer.writeUInt32LE(data, this._offset);
+        return this._offset;
     }
 
     writeDouble(data: number): number {
-        return this._writeNumber(Buffer.prototype.writeDoubleLE, data, 8);
+        this._offset = this._buffer.writeDoubleLE(data, this._offset);
+        return this._offset;
     }
 
     writeString(data: string, encoding?: BufferEncoding, len?: number): number {

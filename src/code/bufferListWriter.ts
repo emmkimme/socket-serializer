@@ -32,7 +32,7 @@ export abstract class BufferListWriterBase extends WriterBase {
 
     private _writeNumber(bufferFunction: (value: number, offset: number, noAssert?: boolean) => number, data: number, byteSize: number): number {
         const buffer = Buffer.allocUnsafe(byteSize);
-        bufferFunction.call(buffer, data, 0, this._noAssert);
+        bufferFunction.call(buffer, data, 0);
         return this._appendBuffer(byteSize, buffer);
     }
 
