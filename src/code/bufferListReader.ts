@@ -173,7 +173,7 @@ export class BufferListReader extends ReaderBase {
         return curBuffer;
     }
 
-    private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number): number {
+    private _readNumber(bufferFunction: (offset: number) => number, byteSize: number): number {
         const start = this._curOffset;
         const currBuffer = this._consolidate(byteSize);
         return bufferFunction.call(currBuffer, start, this._noAssert);

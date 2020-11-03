@@ -34,13 +34,13 @@ export class BufferWriter extends WriterBase {
 
     // Uint8Array ?
     writeBytes(dataArray: number[]): number {
-        // const uint8Array = new Uint8Array(dataArray);
-        // this._offset += this._buffer.copy(uint8Array, this._offset, 0);
-        // return this._offset;
-        for (let i = 0, l = dataArray.length; i < l; ++i) {
-            this.writeByte(dataArray[i]);
-        }
+        const uint8Array = new Uint8Array(dataArray);
+        this._offset += this._buffer.copy(uint8Array, this._offset, 0);
         return this._offset;
+        // for (let i = 0, l = dataArray.length; i < l; ++i) {
+        //     this.writeByte(dataArray[i]);
+        // }
+        // return this._offset;
     }
 
     writeByte(data: number): number {

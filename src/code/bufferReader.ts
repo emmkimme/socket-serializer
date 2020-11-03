@@ -37,7 +37,7 @@ export class BufferReader extends ReaderBase {
         return this.checkEOF();
     }
 
-    private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number): number {
+    private _readNumber(bufferFunction: (offset: number) => number, byteSize: number): number {
         const start = this._offset;
         this._offset += byteSize;
         return bufferFunction.call(this._buffer, start, this._noAssert);
