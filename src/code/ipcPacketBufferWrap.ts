@@ -290,13 +290,6 @@ export class IpcPacketBufferWrap {
         // assert(this.isFixedSize() === false);
         bufferWriter.writeUInt16(this._type);
         bufferWriter.writeUInt32(this.packetSize);
-
-        // Write header in one block
-        // const bufferWriterHeader = new BufferWriter(Buffer.allocUnsafe(this._headerSize));
-        // bufferWriterHeader.writeUInt16(this._type);
-        // bufferWriterHeader.writeUInt32(this.packetSize);
-        // // Push block in origin writer
-        // bufferWriter.writeBuffer(bufferWriterHeader.buffer);
     }
 
     // Write header, content and footer in one block
@@ -650,7 +643,7 @@ export class IpcPacketBufferWrap {
         let argsLen = bufferReader.readUInt32();
         const args = [];
         while (argsLen > 0) {
-            let arg = this._read(depth + 1, bufferReader);
+            const arg = this._read(depth + 1, bufferReader);
             args.push(arg);
             --argsLen;
         }
@@ -753,7 +746,7 @@ export class IpcPacketBufferWrap {
         }
         const args = [];
         while (end > 0) {
-            let arg = headerArg.read(bufferReader);
+            const arg = headerArg.read(bufferReader);
             args.push(arg);
             --end;
         }
