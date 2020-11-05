@@ -535,58 +535,46 @@ export class IpcPacketBufferWrap {
     }
 
     protected _readContent(depth: number, bufferReader: Reader): any {
-        let arg: any;
         switch (this.type) {
-            // case BufferType.ArrayWithLen:
-            case BufferType.ArrayWithSize:
-                arg = this._readArray(depth, bufferReader);
-                break;
-
-            case BufferType.Object:
-                arg = this._readObjectDirect(depth, bufferReader);
-                break;
-            case BufferType.ObjectSTRINGIFY:
-                arg = this._readObjectSTRINGIFY2(depth, bufferReader);
-                break;
-
-            case BufferType.Null:
-                arg = null;
-                break;
-
-            case BufferType.Undefined:
-                arg = undefined;
-                break;
-
             case BufferType.String:
-                arg = this._readString(bufferReader, this._contentSize);
-                break;
+                return this._readString(bufferReader, this._contentSize);
 
             case BufferType.Buffer:
-                arg = bufferReader.slice(this._contentSize);
-                break;
-
-            case BufferType.Date:
-                arg = new Date(bufferReader.readDouble());
-                break;
+                return bufferReader.slice(this._contentSize);
 
             case BufferType.Double:
-                arg = bufferReader.readDouble();
-                break;
+                return bufferReader.readDouble();
             case BufferType.NegativeInteger:
-                arg = -bufferReader.readUInt32();
-                break;
+                return -bufferReader.readUInt32();
             case BufferType.PositiveInteger:
-                arg = +bufferReader.readUInt32();
-                break;
+                return +bufferReader.readUInt32();
 
             case BufferType.BooleanTrue:
-                arg = true;
-                break;
+                return true;
             case BufferType.BooleanFalse:
-                arg = false;
-                break;
+                return false;
+
+            case BufferType.Date:
+                return new Date(bufferReader.readDouble());
+    
+                // case BufferType.ArrayWithLen:
+            case BufferType.ArrayWithSize:
+                return this._readArray(depth, bufferReader);
+
+            case BufferType.Object:
+                return this._readObjectDirect(depth, bufferReader);
+            case BufferType.ObjectSTRINGIFY:
+                return this._readObjectSTRINGIFY2(depth, bufferReader);
+
+            case BufferType.Null:
+                return null;
+
+            case BufferType.Undefined:
+                return undefined;
+
+            default: 
+                return undefined;
         }
-        return arg;
     }
 
     // Header has been read and checked
