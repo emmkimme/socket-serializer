@@ -79,8 +79,7 @@ export class IpcPacketBufferWrap {
 
 
     reset(): void {
-        this._type = BufferType.NotValid;
-        this._contentSize = -1;
+        this.setTypeAndContentSize(BufferType.NotValid, -1);
     }
 
     setRawContent(rawContent: IpcPacketBufferWrap.RawContent): void {
@@ -272,7 +271,7 @@ export class IpcPacketBufferWrap {
             // Read dynamic packet size
             this.setPacketSize(bufferReader.readUInt32());
         }
-        if (bufferReader.checkEOF(this._contentSize + this.footerSize)) {
+        if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
             this._type = BufferType.Partial;
             return false;
         }
@@ -531,7 +530,7 @@ export class IpcPacketBufferWrap {
     protected _read(depth: number, bufferReader: Reader): any {
         this._readHeader(bufferReader);
         const arg = this._readContent(depth, bufferReader);
-        bufferReader.skip(this.footerSize);
+        bufferReader.skip(FooterLength);
         return arg;
     }
 
@@ -679,10 +678,10 @@ export class IpcPacketBufferWrap {
         //         this.byPass(bufferReader);
         //         --argsLen;
         //     }
-        //     bufferReader.skip(this.footerSize);
+        //     bufferReader.skip(FooterLength);
         // }
         // else {
-        bufferReader.skip(this._contentSize + this.footerSize);
+        bufferReader.skip(this._contentSize + FooterLength);
         // }
     }
 
