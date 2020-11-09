@@ -20,6 +20,8 @@ function BufferTypeHeader(type: string): number {
 export enum BufferType {
     // 88
     NotValid = BufferTypeHeader('X'),
+    // 70
+    PartialHeader = BufferTypeHeader('p'),
     // 85
     Partial = BufferTypeHeader('P'),
     // 115
@@ -151,6 +153,7 @@ export class IpcPacketBufferWrap {
                 break;
             default:
                 this._type = BufferType.NotValid;
+                this._headerSize = -1;
                 this._contentSize = -1;
                 break;
         }
@@ -165,11 +168,11 @@ export class IpcPacketBufferWrap {
     }
 
     isPartial(): boolean {
-        return (this._type === BufferType.Partial);
+        return (this._type === BufferType.Partial) || (this._type === BufferType.PartialHeader);
     }
 
     isComplete(): boolean {
-        return (this._type !== BufferType.NotValid) && (this._type !== BufferType.Partial);
+        return (this._type !== BufferType.NotValid) && (this._type !== BufferType.Partial) && (this._type !== BufferType.PartialHeader);
     }
 
     isNull(): boolean {
@@ -246,18 +249,14 @@ export class IpcPacketBufferWrap {
         return (this._headerSize === FixedHeaderSize);
     }
 
-    protected _skipHeader(bufferReader: Reader): boolean {
-        return bufferReader.skip(this._headerSize);
-    }
-
     protected _readHeader(bufferReader: Reader): boolean {
         // Header minimum size is 2
         if (bufferReader.checkEOF(FixedHeaderSize)) {
-            this._type = BufferType.Partial;
+            this._type = BufferType.PartialHeader;
             return false;
         }
         // Read separator
-        // Read type
+        // Read type / header
         this.setTypeAndContentSize(bufferReader.readUInt16(), -1);
         if (this._type === BufferType.NotValid) {
             return false;
@@ -265,7 +264,7 @@ export class IpcPacketBufferWrap {
         if (this._headerSize === DynamicHeaderSize) {
             // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = PacketSizeHeader
             if (bufferReader.checkEOF(PacketSizeHeader)) {
-                this._type = BufferType.Partial;
+                this._type = BufferType.PartialHeader;
                 return false;
             }
             // Read dynamic packet size
