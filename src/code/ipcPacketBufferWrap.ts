@@ -159,10 +159,6 @@ export class IpcPacketBufferWrap {
         }
     }
 
-    protected setPacketSize(packetSize: number) {
-        this._contentSize = packetSize - (this._headerSize + FooterLength);
-    }
-
     isNotValid(): boolean {
         return (this._type === BufferType.NotValid);
     }
@@ -268,7 +264,7 @@ export class IpcPacketBufferWrap {
                 return false;
             }
             // Read dynamic packet size
-            this.setPacketSize(bufferReader.readUInt32());
+            this._contentSize = bufferReader.readUInt32() - (this._headerSize + FooterLength);
         }
         if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
             this._type = BufferType.Partial;
