@@ -1,13 +1,11 @@
 import { Buffer } from 'buffer';
 import { Reader, ReaderBase } from './reader';
 
-export namespace BufferListReader {
-    export interface Context {
-        offset: number;
-        curBufferIndex: number;
-        curOffset: number;
-        rebuild?: boolean;
-    }
+interface BufferListReaderContext {
+    offset: number;
+    curBufferIndex: number;
+    curOffset: number;
+    rebuild?: boolean;
 }
 
 export class BufferListReader extends ReaderBase {
@@ -17,7 +15,7 @@ export class BufferListReader extends ReaderBase {
     private _buffers: Buffer[];
     private _curBufferIndex: number;
     private _curOffset: number;
-    private _contexts: BufferListReader.Context[];
+    private _contexts: BufferListReaderContext[];
 
     constructor(buffers?: Buffer[], offset?: number) {
         super(0);
@@ -25,7 +23,7 @@ export class BufferListReader extends ReaderBase {
         this._contexts = [];
 
         this._buffers = buffers || [];
-        // Sum all the buffers length
+        // Sum buffers length
         this._length = this._buffers.reduce((sum, buffer) => sum + buffer.length, 0);
 
         this._curOffset = 0;
@@ -128,7 +126,7 @@ export class BufferListReader extends ReaderBase {
             if (this._buffers.length >= 0) {
                 const curBuffer = this._buffers[0];
                 if ((curBuffer.length > BufferListReader.ReduceThreshold) && (this._curOffset > (curBuffer.length >> 1))) {
-                // if (this._curOffset > (curBuffer.length >> 1)) {
+                    // if (this._curOffset > (curBuffer.length >> 1)) {
                     const newBuffer = Buffer.allocUnsafe(curBuffer.length - this._curOffset);
                     curBuffer.copy(newBuffer, 0, this._curOffset);
                     this._buffers[0] = newBuffer;

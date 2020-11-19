@@ -264,7 +264,7 @@ export class IpcPacketBufferWrap {
                 return false;
             }
             // Read dynamic packet size
-            this._contentSize = bufferReader.readUInt32() - (this._headerSize + FooterLength);
+            this._contentSize = bufferReader.readUInt32();
         }
         if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
             this._type = BufferType.Partial;
@@ -283,7 +283,7 @@ export class IpcPacketBufferWrap {
         this.setTypeAndContentSize(bufferType, contentSize);
         // assert(this.isFixedSize() === false);
         bufferWriter.writeUInt16(this._type);
-        bufferWriter.writeUInt32(this.packetSize);
+        bufferWriter.writeUInt32(this._contentSize);
     }
 
     // Write header, content and footer in one block
