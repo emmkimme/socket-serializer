@@ -1,4 +1,5 @@
-const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
+const chai = require('chai');
+const assert = chai.assert;
 
 describe('byte', () => {
     const size = 10000;
@@ -27,12 +28,47 @@ describe('byte', () => {
         console.timeEnd('readUInt8');
     });
     it(`use []`, () => {
-        const buffer = Buffer.allocUnsafe(size).fill(100);;
+        const buffer = Buffer.allocUnsafe(size).fill(100);
         console.time('read []');
         for (let i = 0; i < size; ++i) {
             buffer[i];
         }
         console.timeEnd('read []');
+    });
+
+    it(`buffer allocUnsafe`, () => {
+        const buffer = Buffer.allocUnsafe(1);
+        buffer[0] = 100;
+        assert(buffer[0] === 100);
+
+        console.time('allocUnsafe');
+        for (let i = 0; i < size; ++i) {
+            const buffer = Buffer.allocUnsafe(1);
+            buffer[0] = 100;
+        }
+        console.timeEnd('allocUnsafe');
+    });
+
+    it(`buffer allocUnsafe.fill`, () => {
+        const buffer = Buffer.allocUnsafe(1).fill(100);
+        assert(buffer[0] === 100);
+
+        console.time('allocUnsafe.fill');
+        for (let i = 0; i < size; ++i) {
+            const buffer = Buffer.allocUnsafe(1).fill(100);
+        }
+        console.timeEnd('allocUnsafe.fill');
+    });
+
+    it(`buffer alloc`, () => {
+        const buffer = Buffer.alloc(1, 100);
+        assert(buffer[0] === 100);
+
+        console.time('alloc');
+        for (let i = 0; i < size; ++i) {
+            const buffer = Buffer.alloc(1, 100);
+        }
+        console.timeEnd('alloc');
     });
 });
 
@@ -61,22 +97,6 @@ describe('bytes array', () => {
         }
         console.timeEnd('read []');
     });
-    // it(`use readUInt8`, () => {
-    //     const buffer = Buffer.allocUnsafe(size).fill(100);
-    //     console.time('readUInt8');
-    //     for (let i = 0; i < size; i += dataSize) {
-    //         buffer.readUInt8(i);
-    //     }
-    //     console.timeEnd('readUInt8');
-    // });
-    // it(`use []`, () => {
-    //     const buffer = Buffer.allocUnsafe(size).fill(100);;
-    //     console.time('[]');
-    //     for (let i = 0; i < size; i += dataSize) {
-    //         buffer[i];
-    //     }
-    //     console.timeEnd('[]');
-    // });
 });
 
 describe('UInt16', () => {

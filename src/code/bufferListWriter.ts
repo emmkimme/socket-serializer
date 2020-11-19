@@ -30,14 +30,15 @@ export abstract class BufferListWriterBase extends WriterBase {
         return this._appendBuffer(buffer.length, buffer);
     }
 
+    writeByte(data: number): number {
+        const buffer = Buffer.allocUnsafe(1).fill(data);
+        return this._appendBuffer(1, buffer);
+    }
+
     private _writeNumber(bufferFunction: (value: number, offset: number, noAssert?: boolean) => number, data: number, byteSize: number): number {
         const buffer = Buffer.allocUnsafe(byteSize);
         bufferFunction.call(buffer, data, 0);
         return this._appendBuffer(byteSize, buffer);
-    }
-
-    writeByte(data: number): number {
-        return this._writeNumber(Buffer.prototype.writeUInt8, data, 1);
     }
 
     writeUInt16(data: number): number {
