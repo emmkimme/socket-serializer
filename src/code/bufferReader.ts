@@ -44,7 +44,7 @@ export class BufferReader extends ReaderBase {
     }
 
     readByte(): number {
-        return this._readNumber(Buffer.prototype.readUInt8, 1);
+        return this._buffer[this._offset++];
     }
 
     readUInt16(): number {

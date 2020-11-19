@@ -178,7 +178,9 @@ export class BufferListReader extends ReaderBase {
     }
 
     readByte(): number {
-        return this._readNumber(Buffer.prototype.readUInt8, 1);
+        const start = this._curOffset;
+        const currBuffer = this._consolidate(1);
+        return currBuffer[start];
     }
 
     readUInt16(): number {

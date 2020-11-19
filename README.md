@@ -3,7 +3,7 @@
 Optimized BufferList reader/writer, purpose is to reduce as much as possible costly buffers creation/copy/clone/split/slice operations.
 This BufferList reader allows as well to manage continuous read in the same list: removing read buffers, add new ones.
 Currently, not all Buffer methods are supported, but contributions or suggestions welcome ;-)
-We are relying on native Buffer methods and do not overwrite them.
+We are relying on native Buffer methods and do not overwrite them (except byte read/write, 10 times faster than calling ReadUInt8/WriteUInt8).
 
 ## Serializer/Unserializer
 Purpose is to serialize object, buffer, string, number and boolean with the minimum of transformations in order to improve performance.
