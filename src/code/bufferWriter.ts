@@ -44,7 +44,7 @@ export class BufferWriter extends WriterBase {
     }
 
     writeByte(data: number): number {
-        this._offset = this._buffer.writeUInt8(data, this._offset);
+        this._buffer[this._offset++] = data;
         return this._offset;
     }
 

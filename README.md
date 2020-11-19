@@ -1,9 +1,18 @@
 # socket-serializer
-A javascript serializer for socket.
+## BufferList Reader Writer
+Optimized BufferList reader/writer, purpose is to reduce as much as possible costly buffers creation/copy/clone/split/slice operations.
+This BufferList reader allows as well to manage continuous read in the same list: removing read buffers, add new ones.
+Currently, not all Buffer methods are supported, but contributions or suggestions welcome ;-)
+We are relying on native Buffer methods and do not overwrite them (except byte read/write, 10 times faster than calling ReadUInt8/WriteUInt8).
+
+## Serializer/Unserializer
 Purpose is to serialize object, buffer, string, number and boolean with the minimum of transformations in order to improve performance.
-For instance buffers remain untouched and go through socket without any changes (copy, merge, split...).
 It is why we do not use classic serializations like BSON or protobuf.
-The IpcPacketBuffer is able to read a partial buffer as socket can not ensure to deliver the same buffer as the one push (see IpcPacketBufferDecoder class).
+
+## Socket support
+A socket reader/writer classes uses this BufferList to ease the management of the communication.
+Buffer remains untouched and go through socket without any changes (copy, merge, split...).
+The IpcPacketBuffer is able to read a partial buffer and accumulate incoming buffers until data is completed as socket can not ensure to deliver the same buffer as the one push (see IpcPacketBufferDecoder class).
 
 # Features
 * Parsing/Serialization API

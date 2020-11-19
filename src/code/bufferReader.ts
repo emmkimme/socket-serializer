@@ -44,7 +44,7 @@ export class BufferReader extends ReaderBase {
     }
 
     readByte(): number {
-        return this._readNumber(Buffer.prototype.readUInt8, 1);
+        return this._buffer[this._offset++];
     }
 
     readUInt16(): number {
@@ -92,7 +92,7 @@ export class BufferReader extends ReaderBase {
     subarray(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
-            return Buffer.alloc(0);
+            return Buffer.allocUnsafe(0);
         }
         else {
             const start = this._offset;
