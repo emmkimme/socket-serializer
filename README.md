@@ -1,15 +1,16 @@
 # socket-serializer
-## BufferList reader writer
-Optimized BufferList reader/writer, purpose is to reduce as much as possible buffers creation/copy/clone/split/slice operations.
+## BufferList Reader Writer
+Optimized BufferList reader/writer, purpose is to reduce as much as possible costly buffers creation/copy/clone/split/slice operations.
 This BufferList reader allows as well to manage continuous read in the same list: removing read buffers, add new ones.
 Currently, not all Buffer methods are supported, but contributions or suggestions welcome ;-)
-A socket reader/writer uses this BufferList to ease the management of the communication.
+We are relying on native Buffer methods and do not overwrite them.
 
 ## Serializer/Unserializer
 Purpose is to serialize object, buffer, string, number and boolean with the minimum of transformations in order to improve performance.
 It is why we do not use classic serializations like BSON or protobuf.
 
 ## Socket support
+A socket reader/writer classes uses this BufferList to ease the management of the communication.
 Buffer remains untouched and go through socket without any changes (copy, merge, split...).
 The IpcPacketBuffer is able to read a partial buffer and accumulate incoming buffers until data is completed as socket can not ensure to deliver the same buffer as the one push (see IpcPacketBufferDecoder class).
 

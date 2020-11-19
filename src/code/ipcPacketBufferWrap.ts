@@ -292,7 +292,7 @@ export class IpcPacketBufferWrap {
         bufferWriter.pushContext();
         this.setTypeAndContentSize(bufferType, -1);
         // assert(this.isFixedSize() === true);
-        // Write the whole in one block buffer, to avoid multiple buffers
+        // Write the whole in one block buffer, to avoid multiple small buffers
         const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
         // Write header
         bufferWriteAllInOne.writeUInt16(this._type);
