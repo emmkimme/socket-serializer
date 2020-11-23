@@ -1,4 +1,4 @@
-import * as net from 'net';
+import type * as net from 'net';
 
 import { BufferListWriter } from './bufferListWriter';
 
@@ -18,10 +18,11 @@ export class DelayedSocketWriter extends BufferListWriter {
     }
 
     protected flushBuffer() {
-        const totalBuffer = this.buffer;
+        for (let i = 0, l = this._buffers.length; i < l; ++i) {
+            this._socket.write(this._buffers[i]);
+        }
         this._buffers = [];
         this._length = 0;
-        this._socket.write(totalBuffer);
     }
 }
 

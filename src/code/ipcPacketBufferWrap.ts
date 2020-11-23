@@ -1,6 +1,6 @@
 // import { Buffer } from 'buffer';
-import { Reader } from './reader';
-import { Writer } from './writer';
+import type { Reader } from './reader';
+import type { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferWriter } from './bufferWriter';
 import { JSONParser } from 'json-helpers';
@@ -622,12 +622,12 @@ export class IpcPacketBufferWrap {
             context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize };
         }
 
-        let argsLen = bufferReader.readUInt32();
-        const args = [];
-        while (argsLen > 0) {
+        const argsLen = bufferReader.readUInt32();
+        const args = new Array(argsLen);
+        let argIndex = 0;
+        while (argIndex < argsLen) {
             const arg = this._read(depth + 1, bufferReader);
-            args.push(arg);
-            --argsLen;
+            args[argIndex++] = arg;
         }
 
         // Restore type and content size may be corrupted by depth reading
@@ -726,11 +726,11 @@ export class IpcPacketBufferWrap {
             --start;
             --end;
         }
-        const args = [];
-        while (end > 0) {
+        const args = new Array(end);
+        let argIndex = 0;
+        while (argIndex < end) {
             const arg = headerArg.read(bufferReader);
-            args.push(arg);
-            --end;
+            args[argIndex++] = arg;
         }
         return args;
     }

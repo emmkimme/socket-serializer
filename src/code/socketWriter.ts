@@ -1,4 +1,4 @@
-import * as net from 'net';
+import type * as net from 'net';
 
 import { BufferListWriterBase } from './bufferListWriter';
 

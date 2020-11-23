@@ -21,6 +21,7 @@
         "noFallthroughCasesInSwitch" : true,
         "forceConsistentCasingInFileNames": true,
         "noImplicitAny": true,
+        "importsNotUsedAsValues": "error",
 
         /* Experimental Options */
         "experimentalDecorators": true,

@@ -31,7 +31,8 @@ export abstract class BufferListWriterBase extends WriterBase {
     }
 
     writeByte(data: number): number {
-        const buffer = Buffer.allocUnsafe(1).fill(data);
+        const buffer = Buffer.allocUnsafe(1)
+        buffer[0] = data;
         return this._appendBuffer(1, buffer);
     }
 
