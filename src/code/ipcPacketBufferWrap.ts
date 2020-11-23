@@ -1,6 +1,6 @@
 // import { Buffer } from 'buffer';
-import type { Reader } from './reader';
-import type { Writer } from './writer';
+import { Reader } from './reader';
+import { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferWriter } from './bufferWriter';
 import { JSONParser } from 'json-helpers';

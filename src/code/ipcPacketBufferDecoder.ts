@@ -1,6 +1,6 @@
 // import { Buffer } from 'buffer';
-import type { EventEmitter } from 'events';
-import type * as net from 'net';
+import { EventEmitter } from 'events';
+import * as net from 'net';
 
 import { IpcPacketBuffer } from './ipcPacketBuffer';
 import { BufferListReader } from './bufferListReader';

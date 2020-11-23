@@ -1,7 +1,7 @@
 import { IpcPacketBufferWrap, BufferType } from './ipcPacketBufferWrap';
 
 import { BufferReader } from './bufferReader';
-import type { Reader } from './reader';
+import { Reader } from './reader';
 import { BufferListWriter } from './bufferListWriter';
 
 export namespace IpcPacketBuffer {
