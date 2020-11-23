@@ -2,6 +2,7 @@
 build/
 src/
 test/
+examples/
 *.tgz
 debug.log
 
