@@ -1,11 +1,10 @@
 import { Buffer } from 'buffer';
-import { Reader, ReaderBase } from './reader';
+import { Reader, ReaderBase, ReaderContext } from './reader';
 
-interface BufferListReaderContext {
-    offset: number;
+export interface BufferListReaderContext extends ReaderContext {
     curBufferIndex: number;
     curOffset: number;
-    rebuild?: boolean;
+    timestamp: number;
 }
 
 export class BufferListReader extends ReaderBase {
@@ -15,12 +14,15 @@ export class BufferListReader extends ReaderBase {
     private _buffers: Buffer[];
     private _curBufferIndex: number;
     private _curOffset: number;
+    private _timestamp: number;
+
     private _contexts: BufferListReaderContext[];
 
     constructor(buffers?: Buffer[], offset?: number) {
         super(0);
 
         this._contexts = [];
+        this._timestamp = 0;
 
         this._buffers = buffers || [];
         // Sum buffers length
@@ -51,14 +53,12 @@ export class BufferListReader extends ReaderBase {
         return this._length;
     }
 
-    pushd(): number {
-        return this._contexts.push({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex });
+    getContext(): BufferListReaderContext {
+        return { timestamp: this._timestamp, offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex };
     }
 
-    popd(): number {
-        // ({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex } = this._contexts.pop());
-        const context = this._contexts.pop()
-        if (!context.rebuild) {
+    setContext(context: BufferListReaderContext): void {
+        if (context.timestamp === this._timestamp) {
             this._offset = context.offset;
             this._curBufferIndex = context.curBufferIndex;
             this._curOffset = context.curOffset;
@@ -76,6 +76,16 @@ export class BufferListReader extends ReaderBase {
             }
             this.seek(context.offset);
         }
+    }
+
+    pushd(): number {
+        return this._contexts.push(this.getContext());
+    }
+
+    popd(): number {
+        // ({ offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex } = this._contexts.pop());
+        const context = this._contexts.pop()
+        this.setContext(context);
         return this._contexts.length;
     }
 
@@ -156,11 +166,12 @@ export class BufferListReader extends ReaderBase {
             if (!this._noAssert && (newOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
             }
-            let index = this._contexts.length;
-            while (index) {
-                const context = this._contexts[--index];
-                context.rebuild = context.rebuild || (context.curBufferIndex > this._curBufferIndex);
-            }
+            ++this._timestamp;
+            // let index = this._contexts.length;
+            // while (index) {
+            //     const context = this._contexts[--index];
+            //     context.rebuild = context.rebuild || (context.curBufferIndex > this._curBufferIndex);
+            // }
         }
         else if (newOffset === curBuffer.length) {
             ++this._curBufferIndex;

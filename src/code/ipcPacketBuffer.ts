@@ -61,16 +61,16 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
     // Allocate its own buffer
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
-        bufferReader.pushd();
-        const result = this._readHeader(bufferReader);
-        bufferReader.popd();
-        if (result) {
+        const context = bufferReader.getContext();
+        const isComplete = this._readHeader(bufferReader);
+        bufferReader.setContext(context);
+        if (isComplete) {
             this._buffer = bufferReader.subarray(this.packetSize);
         }
         else {
             this._buffer = null;
         }
-        return result;
+        return isComplete;
     }
 
     // Add ref to the buffer

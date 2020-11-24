@@ -10,9 +10,17 @@ export namespace Reader {
             return offset;
         }
         else {
-            return Math.min(offset + len, maxLen);
+            offset += len;
+            if (offset > maxLen) {
+                return maxLen;
+            }
+            return offset;
         }
     }
+}
+
+export interface ReaderContext {
+    offset: number;
 }
 
 export interface Reader {
@@ -21,6 +29,9 @@ export interface Reader {
     noAssert: boolean;
 
     reset(): void;
+
+    getContext(): ReaderContext;
+    setContext(context: ReaderContext): void;
 
     pushd(): number;
     popd(): number;
@@ -53,6 +64,14 @@ export abstract class ReaderBase implements Reader {
     }
 
     abstract get length(): number;
+
+    getContext(): ReaderContext {
+        return { offset: this._offset };
+    }
+
+    setContext(context: ReaderContext): void {
+        this._offset = context.offset;
+    }
 
     get offset(): number {
         return this._offset;
