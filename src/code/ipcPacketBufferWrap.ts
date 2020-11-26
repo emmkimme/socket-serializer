@@ -508,9 +508,11 @@ export class IpcPacketBufferWrap {
 
     writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
         const contentBufferWriter = new BufferListWriter();
+        // JSONParser.install();
         for (let i = 0, l = args.length; i < l; ++i) {
             this.write(contentBufferWriter, args[i]);
         }
+        // JSONParser.uninstall();
         // Add args.length size
         this.writeDynamicSizeHeader(bufferWriter, BufferType.ArrayWithSize, contentBufferWriter.length + 4);
         bufferWriter.writeUInt32(args.length);
