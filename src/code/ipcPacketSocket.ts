@@ -1,11 +1,11 @@
 import * as net from 'net';
 // import * as util from 'util';
 // import { EventEmitter } from 'events';
-import { IpcNet } from './ipcNet';
+import { IpcSocket } from './ipcSocket';
 import { IpcPacketBufferDecoder } from './ipcPacketBufferDecoder';
 // import { IpcPacketBuffer } from './ipcPacketBuffer';
 
-export class IpcPacketNet extends IpcNet {
+export class IpcPacketSocket extends IpcSocket {
   constructor(options?: any) {
     super(options);
   }

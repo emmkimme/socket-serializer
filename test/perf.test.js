@@ -138,3 +138,10 @@ describe('UInt16', () => {
         console.timeEnd('[]');
     });
 });
+
+
+describe('test', () => {
+    const buffer = Buffer.from('123');
+    const str = buffer.toString(0, 10);
+    console.log(str);
+});

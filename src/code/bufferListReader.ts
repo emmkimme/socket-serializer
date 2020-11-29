@@ -219,10 +219,10 @@ export class BufferListReader extends ReaderBase {
         }
     }
 
-    subarray(len: number): Buffer {
+    subarray(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
-            return Buffer.allocUnsafe(0);
+            return ReaderBase.EmptyBuffer;
         }
         else {
             const start = this._curOffset;
@@ -237,10 +237,35 @@ export class BufferListReader extends ReaderBase {
         }
     }
 
+    subarrayList(len?: number): Buffer[] {
+        const end = Reader.AdjustEnd(this._offset, this._length, len);
+        if (this._offset === end) {
+            return [ReaderBase.EmptyBuffer];
+        }
+        else {
+            let start = this._curOffset;
+            len = end - this._offset;
+            let curBufferIndex = this._curBufferIndex;
+            this.seek(len);
+            const curBuffer = this._buffers[curBufferIndex];
+            const buffer = curBuffer.subarray(start, len);
+            const buffers = [buffer];
+            len -= buffer.length;
+            ++curBufferIndex;
+            while (curBufferIndex <= this._curBufferIndex) {
+                const curBuffer = this._buffers[curBufferIndex];
+                buffers.push(curBuffer.subarray(0, len));
+                len -= buffer.length;
+                ++curBufferIndex;
+           }
+           return buffers;
+        }
+    }
+
     slice(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
-            return Buffer.allocUnsafe(0);
+            return ReaderBase.EmptyBuffer;
         }
         else {
             const start = this._curOffset;

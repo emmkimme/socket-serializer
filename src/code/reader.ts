@@ -105,7 +105,10 @@ export abstract class ReaderBase implements Reader {
     abstract readUInt32(): number;
     abstract readDouble(): number;
     abstract readString(encoding?: BufferEncoding, len?: number): string;
+    
     abstract subarray(len?: number): Buffer;
+    abstract subarrayList(len?: number): Buffer[];
+
     abstract slice(len?: number): Buffer;
 
     abstract reduce(): void;

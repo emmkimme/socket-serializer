@@ -2,7 +2,7 @@ import * as net from 'net';
 // import * as util from 'util';
 import { EventEmitter } from 'events';
 
-export class IpcNet extends EventEmitter {
+export class IpcSocket extends EventEmitter {
   private _defaultHost: string;
 
   private _reconnect: boolean;

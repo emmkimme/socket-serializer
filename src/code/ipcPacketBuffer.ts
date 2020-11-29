@@ -1,4 +1,4 @@
-import { IpcPacketBufferWrap, BufferType } from './ipcPacketBufferWrap';
+import { IpcPacketBufferWrap } from './ipcPacketBufferWrap';
 
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
@@ -38,13 +38,14 @@ export class IpcPacketBuffer extends IpcPacketBufferWrap {
         const rawContent : IpcPacketBuffer.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
+            partial: this._partial,
             buffer: this._buffer
         };
         return rawContent;
     }
 
     keepDecodingFromReader(bufferReader: Reader): boolean {
-        if (this._type === BufferType.Partial) {
+        if (this._partial) {
             const packetSize = this.packetSize;
             if (bufferReader.checkEOF(packetSize)) {
                 this._buffer = bufferReader.subarray(packetSize);

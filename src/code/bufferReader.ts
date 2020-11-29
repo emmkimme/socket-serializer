@@ -74,7 +74,7 @@ export class BufferReader extends ReaderBase {
     slice(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
-            return Buffer.allocUnsafe(0);
+            return ReaderBase.EmptyBuffer;
         }
         else {
             const start = this._offset;
@@ -92,7 +92,7 @@ export class BufferReader extends ReaderBase {
     subarray(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
         if (this._offset === end) {
-            return Buffer.allocUnsafe(0);
+            return ReaderBase.EmptyBuffer;
         }
         else {
             const start = this._offset;
@@ -100,6 +100,10 @@ export class BufferReader extends ReaderBase {
             this._offset = end;
             return Buffer.from(this._buffer, this._buffer.byteOffset + start, len);
         }
+    }
+
+    subarrayList(len?: number): Buffer[] {
+        return [this.subarray(len)];
     }
  
     reduce(): void {

@@ -10,8 +10,10 @@ const footerSeparator = ']'.charCodeAt(0);
 const FooterLength = 1;
 
 const FixedHeaderSize = 2;
-const PacketSizeHeader = 4;
-const DynamicHeaderSize = FixedHeaderSize + PacketSizeHeader;
+const ContentFieldSize = 4;
+const ArrayFieldSize = 4;
+const DynamicHeaderSize = FixedHeaderSize + ContentFieldSize;
+// const ArrayHeaderSize = DynamicHeaderSize + ArrayFieldSize;
 
 function BufferTypeHeader(type: string): number {
     return (type.charCodeAt(0) << 8) + headerSeparator;
@@ -22,8 +24,8 @@ export enum BufferType {
     NotValid = BufferTypeHeader('X'),
     // 70
     PartialHeader = BufferTypeHeader('p'),
-    // 85
-    Partial = BufferTypeHeader('P'),
+    // // 85
+    // Partial = BufferTypeHeader('P'),
     // 115
     String = BufferTypeHeader('s'),
     // 66
@@ -58,6 +60,7 @@ export namespace IpcPacketBufferWrap {
     export interface RawContent {
         type: BufferType;
         contentSize: number;
+        partial: boolean;
     }
 }
 
@@ -65,6 +68,7 @@ export class IpcPacketBufferWrap {
     protected _type: BufferType;
     protected _contentSize: number;
     protected _headerSize: number;
+    protected _partial: boolean;
 
     writeArray: Function = this.writeArrayWithSize;
     writeObject: Function = this.writeObjectSTRINGIFY2;
@@ -85,6 +89,7 @@ export class IpcPacketBufferWrap {
     }
 
     setRawContent(rawContent: IpcPacketBufferWrap.RawContent): void {
+        this._partial = rawContent.partial;
         this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
     }
 
@@ -92,6 +97,7 @@ export class IpcPacketBufferWrap {
         const rawContent: IpcPacketBufferWrap.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
+            partial: this._partial
         };
         return rawContent;
     }
@@ -155,6 +161,7 @@ export class IpcPacketBufferWrap {
                 this._type = BufferType.NotValid;
                 this._headerSize = -1;
                 this._contentSize = -1;
+                this._partial = true;
                 break;
         }
     }
@@ -164,11 +171,11 @@ export class IpcPacketBufferWrap {
     }
 
     isPartial(): boolean {
-        return (this._type === BufferType.Partial) || (this._type === BufferType.PartialHeader);
+        return this._partial;
     }
 
     isComplete(): boolean {
-        return (this._type !== BufferType.NotValid) && (this._type !== BufferType.Partial) && (this._type !== BufferType.PartialHeader);
+        return (this._partial === false);
     }
 
     isNull(): boolean {
@@ -248,6 +255,7 @@ export class IpcPacketBufferWrap {
     protected _readHeader(bufferReader: Reader): boolean {
         // Header minimum size is 2
         if (bufferReader.checkEOF(FixedHeaderSize)) {
+            this._partial = true;
             this._type = BufferType.PartialHeader;
             return false;
         }
@@ -257,19 +265,29 @@ export class IpcPacketBufferWrap {
         if (this._type === BufferType.NotValid) {
             return false;
         }
-        if (this._headerSize === DynamicHeaderSize) {
-            // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = PacketSizeHeader
-            if (bufferReader.checkEOF(PacketSizeHeader)) {
+        if (this._headerSize >= DynamicHeaderSize) {
+            // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = ContentFieldSize
+            if (bufferReader.checkEOF(ContentFieldSize)) {
+                this._partial = true;
                 this._type = BufferType.PartialHeader;
                 return false;
             }
             // Read dynamic packet size
             this._contentSize = bufferReader.readUInt32();
+            if (this.type === BufferType.ArrayWithSize) {
+                if (bufferReader.checkEOF(ArrayFieldSize)) {
+                    this._partial = true;
+                    this._type = BufferType.PartialHeader;
+                    return false;
+                }
+            }
         }
         if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
-            this._type = BufferType.Partial;
+            this._partial = true;
+            // this._type = BufferType.Partial;
             return false;
         }
+        this._partial = false;
         return true;
     }
 
@@ -494,18 +512,6 @@ export class IpcPacketBufferWrap {
         }
     }
 
-    // writeArrayWithLen(bufferWriter: Writer, args: any[]): void {
-    //     this.setTypeAndContentSize(BufferType.ArrayWithLen);
-    //     this.writeHeader(bufferWriter);
-    //     bufferWriter.writeUInt32(args.length);
-    //     // Create a tempory wrapper for keeping the original header info
-    //     let headerArg = new IpcPacketBufferWrap();
-    //     for (let i = 0, l = args.length; i < l; ++i) {
-    //         headerArg.write(bufferWriter, args[i]);
-    //     }
-    //     this.writeFooter(bufferWriter);
-    // }
-
     writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
         const contentBufferWriter = new BufferListWriter();
         // JSONParser.install();
@@ -514,7 +520,7 @@ export class IpcPacketBufferWrap {
         }
         // JSONParser.uninstall();
         // Add args.length size
-        this.writeDynamicSizeHeader(bufferWriter, BufferType.ArrayWithSize, contentBufferWriter.length + 4);
+        this.writeDynamicSizeHeader(bufferWriter, BufferType.ArrayWithSize, contentBufferWriter.length + ArrayFieldSize);
         bufferWriter.writeUInt32(args.length);
         bufferWriter.write(contentBufferWriter);
         this.writeFooter(bufferWriter);
@@ -525,10 +531,13 @@ export class IpcPacketBufferWrap {
     }
 
     protected _read(depth: number, bufferReader: Reader): any {
-        this._readHeader(bufferReader);
-        const arg = this._readContent(depth, bufferReader);
-        bufferReader.skip(FooterLength);
-        return arg;
+        if (this._readHeader(bufferReader)) {
+            const arg = this._readContent(depth, bufferReader);
+            bufferReader.skip(FooterLength);
+            return arg;
+        }
+        // throw err ?
+        return null;
     }
 
     protected _readContent(depth: number, bufferReader: Reader): any {
@@ -654,20 +663,13 @@ export class IpcPacketBufferWrap {
         return null;
     }
 
-    protected byPass(bufferReader: Reader): void {
+    protected byPass(bufferReader: Reader): boolean {
         // Do not decode data just skip
-        this._readHeader(bufferReader);
-        // if (this.type === BufferType.ArrayWithLen) {
-        //     let argsLen = bufferReader.readUInt32();
-        //     while (argsLen > 0) {
-        //         this.byPass(bufferReader);
-        //         --argsLen;
-        //     }
-        //     bufferReader.skip(FooterLength);
-        // }
-        // else {
-        bufferReader.skip(this._contentSize + FooterLength);
-        // }
+        if (this._readHeader(bufferReader)) {
+            bufferReader.skip(this._contentSize + FooterLength);
+            return true;
+        }
+        return false;
     }
 
     // Header has been read and checked
@@ -681,7 +683,10 @@ export class IpcPacketBufferWrap {
         const headerArg = new IpcPacketBufferWrap();
         while (index > 0) {
             // Do not decode data just skip
-            headerArg.byPass(bufferReader);
+            if (headerArg.byPass(bufferReader) === false) {
+                // throw err ?
+                return null;
+            }
             --index;
         }
         return headerArg.read(bufferReader);
@@ -724,7 +729,10 @@ export class IpcPacketBufferWrap {
         const headerArg = new IpcPacketBufferWrap();
         while (start > 0) {
             // Do not decode data just skip
-            headerArg.byPass(bufferReader);
+            if (headerArg.byPass(bufferReader) === false) {
+                // throw err ?
+                return null;
+            }
             --start;
             --end;
         }

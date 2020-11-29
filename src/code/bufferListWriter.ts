@@ -96,7 +96,7 @@ export class BufferListWriter extends BufferListWriterBase {
 
     get buffer(): Buffer {
         if (this._buffers.length === 0) {
-            return Buffer.allocUnsafe(0);
+            return WriterBase.EmptyBuffer;
         }
         if (this._buffers.length > 1) {
             this._buffers = [ Buffer.concat(this._buffers, this._length) ];
