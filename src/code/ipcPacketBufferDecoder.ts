@@ -2,12 +2,12 @@
 import { EventEmitter } from 'events';
 import * as net from 'net';
 
-import { IpcPacketBuffer } from './ipcPacketBuffer';
+import { IpcPacketBufferList } from './ipcPacketBufferList';
 import { BufferListReader } from './bufferListReader';
 
 export class IpcPacketBufferDecoder {
     private _bufferListReader: BufferListReader;
-    private _packet: IpcPacketBuffer;
+    private _packet: IpcPacketBufferList;
 
     private _socket: net.Socket;
     private _server: net.Server;
@@ -19,18 +19,18 @@ export class IpcPacketBufferDecoder {
         this._server = server;
 
         this._bufferListReader = new BufferListReader();
-        this._packet = new IpcPacketBuffer();
+        this._packet = new IpcPacketBufferList();
     }
 
     handleData(data: Buffer): void {
         this._bufferListReader.appendBuffer(data);
 
-        const packets: IpcPacketBuffer[] = [];
+        const packets: IpcPacketBufferList[] = [];
         while (this._packet.decodeFromReader(this._bufferListReader)) {
             packets.push(this._packet);
             // Prepare the new packet before sending the event
             const packet = this._packet;
-            this._packet = new IpcPacketBuffer();
+            this._packet = new IpcPacketBufferList();
             this._eventEmitterDelegate.emit('packet', packet, this._socket, this._server);
         }
 
@@ -38,8 +38,8 @@ export class IpcPacketBufferDecoder {
             this._eventEmitterDelegate.emit('error', this._socket, this._server, new Error('Get invalid packet header'));
         }
         if (packets.length) {
-            this._bufferListReader.reduce();
             this._eventEmitterDelegate.emit('packet[]', packets, this._socket, this._server);
+            this._bufferListReader.reduce();
         }
     }
 }

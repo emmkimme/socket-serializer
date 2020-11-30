@@ -1,5 +1,5 @@
 const socketHelpers = require('socket-port-helpers');
-const ipnModule = require('../lib/code/ipcPacketSocket');
+const ssbModule = require('..');
 
 describe('Test server', function () {
     let port;
@@ -7,7 +7,7 @@ describe('Test server', function () {
         socketHelpers.findFirstFreePort({portRange: `>=49152`, log: false, testConnection: true })
         .then((thePort) => {
             port = thePort;
-            let server = new ipnModule.IpcPacketSocket();
+            let server = new ssbModule.IpcPacketSocket();
             server.addListener('connection', () => {
                 // server.server.close();
             });
@@ -25,7 +25,7 @@ describe('Test server', function () {
     });
 
     it(`client connecting`, function (done) {
-        let client = new ipnModule.IpcPacketSocket();
+        let client = new ssbModule.IpcPacketSocket();
         client.addListener('connect', (socket) => {
             // client.socket.end();
             done();

@@ -6,7 +6,7 @@ const socketHelpers = require('socket-port-helpers');
 
 const Buffer = require('buffer').Buffer;
 
-const ssModule = require('../lib/socket-serializer');
+const ssModule = require('..');
 
 const timeoutDelay = 500;
 

@@ -2,7 +2,7 @@ const chai = require('chai');
 const assert = chai.assert;
 const expect = chai.expect;
 
-const ssbModule = require('..');
+const ssModule = require('..');
 
 const bigData = require('./bigdata.json');
 
@@ -17,13 +17,13 @@ function test(ipcPacketCore) {
 
     describe('Object - big json', () => {
       it('stringify1', () => {
-        const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-        const bufferWriter = new ssbModule.BufferListWriter();
+        const ipcPacketCore = new ssModule.IpcPacketBuffer();
+        const bufferWriter = new ssModule.BufferListWriter();
         console.time('stringify1 serialize - big json');
         ipcPacketCore.writeObjectSTRINGIFY1(bufferWriter, bigData);
         console.timeEnd('stringify1 serialize - big json');
 
-        const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+        const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
         console.time('stringify1 deserialize - big json');
         let newbigdata = ipcPacketCore.read(bufferReader);
         console.timeEnd('stringify1 deserialize - big json');
@@ -31,13 +31,13 @@ function test(ipcPacketCore) {
       });
 
       it('stringify2', () => {
-        const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-        const bufferWriter = new ssbModule.BufferListWriter();
+        const ipcPacketCore = new ssModule.IpcPacketBuffer();
+        const bufferWriter = new ssModule.BufferListWriter();
         console.time('stringify2 serialize - big json');
         ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, bigData);
         console.timeEnd('stringify2 serialize - big json');
 
-        const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+        const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
         console.time('stringify2 deserialize - big json');
         let newbigdata = ipcPacketCore.read(bufferReader);
         console.timeEnd('stringify2 deserialize - big json');
@@ -46,13 +46,13 @@ function test(ipcPacketCore) {
 
 
       it('direct1 - big json', () => {
-        const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-        const bufferWriter = new ssbModule.BufferListWriter();
+        const ipcPacketCore = new ssModule.IpcPacketBuffer();
+        const bufferWriter = new ssModule.BufferListWriter();
         console.time('direct1 serialize - big json');
         ipcPacketCore.writeObjectDirect1(bufferWriter, bigData);
         console.timeEnd('direct1 serialize - big json');
 
-        const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+        const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
         console.time('direct1 deserialize - big json');
         let newbigdata = ipcPacketCore.read(bufferReader);
         console.timeEnd('direct1 deserialize - big json');
@@ -61,13 +61,13 @@ function test(ipcPacketCore) {
       });
 
       it('direct2 - big json', () => {
-        const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-        const bufferWriter = new ssbModule.BufferListWriter();
+        const ipcPacketCore = new ssModule.IpcPacketBuffer();
+        const bufferWriter = new ssModule.BufferListWriter();
         console.time('direct2 serialize - big json');
         ipcPacketCore.writeObjectDirect2(bufferWriter, bigData);
         console.timeEnd('direct2 serialize - big json');
 
-        const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+        const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
         console.time('direct2 deserialize - big json');
         let newbigdata = ipcPacketCore.read(bufferReader);
         console.timeEnd('direct2 deserialize - big json');
@@ -124,21 +124,21 @@ function test(ipcPacketCore) {
       it('stringify2 - small json', (done) => {
         console.time('stringify2 serialize - small json');
         for (i = 0; i < 10000; ++i) {
-          const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-          const bufferWriter = new ssbModule.BufferListWriter();
+          const ipcPacketCore = new ssModule.IpcPacketBuffer();
+          const bufferWriter = new ssModule.BufferListWriter();
           ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, busEvent);
-          const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+          const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
           newBusEvent;
         }
         console.timeEnd('stringify2 serialize - small json');
 
         console.time('stringify2 deserialize - small json');
-        const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-        const bufferWriter = new ssbModule.BufferListWriter();
+        const ipcPacketCore = new ssModule.IpcPacketBuffer();
+        const bufferWriter = new ssModule.BufferListWriter();
         ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, busEvent);
         for (i = 0; i < 10000; ++i) {
-          const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+          const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
           newBusEvent;
         }
@@ -176,10 +176,10 @@ function test(ipcPacketCore) {
       it('direct2 - small json', (done) => {
         console.time('direct2 serialize - small json');
         for (i = 0; i < 10000; ++i) {
-          const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-          const bufferWriter = new ssbModule.BufferListWriter();
+          const ipcPacketCore = new ssModule.IpcPacketBuffer();
+          const bufferWriter = new ssModule.BufferListWriter();
           ipcPacketCore.writeObjectDirect2(bufferWriter, busEvent);
-          const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+          const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
           newBusEvent;
           // Can not compare, properties' order or indentation are not the same
@@ -188,11 +188,11 @@ function test(ipcPacketCore) {
         console.timeEnd('direct2 serialize - small json');
 
         console.time('direct2 deserialize - small json');
-        const ipcPacketCore = new ssbModule.IpcPacketBuffer();
-        const bufferWriter = new ssbModule.BufferListWriter();
+        const ipcPacketCore = new ssModule.IpcPacketBuffer();
+        const bufferWriter = new ssModule.BufferListWriter();
         ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, busEvent);
         for (i = 0; i < 10000; ++i) {
-          const bufferReader = new ssbModule.BufferReader(bufferWriter.buffer);
+          const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
           newBusEvent;
         }
@@ -205,8 +205,8 @@ function test(ipcPacketCore) {
 
 }
 
-const ipcPacketBuffer = new ssbModule.IpcPacketBuffer();
+const ipcPacketBuffer = new ssModule.IpcPacketBuffer();
 test(ipcPacketBuffer);
 
-const ipcPacketBufferList = new ssbModule.IpcPacketBufferList();
+const ipcPacketBufferList = new ssModule.IpcPacketBufferList();
 test(ipcPacketBufferList);
