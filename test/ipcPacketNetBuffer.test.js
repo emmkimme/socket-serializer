@@ -26,13 +26,13 @@ function testSerializationWithSocket(param, socketWriterType, test) {
   it(`transfer type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`, function (done) {
   socketHelpers.findFirstFreePort({portRange: `>=49152`, log: false, testConnection: true })
   .then((port) => {
-      let ipcServer = new ssModule.IpcPacketNet(); // '/tests'
+      let ipcServer = new ssModule.IpcPacketSocket(); // '/tests'
       let timer = setTimeout(() => {
         ipcServer.server.close();
         done('timeout');
       }, timeoutDelay);
       ipcServer.addListener('listening', () => {
-        let ipcSocket = new ssModule.IpcPacketNet();
+        let ipcSocket = new ssModule.IpcPacketSocket();
         ipcSocket.addListener('packet', (ipcPacket) => {
           let paramResult = ipcPacket.parse();
           switch (test) {

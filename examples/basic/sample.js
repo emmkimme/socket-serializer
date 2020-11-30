@@ -4,9 +4,9 @@ const socketSerialModule = require('socket-serializer');
 let port = 49152;
 socketHelpers.findFirstFreePort({portRange: `>=${port}`, log: false, testConnection: true })
 .then((port) => {
-    let server = new socketSerialModule.IpcPacketNet();
+    let server = new socketSerialModule.IpcPacketSocket();
     server.addListener('listening', () => {
-        let client = new socketSerialModule.IpcPacketNet();
+        let client = new socketSerialModule.IpcPacketSocket();
         client.addListener('packet', (ipcPacketBuffer) => {
             let paramObject = ipcPacketBuffer.parseObject();
             console.log(JSON.stringify(paramObject));

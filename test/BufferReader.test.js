@@ -167,7 +167,7 @@ describe('BufferReader', () => {
     });
   });
 
-  describe('BufferListReader subarray', () => {
+  describe('BufferListReader subarrayList', () => {
     it(`match boundaries`, () => {
       const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3]);
       bufferListReader.seek(paramBuffer1.length);
