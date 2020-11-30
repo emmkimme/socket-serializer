@@ -150,20 +150,20 @@ export class BufferListReader extends ReaderBase {
 
     private _consolidate(len: number): Buffer {
         let curBuffer = this._buffers[this._curBufferIndex];
-        let newOffset = this._curOffset + len;
-        if (newOffset > curBuffer.length) {
+        let newCurOffset = this._curOffset + len;
+        if (newCurOffset > curBuffer.length) {
             let bufferLength = 0;
             const buffers = [];
             for (let endBufferIndex = this._curBufferIndex, l = this._buffers.length; endBufferIndex < l; ++endBufferIndex) {
                 buffers.push(this._buffers[endBufferIndex]);
                 bufferLength += this._buffers[endBufferIndex].length;
-                if (newOffset <= bufferLength) {
+                if (newCurOffset <= bufferLength) {
                     break;
                 }
             }
             curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
             this._buffers.splice(this._curBufferIndex + 1, buffers.length - 1);
-            if (!this._noAssert && (newOffset > curBuffer.length)) {
+            if (!this._noAssert && (newCurOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
             }
             ++this._timestamp;
@@ -173,12 +173,12 @@ export class BufferListReader extends ReaderBase {
             //     context.rebuild = context.rebuild || (context.curBufferIndex > this._curBufferIndex);
             // }
         }
-        else if (newOffset === curBuffer.length) {
+        else if (newCurOffset === curBuffer.length) {
             ++this._curBufferIndex;
-            newOffset = 0;
+            newCurOffset = 0;
         }
         this._offset += len;
-        this._curOffset = newOffset;
+        this._curOffset = newCurOffset;
         return curBuffer;
     }
 
@@ -232,7 +232,8 @@ export class BufferListReader extends ReaderBase {
                 return currBuffer;
             }
             else {
-                return Buffer.from(currBuffer.buffer, currBuffer.byteOffset + start, len);
+                // return Buffer.from(currBuffer.buffer, currBuffer.byteOffset + start, len);
+                return currBuffer.subarray(start, start + len);
             }
         }
     }
@@ -245,21 +246,28 @@ export class BufferListReader extends ReaderBase {
         else {
             let start = this._curOffset;
             len = end - this._offset;
-            let curBufferIndex = this._curBufferIndex;
-            this.seek(end);
-            const curBuffer = this._buffers[curBufferIndex];
-            const subBuffer = curBuffer.subarray(start, start + len);
-            const buffers = [subBuffer];
-            len -= subBuffer.length;
-            ++curBufferIndex;
+            this._offset += len;
+
+            const buffers = [];
+            let curBuffer: Buffer;
             while (len > 0) {
-                const curBuffer = this._buffers[curBufferIndex];
-                const subBuffer = curBuffer.subarray(0, len);
+                curBuffer = this._buffers[this._curBufferIndex];
+                const subBuffer = curBuffer.subarray(start, start + len);
                 buffers.push(subBuffer);
+
+                this._curOffset = start + subBuffer.length;
                 len -= subBuffer.length;
-                ++curBufferIndex;
-           }
-           return buffers;
+                start = 0;
+
+                ++this._curBufferIndex;
+            }
+            if (this._curOffset < curBuffer.length) {
+                --this._curBufferIndex;
+            }
+            else {
+                this._curOffset = 0;
+            }
+            return buffers;
         }
     }
 

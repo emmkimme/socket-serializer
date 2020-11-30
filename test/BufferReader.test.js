@@ -172,6 +172,8 @@ describe('BufferReader', () => {
       const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3]);
       bufferListReader.seek(paramBuffer1.length);
       const subarrayList = bufferListReader.subarrayList();
+      assert(bufferListReader.offset === paramBuffer1.length + paramBuffer2.length + paramBuffer3.length);
+
       assert(subarrayList.length === 2);
       assert(Buffer.compare(subarrayList[0], paramBuffer2) === 0);
       assert(Buffer.compare(subarrayList[1], paramBuffer3) === 0);
@@ -181,6 +183,8 @@ describe('BufferReader', () => {
       const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3]);
       bufferListReader.seek(paramBuffer1.length / 2);
       const subarrayList = bufferListReader.subarrayList(paramBuffer1.length / 2 + paramBuffer2.length);
+      assert(bufferListReader.offset === paramBuffer1.length + paramBuffer2.length);
+
       assert(subarrayList.length === 2);
       assert(Buffer.compare(subarrayList[0], paramBuffer1.subarray(paramBuffer1.length / 2)) === 0);
       assert(Buffer.compare(subarrayList[1], paramBuffer2) === 0);
@@ -192,6 +196,8 @@ describe('BufferReader', () => {
       const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3bis]);
       bufferListReader.seek(paramBuffer1.length / 2);
       const subarrayList = bufferListReader.subarrayList(paramBuffer1.length / 2 + paramBuffer2.length + paramBuffer3bis.length / 2);
+      assert(bufferListReader.offset === paramBuffer1.length + paramBuffer2.length + paramBuffer3bis.length / 2);
+
       assert(subarrayList.length === 3);
       assert(Buffer.compare(subarrayList[0], paramBuffer1.subarray(paramBuffer1.length / 2)) === 0);
       assert(Buffer.compare(subarrayList[1], paramBuffer2) === 0);
