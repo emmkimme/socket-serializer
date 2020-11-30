@@ -46,6 +46,7 @@ export interface Reader {
     readDouble(): number;
     readString(encoding?: BufferEncoding, len?: number): string;
     subarray(len?: number): Buffer;
+    subarrayList(len?: number): Buffer[];
     slice(len?: number): Buffer;
 
     reduce(): void;

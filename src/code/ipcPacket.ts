@@ -1,15 +1,15 @@
 // import { Buffer } from 'buffer';
-import { IpcPacketBufferWrap } from './ipcPacketBufferWrap';
+import { IpcPacketContent } from './ipcPacketContent';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferReader } from './bufferReader';
 
 export class IpcPacketSerializer {
     private _writer: BufferListWriter;
-    private _packet: IpcPacketBufferWrap;
+    private _packet: IpcPacketContent;
 
     constructor() {
         this._writer = new BufferListWriter();
-        this._packet = new IpcPacketBufferWrap();
+        this._packet = new IpcPacketContent();
     }
 
     serialize(data: any): this {
@@ -28,11 +28,11 @@ export class IpcPacketSerializer {
 
 export class IpcPacketParser {
     private _reader: BufferReader;
-    private _packet: IpcPacketBufferWrap;
+    private _packet: IpcPacketContent;
 
     constructor(buffer: Buffer) {
         this._reader = new BufferReader(buffer);
-        this._packet = new IpcPacketBufferWrap();
+        this._packet = new IpcPacketContent();
     }
 
     parse(): any {

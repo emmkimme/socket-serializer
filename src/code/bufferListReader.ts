@@ -246,15 +246,15 @@ export class BufferListReader extends ReaderBase {
             let start = this._curOffset;
             len = end - this._offset;
             let curBufferIndex = this._curBufferIndex;
-            this.seek(len);
+            this.seek(end);
             const curBuffer = this._buffers[curBufferIndex];
             const buffer = curBuffer.subarray(start, len);
             const buffers = [buffer];
             len -= buffer.length;
             ++curBufferIndex;
             while (curBufferIndex <= this._curBufferIndex) {
-                const curBuffer = this._buffers[curBufferIndex];
-                buffers.push(curBuffer.subarray(0, len));
+                const buffer = this._buffers[curBufferIndex];
+                buffers.push(buffer.subarray(0, len));
                 len -= buffer.length;
                 ++curBufferIndex;
            }

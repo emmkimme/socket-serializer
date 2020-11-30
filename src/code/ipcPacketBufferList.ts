@@ -3,39 +3,50 @@ import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
 import { BufferListWriter } from './bufferListWriter';
+import { BufferListReader } from './bufferListReader';
 
-export namespace IpcPacketBuffer {
+export namespace IpcPacketBufferList {
     export type RawContent = IpcPacketBufferCore.RawContent;
 }
 
-export class IpcPacketBuffer extends IpcPacketBufferCore {
-    private _buffer: Buffer;
+export class IpcPacketBufferList extends IpcPacketBufferCore {
+    private _buffers: Buffer[];
 
-    constructor(rawContent?: IpcPacketBuffer.RawContent) {
+    constructor(rawContent?: IpcPacketBufferList.RawContent) {
         super(rawContent);
-        this._buffer = rawContent ? rawContent.buffer : null;
+        this._buffers = rawContent ? [rawContent.buffer] : [];
     }
 
     reset(): void {
         super.reset();
-        this._buffer = null;
+        this._buffers = [];
+    }
+
+    get buffers(): Buffer[] {
+        return this._buffers;
     }
 
     get buffer(): Buffer {
-        return this._buffer;
+        if (this._buffers.length === 0) {
+            return Buffer.allocUnsafe(0);
+        }
+        if (this._buffers.length > 1) {
+            this._buffers = [ Buffer.concat(this._buffers)];
+        }
+        return this._buffers[0];
     }
 
-    setRawContent(rawContent: IpcPacketBuffer.RawContent): void {
+    setRawContent(rawContent: IpcPacketBufferList.RawContent): void {
         super.setRawContent(rawContent);
-        this._buffer = rawContent.buffer;
+        this._buffers = [rawContent.buffer];
     }
 
-    getRawContent(): IpcPacketBuffer.RawContent {
-        const rawContent : IpcPacketBuffer.RawContent = {
+    getRawContent(): IpcPacketBufferList.RawContent {
+        const rawContent : IpcPacketBufferList.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
             partial: this._partial,
-            buffer: this._buffer
+            buffer: this.buffer
         };
         return rawContent;
     }
@@ -44,11 +55,11 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         if (this._partial) {
             const packetSize = this.packetSize;
             if (bufferReader.checkEOF(packetSize)) {
-                this._buffer = bufferReader.subarray(packetSize);
+                this._buffers = bufferReader.subarrayList(packetSize);
                 return true;
             }
             else {
-                this._buffer = null;
+                this._buffers = [];
                 return false;
             }
         }
@@ -62,10 +73,10 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         const isComplete = this._readHeader(bufferReader);
         bufferReader.setContext(context);
         if (isComplete) {
-            this._buffer = bufferReader.subarray(this.packetSize);
+            this._buffers = bufferReader.subarrayList(this.packetSize);
         }
         else {
-            this._buffer = null;
+            this._buffers = [];
         }
         return isComplete;
     }
@@ -74,10 +85,10 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
     decodeFromBuffer(buffer: Buffer): boolean {
         const result = this._readHeader(new BufferReader(buffer));
         if (result) {
-            this._buffer = buffer;
+            this._buffers = [buffer];
         }
         else {
-            this._buffer = null;
+            this._buffers = [];
         }
         return result;
     }
@@ -85,20 +96,20 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
     protected _serializeAndCheck(checker: () => boolean, data: any): boolean {
         const bufferWriter = new BufferListWriter();
         this.write(bufferWriter, data);
-        this._buffer = bufferWriter.buffer;
+        this._buffers = bufferWriter.buffers;
         return checker.call(this);
     }
 
     serializeString(data: string, encoding?: BufferEncoding): boolean {
         const bufferWriter = new BufferListWriter();
         this.writeString(bufferWriter, data, encoding);
-        this._buffer = bufferWriter.buffer;
+        this._buffers = bufferWriter.buffers;
         return this.isString();
     }
 
     protected _parseAndCheck(checker: () => boolean): any {
         if (checker.call(this)) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
             return this._readContent(0, bufferReader);
         }
         return null;
@@ -106,7 +117,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     parseArrayLength(): number | null {
         if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
             return this._readArrayLength(bufferReader);
         }
         return null;
@@ -114,7 +125,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     parseArrayAt(index: number): any | null {
         if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
             return this._readArrayAt(bufferReader, index);
         }
         return null;
@@ -122,7 +133,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     parseArraySlice(start?: number, end?: number): any | null {
         if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
+            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
             return this._readArraySlice(bufferReader, start, end);
         }
         return null;

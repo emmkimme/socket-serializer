@@ -1,7 +1,9 @@
 
 export { IpcPacketBuffer } from './code/ipcPacketBuffer';
-export { IpcPacketBufferWrap } from './code/ipcPacketBufferWrap';
-export { BufferType } from './code/ipcPacketBufferWrap';
+export { IpcPacketBufferList } from './code/ipcPacketBufferList';
+export { IpcPacketBufferCore } from './code/ipcPacketBufferCore';
+export { IpcPacketContent } from './code/ipcPacketContent';
+export { BufferType } from './code/ipcPacketContent';
 
 export { Writer } from './code/writer';
 export { BufferWriter } from './code/bufferWriter';

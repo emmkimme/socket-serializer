@@ -56,7 +56,7 @@ export enum BufferType {
     Date = BufferTypeHeader('D'),
 };
 
-export namespace IpcPacketBufferWrap {
+export namespace IpcPacketContent {
     export interface RawContent {
         type: BufferType;
         contentSize: number;
@@ -64,17 +64,17 @@ export namespace IpcPacketBufferWrap {
     }
 }
 
-export class IpcPacketBufferWrap {
+export class IpcPacketContent {
     protected _type: BufferType;
-    protected _contentSize: number;
     protected _headerSize: number;
+    protected _contentSize: number;
     protected _partial: boolean;
 
     writeArray: Function = this.writeArrayWithSize;
     writeObject: Function = this.writeObjectSTRINGIFY2;
     // _readObjectSTRINGIFY: Function = this._readObjectSTRINGIFY2;
 
-    constructor(rawContent?: IpcPacketBufferWrap.RawContent) {
+    constructor(rawContent?: IpcPacketContent.RawContent) {
         if (rawContent) {
             this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
         }
@@ -88,13 +88,13 @@ export class IpcPacketBufferWrap {
         this.setTypeAndContentSize(BufferType.NotValid, -1);
     }
 
-    setRawContent(rawContent: IpcPacketBufferWrap.RawContent): void {
+    setRawContent(rawContent: IpcPacketContent.RawContent): void {
         this._partial = rawContent.partial;
         this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
     }
 
-    getRawContent(): IpcPacketBufferWrap.RawContent {
-        const rawContent: IpcPacketBufferWrap.RawContent = {
+    getRawContent(): IpcPacketContent.RawContent {
+        const rawContent: IpcPacketContent.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
             partial: this._partial
@@ -123,6 +123,7 @@ export class IpcPacketBufferWrap {
     }
 
     protected setTypeAndContentSize(bufferType: BufferType, contentSize: number) {
+        this._partial = false;
         this._type = bufferType;
         switch (bufferType) {
             case BufferType.Date:
@@ -287,7 +288,6 @@ export class IpcPacketBufferWrap {
             // this._type = BufferType.Partial;
             return false;
         }
-        this._partial = false;
         return true;
     }
 
@@ -680,7 +680,7 @@ export class IpcPacketBufferWrap {
         }
 
         // Create a tempory wrapper for keeping the original header info
-        const headerArg = new IpcPacketBufferWrap();
+        const headerArg = new IpcPacketContent();
         while (index > 0) {
             // Do not decode data just skip
             if (headerArg.byPass(bufferReader) === false) {
@@ -726,7 +726,7 @@ export class IpcPacketBufferWrap {
         }
 
         // Create a tempory wrapper for keeping the original header info
-        const headerArg = new IpcPacketBufferWrap();
+        const headerArg = new IpcPacketContent();
         while (start > 0) {
             // Do not decode data just skip
             if (headerArg.byPass(bufferReader) === false) {

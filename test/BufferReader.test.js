@@ -168,12 +168,35 @@ describe('BufferReader', () => {
   });
 
   describe('BufferListReader subarray', () => {
-    const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3]);
-    bufferListReader.seek(paramBuffer1.length);
-    const subarrayList = bufferListReader.subarrayList();
-    assert(subarrayList.length === 2);
-    assert(Buffer.compare(subarrayList[0], paramBuffer2) === 0);
-    assert(Buffer.compare(subarrayList[1], paramBuffer3) === 0);
+    it(`match boundaries`, () => {
+      const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3]);
+      bufferListReader.seek(paramBuffer1.length);
+      const subarrayList = bufferListReader.subarrayList();
+      assert(subarrayList.length === 2);
+      assert(Buffer.compare(subarrayList[0], paramBuffer2) === 0);
+      assert(Buffer.compare(subarrayList[1], paramBuffer3) === 0);
+    });
+
+    it(`cross boundaries #1`, () => {
+      const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3]);
+      bufferListReader.seek(paramBuffer1.length / 2);
+      const subarrayList = bufferListReader.subarrayList(paramBuffer1.length / 2 + paramBuffer2.length);
+      assert(subarrayList.length === 2);
+      assert(Buffer.compare(subarrayList[0], paramBuffer1.subarray(paramBuffer1.length / 2)) === 0);
+      assert(Buffer.compare(subarrayList[1], paramBuffer2) === 0);
+    });
+
+    const paramBuffer3bis = Buffer.alloc(30);
+    fill(paramBuffer3bis);
+    it(`cross boundaries #2`, () => {
+      const bufferListReader = new BufferListReader([paramBuffer1, paramBuffer2, paramBuffer3bis]);
+      bufferListReader.seek(paramBuffer1.length / 2);
+      const subarrayList = bufferListReader.subarrayList(paramBuffer1.length / 2 + paramBuffer2.length + paramBuffer3bis.length / 2);
+      assert(subarrayList.length === 3);
+      assert(Buffer.compare(subarrayList[0], paramBuffer1.subarray(paramBuffer1.length / 2)) === 0);
+      assert(Buffer.compare(subarrayList[1], paramBuffer2) === 0);
+      assert(Buffer.compare(subarrayList[2], paramBuffer3bis.subarray(0, paramBuffer3bis.length / 2)) === 0);
+    });
   });
 
 });
