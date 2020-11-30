@@ -541,7 +541,7 @@ export class IpcPacketContent {
     }
 
     protected _readContent(depth: number, bufferReader: Reader): any {
-        switch (this.type) {
+        switch (this._type) {
             case BufferType.String:
                 return this._readString(bufferReader, this._contentSize);
 
@@ -605,7 +605,7 @@ export class IpcPacketContent {
         // Save the top type/content size
         let context: any;
         if (depth === 0) {
-            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize };
+            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize, partial: this._partial };
         }
 
         const offsetContentSize = bufferReader.offset + this._contentSize;
@@ -621,6 +621,7 @@ export class IpcPacketContent {
             this._type = context.type;
             this._headerSize = context.headerSize;
             this._contentSize = context.contentSize;
+            this._partial = context.partial;
         }
         return dataObject;
     }
@@ -630,7 +631,7 @@ export class IpcPacketContent {
         // Save the top type/content size
         let context: any;
         if (depth === 0) {
-            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize };
+            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize, partial: this._partial };
         }
 
         const argsLen = bufferReader.readUInt32();
@@ -646,6 +647,7 @@ export class IpcPacketContent {
             this._type = context.type;
             this._headerSize = context.headerSize;
             this._contentSize = context.contentSize;
+            this._partial = context.partial;
         }
         return args;
     }

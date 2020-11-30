@@ -215,7 +215,7 @@ export class BufferListReader extends ReaderBase {
             const start = this._curOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
-            return currBuffer.toString(encoding, start, end);
+            return currBuffer.toString(encoding, start, start + len);
         }
     }
 
@@ -248,7 +248,7 @@ export class BufferListReader extends ReaderBase {
             let curBufferIndex = this._curBufferIndex;
             this.seek(end);
             const curBuffer = this._buffers[curBufferIndex];
-            const subBuffer = curBuffer.subarray(start, len);
+            const subBuffer = curBuffer.subarray(start, start + len);
             const buffers = [subBuffer];
             len -= subBuffer.length;
             ++curBufferIndex;
@@ -276,7 +276,7 @@ export class BufferListReader extends ReaderBase {
                 return currBuffer;
             }
             else {
-                return currBuffer.slice(start, end);
+                return currBuffer.slice(start, start + len);
             }
         }
 

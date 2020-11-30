@@ -3,7 +3,7 @@ const assert = chai.assert;
 const expect = chai.expect;
 
 const Buffer = require('buffer').Buffer;
-const ipbModule = require('..');
+const ssbModule = require('..');
 
 function ArrayEqual(a1, a2) {
   return (a1.length === a2.length) && (a1.join(':') === a2.join(':'));
@@ -200,8 +200,8 @@ function test(ipcPacketCore) {
   });
 }
 
-const ipcPacketBuffer = new ipbModule.IpcPacketBuffer();
+const ipcPacketBuffer = new ssbModule.IpcPacketBuffer();
 test(ipcPacketBuffer);
 
-const ipcPacketBufferList = new ipbModule.IpcPacketBufferList();
+const ipcPacketBufferList = new ssbModule.IpcPacketBufferList();
 test(ipcPacketBufferList);
