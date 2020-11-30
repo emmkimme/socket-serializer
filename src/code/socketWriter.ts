@@ -33,6 +33,10 @@ export class SocketWriter extends BufferListWriterBase {
             case 1 :
                 this._socket.write(buffers[0]);
                 break;
+            case 2 :
+                this._socket.write(buffers[0]);
+                this._socket.write(buffers[1]);
+                break;
             // slower
             default:
                 for (let i = 0; i < len; ++i) {
