@@ -13,12 +13,20 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     constructor(rawContent?: IpcPacketBuffer.RawContent) {
         super(rawContent);
-        this._buffer = rawContent ? rawContent.buffer : null;
+        if (rawContent) {
+            if (rawContent.buffer) {
+                this._buffer = rawContent.buffer;
+            }
+            else if (rawContent.buffers) {
+                this._buffer = Buffer.concat(rawContent.buffers);
+            }
+        }
+        this._buffer = this._buffer || IpcPacketBufferCore.EmptyBuffer;
     }
 
     reset(): void {
         super.reset();
-        this._buffer = null;
+        this._buffer = IpcPacketBufferCore.EmptyBuffer;
     }
 
     get buffer(): Buffer {
@@ -27,7 +35,15 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     setRawContent(rawContent: IpcPacketBuffer.RawContent): void {
         super.setRawContent(rawContent);
-        this._buffer = rawContent.buffer;
+        if (rawContent) {
+            if (rawContent.buffer) {
+                this._buffer = rawContent.buffer;
+            }
+            else if (rawContent.buffers) {
+                this._buffer = Buffer.concat(rawContent.buffers);
+            }
+        }
+        this._buffer = this._buffer || IpcPacketBufferCore.EmptyBuffer;
     }
 
     getRawContent(): IpcPacketBuffer.RawContent {
@@ -48,7 +64,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
                 return true;
             }
             else {
-                this._buffer = null;
+                this._buffer = IpcPacketBufferCore.EmptyBuffer;
                 return false;
             }
         }
@@ -65,7 +81,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
             this._buffer = bufferReader.subarray(this.packetSize);
         }
         else {
-            this._buffer = null;
+            this._buffer = IpcPacketBufferCore.EmptyBuffer;
         }
         return isComplete;
     }
@@ -77,7 +93,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
             this._buffer = buffer;
         }
         else {
-            this._buffer = null;
+            this._buffer = IpcPacketBufferCore.EmptyBuffer;
         }
         return result;
     }

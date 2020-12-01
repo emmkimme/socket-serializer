@@ -8,7 +8,7 @@ export class BufferReader extends ReaderBase {
     constructor(buffer: Buffer, offset?: number) {
         super(offset);
 
-        this._buffer = buffer;
+        this._buffer = buffer || ReaderBase.EmptyBuffer;
         this._contexts = [];
     }
 

@@ -14,7 +14,16 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     constructor(rawContent?: IpcPacketBufferList.RawContent) {
         super(rawContent);
-        this._buffers = rawContent ? [rawContent.buffer] : [];
+        if (rawContent) {
+            // buffer is faster take it when available
+            if (rawContent.buffer) {
+                this._buffers = [rawContent.buffer];
+            }
+            else if (rawContent.buffers) {
+                this._buffers = rawContent.buffers;
+            }
+        }
+        this._buffers = this._buffers || [];
     }
 
     reset(): void {
@@ -28,17 +37,26 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     get buffer(): Buffer {
         if (this._buffers.length === 0) {
-            return Buffer.allocUnsafe(0);
+            return IpcPacketBufferCore.EmptyBuffer;
         }
         if (this._buffers.length > 1) {
-            this._buffers = [ Buffer.concat(this._buffers)];
+            this._buffers = [Buffer.concat(this._buffers)];
         }
         return this._buffers[0];
     }
 
     setRawContent(rawContent: IpcPacketBufferList.RawContent): void {
         super.setRawContent(rawContent);
-        this._buffers = [rawContent.buffer];
+        if (rawContent) {
+            // buffer is faster take it when available
+            if (rawContent.buffer) {
+                this._buffers = [rawContent.buffer];
+            }
+            else if (rawContent.buffers) {
+                this._buffers = rawContent.buffers;
+            }
+        }
+        this._buffers = this._buffers || [];
     }
 
     getRawContent(): IpcPacketBufferList.RawContent {
@@ -46,7 +64,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
             type: this._type,
             contentSize: this._contentSize,
             partial: this._partial,
-            buffer: this.buffer
+            buffers: this._buffers
         };
         return rawContent;
     }

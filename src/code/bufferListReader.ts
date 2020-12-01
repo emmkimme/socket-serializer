@@ -13,7 +13,7 @@ export class BufferListReader extends ReaderBase {
     private _length: number;
     private _buffers: Buffer[];
     private _curBufferIndex: number;
-    private _curOffset: number;
+    private _curBufferOffset: number;
     private _timestamp: number;
 
     private _contexts: BufferListReaderContext[];
@@ -28,7 +28,7 @@ export class BufferListReader extends ReaderBase {
         // Sum buffers length
         this._length = this._buffers.reduce((sum, buffer) => sum + buffer.length, 0);
 
-        this._curOffset = 0;
+        this._curBufferOffset = 0;
         this._curBufferIndex = 0;
         this.seek(offset || 0);
     }
@@ -40,7 +40,7 @@ export class BufferListReader extends ReaderBase {
 
         this._buffers = [];
         this._length = 0;
-        this._curOffset = 0;
+        this._curBufferOffset = 0;
         this._curBufferIndex = 0;
     }
 
@@ -54,25 +54,25 @@ export class BufferListReader extends ReaderBase {
     }
 
     getContext(): BufferListReaderContext {
-        return { timestamp: this._timestamp, offset: this._offset, curOffset: this._curOffset, curBufferIndex: this._curBufferIndex };
+        return { timestamp: this._timestamp, offset: this._offset, curOffset: this._curBufferOffset, curBufferIndex: this._curBufferIndex };
     }
 
     setContext(context: BufferListReaderContext): void {
         if (context.timestamp === this._timestamp) {
             this._offset = context.offset;
             this._curBufferIndex = context.curBufferIndex;
-            this._curOffset = context.curOffset;
+            this._curBufferOffset = context.curOffset;
         }
         else {
             if (context.offset < (this._length >> 1)) {
                 this._offset = 0;
                 this._curBufferIndex = 0;
-                this._curOffset = 0;
+                this._curBufferOffset = 0;
             }
             else {
                 this._offset = this._length - 1;
                 this._curBufferIndex = this._buffers.length - 1;
-                this._curOffset = this._buffers[this._curBufferIndex].length - 1;
+                this._curBufferOffset = this._buffers[this._curBufferIndex].length - 1;
             }
             this.seek(context.offset);
         }
@@ -92,20 +92,20 @@ export class BufferListReader extends ReaderBase {
     seek(offset: number): boolean {
         if (this._offset !== offset) {
             let curBuffer = this._buffers[this._curBufferIndex];
-            this._curOffset += (offset - this._offset);
+            this._curBufferOffset += (offset - this._offset);
             this._offset = offset;
-            while (this._curOffset >= curBuffer.length) {
+            while (this._curBufferOffset >= curBuffer.length) {
                 if (this._curBufferIndex >= this._buffers.length - 1) {
                     if (!this._noAssert) {
                         throw new RangeError('Index out of range');
                     }
                     return false;
                 }
-                this._curOffset -= curBuffer.length;
+                this._curBufferOffset -= curBuffer.length;
                 ++this._curBufferIndex;
                 curBuffer = this._buffers[this._curBufferIndex];
             }
-            while (this._curOffset < 0) {
+            while (this._curBufferOffset < 0) {
                 if (this._curBufferIndex <= 0) {
                     if (!this._noAssert) {
                         throw new RangeError('Index out of range');
@@ -114,7 +114,7 @@ export class BufferListReader extends ReaderBase {
                 }
                 --this._curBufferIndex;
                 curBuffer = this._buffers[this._curBufferIndex];
-                this._curOffset += curBuffer.length;
+                this._curBufferOffset += curBuffer.length;
             }
         }
         return this.checkEOF();
@@ -127,22 +127,22 @@ export class BufferListReader extends ReaderBase {
         else {
             if (this._curBufferIndex > 0) {
                 this._buffers.splice(0, this._curBufferIndex);
-                this._length -= (this._offset - this._curOffset);
-                this._offset = this._curOffset;
+                this._length -= (this._offset - this._curBufferOffset);
+                this._offset = this._curBufferOffset;
                 this._curBufferIndex = 0;
             }
             // 'consolidate' may accumulate data in a single buffer which may growing up and growing.....
             // So we have to explicitely/physically reduce it
             if (this._buffers.length >= 0) {
                 const curBuffer = this._buffers[0];
-                if ((curBuffer.length > BufferListReader.ReduceThreshold) && (this._curOffset > (curBuffer.length >> 1))) {
+                if ((curBuffer.length > BufferListReader.ReduceThreshold) && (this._curBufferOffset > (curBuffer.length >> 1))) {
                     // if (this._curOffset > (curBuffer.length >> 1)) {
-                    const newBuffer = Buffer.allocUnsafe(curBuffer.length - this._curOffset);
-                    curBuffer.copy(newBuffer, 0, this._curOffset);
+                    const newBuffer = Buffer.allocUnsafe(curBuffer.length - this._curBufferOffset);
+                    curBuffer.copy(newBuffer, 0, this._curBufferOffset);
                     this._buffers[0] = newBuffer;
-                    this._length -= this._curOffset;
-                    this._offset -= this._curOffset;
-                    this._curOffset = 0;
+                    this._length -= this._curBufferOffset;
+                    this._offset -= this._curBufferOffset;
+                    this._curBufferOffset = 0;
                 }
             }
         }
@@ -150,20 +150,22 @@ export class BufferListReader extends ReaderBase {
 
     private _consolidate(len: number): Buffer {
         let curBuffer = this._buffers[this._curBufferIndex];
-        let newCurOffset = this._curOffset + len;
-        if (newCurOffset > curBuffer.length) {
+        this._curBufferOffset += len;
+        this._offset += len;
+        if (this._curBufferOffset > curBuffer.length) {
             let bufferLength = 0;
             const buffers = [];
             for (let endBufferIndex = this._curBufferIndex, l = this._buffers.length; endBufferIndex < l; ++endBufferIndex) {
-                buffers.push(this._buffers[endBufferIndex]);
-                bufferLength += this._buffers[endBufferIndex].length;
-                if (newCurOffset <= bufferLength) {
+                curBuffer = this._buffers[endBufferIndex];
+                buffers.push(curBuffer);
+                bufferLength += curBuffer.length;
+                if (this._curBufferOffset <= bufferLength) {
                     break;
                 }
             }
             curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
             this._buffers.splice(this._curBufferIndex + 1, buffers.length - 1);
-            if (!this._noAssert && (newCurOffset > curBuffer.length)) {
+            if (!this._noAssert && (this._curBufferOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
             }
             ++this._timestamp;
@@ -173,23 +175,21 @@ export class BufferListReader extends ReaderBase {
             //     context.rebuild = context.rebuild || (context.curBufferIndex > this._curBufferIndex);
             // }
         }
-        else if (newCurOffset === curBuffer.length) {
+        else if (this._curBufferOffset === curBuffer.length) {
             ++this._curBufferIndex;
-            newCurOffset = 0;
+            this._curBufferOffset = 0;
         }
-        this._offset += len;
-        this._curOffset = newCurOffset;
         return curBuffer;
     }
 
     private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number): number {
-        const start = this._curOffset;
+        const start = this._curBufferOffset;
         const currBuffer = this._consolidate(byteSize);
         return bufferFunction.call(currBuffer, start, this._noAssert);
     }
 
     readByte(): number {
-        const start = this._curOffset;
+        const start = this._curBufferOffset;
         const currBuffer = this._consolidate(1);
         return currBuffer[start];
     }
@@ -212,7 +212,7 @@ export class BufferListReader extends ReaderBase {
             return '';
         }
         else {
-            const start = this._curOffset;
+            const start = this._curBufferOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
             return currBuffer.toString(encoding, start, start + len);
@@ -225,7 +225,7 @@ export class BufferListReader extends ReaderBase {
             return ReaderBase.EmptyBuffer;
         }
         else {
-            const start = this._curOffset;
+            const start = this._curBufferOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
             if ((start === 0) && (len === currBuffer.length)) {
@@ -244,7 +244,7 @@ export class BufferListReader extends ReaderBase {
             return [ReaderBase.EmptyBuffer];
         }
         else {
-            let start = this._curOffset;
+            let start = this._curBufferOffset;
             len = end - this._offset;
             this._offset += len;
 
@@ -255,17 +255,17 @@ export class BufferListReader extends ReaderBase {
                 const subBuffer = curBuffer.subarray(start, start + len);
                 buffers.push(subBuffer);
 
-                this._curOffset = start + subBuffer.length;
+                this._curBufferOffset = start + subBuffer.length;
                 len -= subBuffer.length;
                 start = 0;
 
                 ++this._curBufferIndex;
             }
-            if (this._curOffset < curBuffer.length) {
+            if (this._curBufferOffset < curBuffer.length) {
                 --this._curBufferIndex;
             }
             else {
-                this._curOffset = 0;
+                this._curBufferOffset = 0;
             }
             return buffers;
         }
@@ -277,7 +277,7 @@ export class BufferListReader extends ReaderBase {
             return ReaderBase.EmptyBuffer;
         }
         else {
-            const start = this._curOffset;
+            const start = this._curBufferOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
             if ((start === 0) && (len === currBuffer.length)) {

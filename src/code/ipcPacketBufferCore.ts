@@ -2,19 +2,19 @@ import { IpcPacketContent } from './ipcPacketContent';
 
 export namespace IpcPacketBufferCore {
     export interface RawContent extends IpcPacketContent.RawContent {
-        buffer: Buffer;
+        buffer?: Buffer;
+        buffers?: Buffer[];
     }
 }
 
 export abstract class IpcPacketBufferCore extends IpcPacketContent {
+    static readonly EmptyBuffer = Buffer.allocUnsafe(0);
 
     constructor(rawContent?: IpcPacketBufferCore.RawContent) {
         super(rawContent);
     }
 
     abstract get buffer(): Buffer;
-    // setRawContent(rawContent: IpcPacketBufferCore.RawContent): void;
-    // getRawContent(): IpcPacketBufferCore.RawContent;
 
     protected abstract _serializeAndCheck(checker: () => boolean, data: any): boolean;
 

@@ -44,7 +44,12 @@ function testSerialization(param, ipb, fctSerialize, fctParse, fctCompare) {
       const rawContent = ipb.getRawContent();
       assert(rawContent.type === ipb.type);
       assert(rawContent.contentSize === ipb.contentSize);
-      assert(rawContent.buffer === ipb.buffer);
+      if (rawContent.buffers) {
+        // assert(rawContent.buffers === ipb.buffers);
+      }
+      else {
+        assert(BufferEqual(rawContent.buffer, ipb.buffer));
+      }
       ipb.setRawContent(rawContent);
       assert(fctCompare(ipb.parse(), param));
       console.timeEnd(msg);

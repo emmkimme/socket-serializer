@@ -15,6 +15,20 @@ A socket reader/writer classes uses this BufferList to ease the management of th
 Buffer remains untouched and go through socket without any changes (copy, merge, split...).
 The IpcPacketBuffer is able to read a partial buffer and accumulate incoming buffers until data is completed as socket can not ensure to deliver the same buffer as the one push (see IpcPacketBufferDecoder class).
 
+// Pseudo code for reading data on the fly
+```ts
+private _bufferListReader: BufferListReader;
+private _packet: IpcPacketBufferList;
+
+handleData(data: Buffer): void {
+    this._bufferListReader.appendBuffer(data);
+    while (this._packet.decodeFromReader(this._bufferListReader)) {
+        this.emit('packet-received', packet);
+    }
+    this._bufferListReader.reduce();
+}
+```
+
 # Features
 * Parsing/Serialization API
 * Buffer Readers API

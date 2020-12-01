@@ -70,6 +70,7 @@ export class IpcPacketContent {
     protected _contentSize: number;
     protected _partial: boolean;
 
+    // Default methods for these kind of data
     writeArray: Function = this.writeArrayWithSize;
     writeObject: Function = this.writeObjectSTRINGIFY2;
     // _readObjectSTRINGIFY: Function = this._readObjectSTRINGIFY2;
@@ -89,8 +90,8 @@ export class IpcPacketContent {
     }
 
     setRawContent(rawContent: IpcPacketContent.RawContent): void {
-        this._partial = rawContent.partial;
         this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
+        this._partial = rawContent.partial;
     }
 
     getRawContent(): IpcPacketContent.RawContent {
@@ -275,7 +276,7 @@ export class IpcPacketContent {
             }
             // Read dynamic packet size
             this._contentSize = bufferReader.readUInt32();
-            if (this.type === BufferType.ArrayWithSize) {
+            if (this._type === BufferType.ArrayWithSize) {
                 if (bufferReader.checkEOF(ArrayFieldSize)) {
                     this._partial = true;
                     this._type = BufferType.PartialHeader;
