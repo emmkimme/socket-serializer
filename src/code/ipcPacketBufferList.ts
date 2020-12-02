@@ -36,19 +36,28 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     }
 
     get buffer(): Buffer {
+        const buffer = this._singleBufferAvailable();
+        if (buffer) {
+            return buffer;
+        }
+        this._buffers = [Buffer.concat(this._buffers)];
+        return this._buffers[0];
+    }
+
+    private _singleBufferAvailable(): Buffer | null {
+        if (this._buffers.length === 1) {
+            return this._buffers[0];
+        }
         if (this._buffers.length === 0) {
             return IpcPacketBufferCore.EmptyBuffer;
         }
-        if (this._buffers.length > 1) {
-            this._buffers = [Buffer.concat(this._buffers)];
-        }
-        return this._buffers[0];
+        return null;
     }
 
     setRawContent(rawContent: IpcPacketBufferList.RawContent): void {
         super.setRawContent(rawContent);
         if (rawContent) {
-            // buffer is faster take it when available
+            // Parsing a single buffer is faster, take it when available
             if (rawContent.buffer) {
                 this._buffers = [rawContent.buffer];
             }
@@ -64,8 +73,14 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
             type: this._type,
             contentSize: this._contentSize,
             partial: this._partial,
-            buffers: this._buffers
         };
+        const buffer = this._singleBufferAvailable();
+        if (buffer) {
+            rawContent.buffer = buffer;
+        }
+        else {
+            rawContent.buffers = this._buffers;
+        }
         return rawContent;
     }
 
@@ -101,14 +116,14 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        const result = this._readHeader(new BufferReader(buffer));
-        if (result) {
+        const isComplete = this._readHeader(new BufferReader(buffer));
+        if (isComplete) {
             this._buffers = [buffer];
         }
         else {
             this._buffers = [];
         }
-        return result;
+        return isComplete;
     }
 
     protected _serializeAndCheck(checker: () => boolean, data: any): boolean {
@@ -127,7 +142,9 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     protected _parseAndCheck(checker: () => boolean): any {
         if (checker.call(this)) {
-            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
+            const buffer = this._singleBufferAvailable();
+            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
+            bufferReader.seek(this._headerSize);
             return this._readContent(0, bufferReader);
         }
         return null;
@@ -135,7 +152,9 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     parseArrayLength(): number | null {
         if (this.isArray()) {
-            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
+            const buffer = this._singleBufferAvailable();
+            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
+            bufferReader.seek(this._headerSize);
             return this._readArrayLength(bufferReader);
         }
         return null;
@@ -143,7 +162,9 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     parseArrayAt(index: number): any | null {
         if (this.isArray()) {
-            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
+            const buffer = this._singleBufferAvailable();
+            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
+            bufferReader.seek(this._headerSize);
             return this._readArrayAt(bufferReader, index);
         }
         return null;
@@ -151,7 +172,9 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     parseArraySlice(start?: number, end?: number): any | null {
         if (this.isArray()) {
-            const bufferReader = new BufferListReader(this._buffers, this._headerSize);
+            const buffer = this._singleBufferAvailable();
+            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
+            bufferReader.seek(this._headerSize);
             return this._readArraySlice(bufferReader, start, end);
         }
         return null;

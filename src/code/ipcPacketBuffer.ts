@@ -88,14 +88,14 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        const result = this._readHeader(new BufferReader(buffer));
-        if (result) {
+        const isComplete = this._readHeader(new BufferReader(buffer));
+        if (isComplete) {
             this._buffer = buffer;
         }
         else {
             this._buffer = IpcPacketBufferCore.EmptyBuffer;
         }
-        return result;
+        return isComplete;
     }
 
     protected _serializeAndCheck(checker: () => boolean, data: any): boolean {
