@@ -15,6 +15,7 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
     }
 
     abstract get buffer(): Buffer;
+    abstract get buffers(): Buffer[];
 
     protected abstract _serializeAndCheck(checker: () => boolean, data: any): boolean;
 

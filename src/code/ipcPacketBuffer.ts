@@ -33,6 +33,10 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         return this._buffer;
     }
 
+    get buffers(): Buffer[] {
+        return [this._buffer];
+    }
+
     setRawContent(rawContent: IpcPacketBuffer.RawContent): void {
         super.setRawContent(rawContent);
         if (rawContent) {
