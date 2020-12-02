@@ -1,13 +1,18 @@
 import * as net from 'net';
 
 import { BufferListWriter } from './bufferListWriter';
+import { SocketWriterBase } from './socketWriter';
 
-export class DelayedSocketWriter extends BufferListWriter {
+export class DelayedSocketWriter extends BufferListWriter implements SocketWriterBase {
     private _socket: net.Socket;
 
     constructor(socket: net.Socket) {
         super();
         this._socket = socket;
+    }
+
+    get socket(): net.Socket {
+        return this._socket;
     }
 
     pushContext(): void {

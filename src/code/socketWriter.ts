@@ -2,12 +2,21 @@ import * as net from 'net';
 
 import { BufferListWriterBase } from './bufferListWriter';
 
-export class SocketWriter extends BufferListWriterBase {
+export interface SocketWriterBase {
+    readonly socket: net.Socket;
+}
+
+
+export class SocketWriter extends BufferListWriterBase implements SocketWriterBase {
     private _socket: net.Socket;
 
     constructor(socket: net.Socket) {
         super();
         this._socket = socket;
+    }
+
+    get socket(): net.Socket {
+        return this._socket;
     }
 
     get buffer(): Buffer {
