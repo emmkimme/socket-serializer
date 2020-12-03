@@ -8,8 +8,8 @@
                 "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
            
                 "args": [
-                    // "test/BufferReader.test.js",
-                    "test/ipcPacketNet.test.js",
+                    "test/BufferReader.test.js",
+                    // "test/ipcPacketNet.test.js",
                     // "test/perf.test.js",
                     // "test/ipcPacketBuffer.test.js",
                     // "test/ipcPacketNet.test.js",

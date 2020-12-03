@@ -72,35 +72,41 @@ export class BufferReader extends ReaderBase {
     }
 
     slice(len?: number): Buffer {
-        const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
-        if (this._offset === end) {
-            return ReaderBase.EmptyBuffer;
-        }
-        else {
-            const start = this._offset;
-            len = end - this._offset;
-            this._offset = end;
-            if ((start === 0) && (len === this._buffer.length)) {
-                return this._buffer;
-            }
-            else {
-                return this._buffer.slice(start, end);
-            }
-        }
+        const buffer = this._buffer.slice(this._offset, this._offset + len);
+        this._offset += buffer.length;
+        return buffer;
+        // const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
+        // if (this._offset === end) {
+        //     return ReaderBase.EmptyBuffer;
+        // }
+        // else {
+        //     const start = this._offset;
+        //     len = end - this._offset;
+        //     this._offset = end;
+        //     if ((start === 0) && (len === this._buffer.length)) {
+        //         return this._buffer;
+        //     }
+        //     else {
+        //         return this._buffer.slice(start, end);
+        //     }
+        // }
     }
 
     subarray(len?: number): Buffer {
-        const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
-        if (this._offset === end) {
-            return ReaderBase.EmptyBuffer;
-        }
-        else {
-            const start = this._offset;
-            len = end - this._offset;
-            this._offset = end;
-            // return Buffer.from(this._buffer, this._buffer.byteOffset + start, len);
-            return this._buffer.subarray(start, start + len);
-        }
+        const buffer = this._buffer.subarray(this._offset, this._offset + len);
+        this._offset += buffer.length;
+        return buffer;
+        // const end = Reader.AdjustEnd(this._offset, this._buffer.length, len);
+        // if (this._offset === end) {
+        //     return ReaderBase.EmptyBuffer;
+        // }
+        // else {
+        //     const start = this._offset;
+        //     len = end - this._offset;
+        //     this._offset = end;
+        //     // return Buffer.from(this._buffer, this._buffer.byteOffset + start, len);
+        //     return this._buffer.subarray(start, start + len);
+        // }
     }
 
     subarrayList(len?: number): Buffer[] {

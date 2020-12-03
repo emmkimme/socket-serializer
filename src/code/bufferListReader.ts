@@ -54,7 +54,12 @@ export class BufferListReader extends ReaderBase {
     }
 
     getContext(): BufferListReaderContext {
-        return { timestamp: this._timestamp, offset: this._offset, curOffset: this._curBufferOffset, curBufferIndex: this._curBufferIndex };
+        return {
+            timestamp: this._timestamp,
+            offset: this._offset,
+            curOffset: this._curBufferOffset,
+            curBufferIndex: this._curBufferIndex
+        };
     }
 
     setContext(context: BufferListReaderContext): void {
@@ -156,15 +161,15 @@ export class BufferListReader extends ReaderBase {
             let bufferLength = 0;
             const buffers = [];
             for (let endBufferIndex = this._curBufferIndex, l = this._buffers.length; endBufferIndex < l; ++endBufferIndex) {
-                curBuffer = this._buffers[endBufferIndex];
-                buffers.push(curBuffer);
-                bufferLength += curBuffer.length;
+                const buffer = this._buffers[endBufferIndex];
+                buffers.push(buffer);
+                bufferLength += buffer.length;
                 if (this._curBufferOffset <= bufferLength) {
                     break;
                 }
             }
-            curBuffer = this._buffers[this._curBufferIndex] = Buffer.concat(buffers, bufferLength);
-            this._buffers.splice(this._curBufferIndex + 1, buffers.length - 1);
+            curBuffer = Buffer.concat(buffers, bufferLength);
+            this._buffers.splice(this._curBufferIndex, buffers.length, curBuffer);
             if (!this._noAssert && (this._curBufferOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
             }
@@ -244,28 +249,28 @@ export class BufferListReader extends ReaderBase {
             return [ReaderBase.EmptyBuffer];
         }
         else {
-            let start = this._curBufferOffset;
             len = end - this._offset;
             this._offset += len;
 
-            const buffers = [];
-            let curBuffer: Buffer;
+            let curBuffer = this._buffers[this._curBufferIndex];
+            const subBuffer = curBuffer.subarray(this._curBufferOffset, this._curBufferOffset + len);
+            const buffers = [subBuffer];
+            len -= subBuffer.length;
+            this._curBufferOffset += subBuffer.length;
+
             while (len > 0) {
+                ++this._curBufferIndex;
+
                 curBuffer = this._buffers[this._curBufferIndex];
-                const subBuffer = curBuffer.subarray(start, start + len);
+                const subBuffer = curBuffer.subarray(0, len);
                 buffers.push(subBuffer);
 
-                this._curBufferOffset = start + subBuffer.length;
                 len -= subBuffer.length;
-                start = 0;
-
-                ++this._curBufferIndex;
+                this._curBufferOffset = subBuffer.length;
             }
-            if (this._curBufferOffset < curBuffer.length) {
-                --this._curBufferIndex;
-            }
-            else {
+            if (this._curBufferOffset === curBuffer.length) {
                 this._curBufferOffset = 0;
+                ++this._curBufferIndex;
             }
             return buffers;
         }
