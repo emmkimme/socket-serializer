@@ -34,7 +34,7 @@ export class SocketWriter extends BufferListWriterBase implements SocketWriterBa
     }
 
     protected _appendBuffers(length: number, buffers: Buffer[]): number {
-        // Inspired from Node.js - emit
+        // Inspired from Node.js - EventEmitter.emit
         const len = buffers.length;
         switch (len) {
             // fast cases
