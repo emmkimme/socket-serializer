@@ -70,11 +70,6 @@ export class IpcPacketContent {
     protected _contentSize: number;
     protected _partial: boolean;
 
-    // Default methods for these kind of data
-    writeArray: Function = this.writeArrayWithSize;
-    writeObject: Function = this.writeObjectSTRINGIFY2;
-    // _readObjectSTRINGIFY: Function = this._readObjectSTRINGIFY2;
-
     constructor(rawContent?: IpcPacketContent.RawContent) {
         if (rawContent) {
             this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
@@ -500,7 +495,8 @@ export class IpcPacketContent {
         }
     }
 
-    writeObjectSTRINGIFY2(bufferWriter: Writer, dataObject: any): void {
+    // Default methods for these kind of data
+    writeObject(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
             this.writeFixedSize(bufferWriter, BufferType.Null);
         }
@@ -513,7 +509,8 @@ export class IpcPacketContent {
         }
     }
 
-    writeArrayWithSize(bufferWriter: Writer, args: any[]): void {
+    // Default methods for these kind of data
+    writeArray(bufferWriter: Writer, args: any[]): void {
         const contentBufferWriter = new BufferListWriter();
         // JSONParser.install();
         for (let i = 0, l = args.length; i < l; ++i) {
@@ -603,52 +600,30 @@ export class IpcPacketContent {
 
     // Header has been read and checked
     private _readObjectDirect(depth: number, bufferReader: Reader): any {
-        // Save the top type/content size
-        let context: any;
-        if (depth === 0) {
-            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize, partial: this._partial };
-        }
+        // Preserve the top type/content size
+        const tmpPacketContent = (depth === 0) ? new IpcPacketContent() : this;
 
         const offsetContentSize = bufferReader.offset + this._contentSize;
         const dataObject: any = {};
         while (bufferReader.offset < offsetContentSize) {
             let keyLen = bufferReader.readUInt32();
             let key = bufferReader.readString('utf8', keyLen);
-            dataObject[key] = this._read(depth + 1, bufferReader);
-        }
-
-        // Restore type and content size may be corrupted by depth reading
-        if (context) {
-            this._type = context.type;
-            this._headerSize = context.headerSize;
-            this._contentSize = context.contentSize;
-            this._partial = context.partial;
+            dataObject[key] = tmpPacketContent._read(depth + 1, bufferReader);
         }
         return dataObject;
     }
 
     // Header has been read and checked
     private _readArray(depth: number, bufferReader: Reader): any[] {
-        // Save the top type/content size
-        let context: any;
-        if (depth === 0) {
-            context = { type: this._type, headerSize: this._headerSize, contentSize: this._contentSize, partial: this._partial };
-        }
+        // Preserve the top type/content size
+        const tmpPacketContent = (depth === 0) ? new IpcPacketContent() : this;
 
         const argsLen = bufferReader.readUInt32();
         const args = new Array(argsLen);
         let argIndex = 0;
         while (argIndex < argsLen) {
-            const arg = this._read(depth + 1, bufferReader);
+            const arg = tmpPacketContent._read(depth + 1, bufferReader);
             args[argIndex++] = arg;
-        }
-
-        // Restore type and content size may be corrupted by depth reading
-        if (context) {
-            this._type = context.type;
-            this._headerSize = context.headerSize;
-            this._contentSize = context.contentSize;
-            this._partial = context.partial;
         }
         return args;
     }

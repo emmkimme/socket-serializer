@@ -115,10 +115,8 @@ export class BufferListWriter extends BufferListWriterBase {
     }
 
     protected _appendBuffers(length: number, buffers: Buffer[]): number {
-        this._buffers = this._buffers.concat(buffers);
-        // for (let i = 0, l = buffers.length; i < l; ++i) {
-        //     this._buffers.push(buffers[i]);
-        // }
+        // 'push' is faster than 'concat'
+        this._buffers.push.apply(this._buffers, buffers);
         this._length += length;
         return this._length;
     }

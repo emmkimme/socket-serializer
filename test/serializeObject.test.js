@@ -34,7 +34,7 @@ function test(ipcPacketCore) {
         const ipcPacketCore = new ssModule.IpcPacketBuffer();
         const bufferWriter = new ssModule.BufferListWriter();
         console.time('stringify2 serialize - big json');
-        ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, bigData);
+        ipcPacketCore.writeObject(bufferWriter, bigData);
         console.timeEnd('stringify2 serialize - big json');
 
         const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
@@ -126,7 +126,7 @@ function test(ipcPacketCore) {
         for (i = 0; i < 10000; ++i) {
           const ipcPacketCore = new ssModule.IpcPacketBuffer();
           const bufferWriter = new ssModule.BufferListWriter();
-          ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, busEvent);
+          ipcPacketCore.writeObject(bufferWriter, busEvent);
           const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
           newBusEvent;
@@ -136,7 +136,7 @@ function test(ipcPacketCore) {
         console.time('stringify2 deserialize - small json');
         const ipcPacketCore = new ssModule.IpcPacketBuffer();
         const bufferWriter = new ssModule.BufferListWriter();
-        ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, busEvent);
+        ipcPacketCore.writeObject(bufferWriter, busEvent);
         for (i = 0; i < 10000; ++i) {
           const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
@@ -190,7 +190,7 @@ function test(ipcPacketCore) {
         console.time('direct2 deserialize - small json');
         const ipcPacketCore = new ssModule.IpcPacketBuffer();
         const bufferWriter = new ssModule.BufferListWriter();
-        ipcPacketCore.writeObjectSTRINGIFY2(bufferWriter, busEvent);
+        ipcPacketCore.writeObject(bufferWriter, busEvent);
         for (i = 0; i < 10000; ++i) {
           const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
