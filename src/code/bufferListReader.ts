@@ -292,31 +292,5 @@ export class BufferListReader extends ReaderBase {
                 return currBuffer.slice(start, start + len);
             }
         }
-
-        // let start = this._offset;
-        // let end = Math.min(start + len, this._length);
-        // let bufferLen = end - start;
-
-        // this._offset += bufferLen;
-
-        // let targetBuffer = Buffer.allocUnsafe(bufferLen);
-        // let targetOffset = 0;
-        // for (; this._curBufferIndex < this._buffers.length; ++this._curBufferIndex) {
-        //     currBuffer = this._buffers[this._curBufferIndex];
-        //     let curBufferLen = currBuffer.length - this._curOffset;
-        //     if (curBufferLen >= bufferLen) {
-        //         currBuffer.copy(targetBuffer, targetOffset, this._curOffset, this._curOffset + bufferLen);
-        //         this._curOffset += bufferLen;
-        //         bufferLen = 0;
-        //         break;
-        //     }
-        //     else {
-        //         currBuffer.copy(targetBuffer, targetOffset, this._curOffset, this._curOffset + curBufferLen);
-        //         bufferLen -= curBufferLen;
-        //         targetOffset += curBufferLen;
-        //         this._curOffset = 0;
-        //     }
-        // }
-        // return targetBuffer;
     }
 }
