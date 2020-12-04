@@ -170,9 +170,9 @@ export class BufferListReader extends ReaderBase {
             }
             curBuffer = Buffer.concat(buffers, bufferLength);
             this._buffers.splice(this._curBufferIndex, buffers.length, curBuffer);
-            if (!this._noAssert && (this._curBufferOffset > curBuffer.length)) {
+            // if (!this._noAssert && (this._curBufferOffset > curBuffer.length)) {
                 // throw new RangeError('Index out of range');
-            }
+            // }
             ++this._timestamp;
             // let index = this._contexts.length;
             // while (index) {
