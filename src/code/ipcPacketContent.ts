@@ -60,7 +60,7 @@ export namespace IpcPacketContent {
     export interface RawContent {
         type: BufferType;
         contentSize: number;
-        partial: boolean;
+        partialContent: boolean;
     }
 }
 
@@ -68,7 +68,7 @@ export class IpcPacketContent {
     protected _type: BufferType;
     protected _headerSize: number;
     protected _contentSize: number;
-    protected _partial: boolean;
+    protected _partialContent: boolean;
 
     constructor(rawContent?: IpcPacketContent.RawContent) {
         if (rawContent) {
@@ -86,14 +86,14 @@ export class IpcPacketContent {
 
     setRawContent(rawContent: IpcPacketContent.RawContent): void {
         this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
-        this._partial = rawContent.partial;
+        this._partialContent = rawContent.partialContent;
     }
 
     getRawContent(): IpcPacketContent.RawContent {
         const rawContent: IpcPacketContent.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
-            partial: this._partial
+            partialContent: this._partialContent
         };
         return rawContent;
     }
@@ -119,7 +119,7 @@ export class IpcPacketContent {
     }
 
     protected setTypeAndContentSize(bufferType: BufferType, contentSize: number) {
-        this._partial = false;
+        this._partialContent = false;
         this._type = bufferType;
         switch (bufferType) {
             case BufferType.Date:
@@ -158,7 +158,6 @@ export class IpcPacketContent {
                 this._type = BufferType.NotValid;
                 this._headerSize = -1;
                 this._contentSize = -1;
-                this._partial = true;
                 break;
         }
     }
@@ -167,12 +166,8 @@ export class IpcPacketContent {
         return (this._type === BufferType.NotValid);
     }
 
-    isPartial(): boolean {
-        return this._partial;
-    }
-
     isComplete(): boolean {
-        return (this._partial === false);
+        return (this._partialContent === false) && (this._type !== BufferType.NotValid) && (this._type !== BufferType.PartialHeader);
     }
 
     isNull(): boolean {
@@ -252,7 +247,6 @@ export class IpcPacketContent {
     protected _readHeader(bufferReader: Reader): boolean {
         // Header minimum size is FixedHeaderSize
         if (bufferReader.checkEOF(FixedHeaderSize)) {
-            this._partial = true;
             this._type = BufferType.PartialHeader;
             return false;
         }
@@ -265,7 +259,6 @@ export class IpcPacketContent {
         if (this._headerSize >= DynamicHeaderSize) {
             // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = ContentFieldSize
             if (bufferReader.checkEOF(ContentFieldSize)) {
-                this._partial = true;
                 this._type = BufferType.PartialHeader;
                 return false;
             }
@@ -274,15 +267,13 @@ export class IpcPacketContent {
             // Should be part of the header
             if (this._type === BufferType.ArrayWithSize) {
                 if (bufferReader.checkEOF(ArrayFieldSize)) {
-                    this._partial = true;
                     this._type = BufferType.PartialHeader;
                     return false;
                 }
             }
         }
         if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
-            this._partial = true;
-            // this._type = BufferType.Partial;
+            this._partialContent = true;
             return false;
         }
         return true;

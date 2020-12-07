@@ -55,16 +55,17 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         const rawContent : IpcPacketBuffer.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
-            partial: this._partial,
+            partialContent: this._partialContent,
             buffer: this._buffer
         };
         return rawContent;
     }
 
     keepDecodingFromReader(bufferReader: Reader): boolean {
-        if (this._partial && (this._type !== BufferType.NotValid) && (this._type !== BufferType.PartialHeader)) {
+        if (this._partialContent) {
             const packetSize = this.packetSize;
             if (bufferReader.checkEOF(packetSize)) {
+                this._partialContent = false;
                 this._buffer = bufferReader.subarray(packetSize);
                 return true;
             }

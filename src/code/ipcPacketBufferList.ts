@@ -73,7 +73,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         const rawContent : IpcPacketBufferList.RawContent = {
             type: this._type,
             contentSize: this._contentSize,
-            partial: this._partial,
+            partialContent: this._partialContent,
         };
         const buffer = this._singleBufferAvailable();
         if (buffer) {
@@ -86,9 +86,10 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     }
 
     keepDecodingFromReader(bufferReader: Reader): boolean {
-        if (this._partial && (this._type !== BufferType.NotValid) && (this._type !== BufferType.PartialHeader)) {
+        if (this._partialContent) {
             const packetSize = this.packetSize;
             if (bufferReader.checkEOF(packetSize)) {
+                this._partialContent = false;
                 this._buffers = bufferReader.subarrayList(packetSize);
                 return true;
             }
