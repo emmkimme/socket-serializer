@@ -4,7 +4,6 @@ import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferListReader } from './bufferListReader';
-import { BufferType } from './ipcPacketContent';
 
 export namespace IpcPacketBufferList {
     export type RawContent = IpcPacketBufferCore.RawContent;

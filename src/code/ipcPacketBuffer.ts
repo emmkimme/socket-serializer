@@ -3,7 +3,6 @@ import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
 import { BufferListWriter } from './bufferListWriter';
-import { BufferType } from './ipcPacketContent';
 
 export namespace IpcPacketBuffer {
     export type RawContent = IpcPacketBufferCore.RawContent;
