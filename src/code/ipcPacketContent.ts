@@ -264,6 +264,8 @@ export class IpcPacketContent {
             }
             // Read dynamic packet size
             this._contentSize = bufferReader.readUInt32();
+        }
+        if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
             // Should be part of the header
             if (this._type === BufferType.ArrayWithSize) {
                 if (bufferReader.checkEOF(ArrayFieldSize)) {
@@ -271,8 +273,6 @@ export class IpcPacketContent {
                     return false;
                 }
             }
-        }
-        if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
             this._partialContent = true;
             return false;
         }
