@@ -64,7 +64,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
     keepDecodingFromReader(bufferReader: Reader): boolean {
         if (this._partialContent) {
             const packetSize = this.packetSize;
-            if (bufferReader.checkEOF(packetSize)) {
+            if (bufferReader.checkEOF(packetSize) === false) {
                 this._partialContent = false;
                 this._buffer = bufferReader.subarray(packetSize);
                 return true;
