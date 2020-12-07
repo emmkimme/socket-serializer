@@ -4,6 +4,7 @@ import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
 import { BufferListWriter } from './bufferListWriter';
 import { BufferListReader } from './bufferListReader';
+import { BufferType } from './ipcPacketContent';
 
 export namespace IpcPacketBufferList {
     export type RawContent = IpcPacketBufferCore.RawContent;
@@ -85,7 +86,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     }
 
     keepDecodingFromReader(bufferReader: Reader): boolean {
-        if (this._partial) {
+        if (this._partial && (this._type !== BufferType.NotValid)) {
             const packetSize = this.packetSize;
             if (bufferReader.checkEOF(packetSize)) {
                 this._buffers = bufferReader.subarrayList(packetSize);

@@ -250,7 +250,7 @@ export class IpcPacketContent {
     }
 
     protected _readHeader(bufferReader: Reader): boolean {
-        // Header minimum size is 2
+        // Header minimum size is FixedHeaderSize
         if (bufferReader.checkEOF(FixedHeaderSize)) {
             this._partial = true;
             this._type = BufferType.PartialHeader;
@@ -271,6 +271,7 @@ export class IpcPacketContent {
             }
             // Read dynamic packet size
             this._contentSize = bufferReader.readUInt32();
+            // Should be part of the header
             if (this._type === BufferType.ArrayWithSize) {
                 if (bufferReader.checkEOF(ArrayFieldSize)) {
                     this._partial = true;

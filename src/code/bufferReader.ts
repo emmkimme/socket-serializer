@@ -33,8 +33,14 @@ export class BufferReader extends ReaderBase {
     }
 
     seek(offset: number): boolean {
+        if ((offset < 0) || (offset >= this._buffer.length)) {
+            if (!this._noAssert) {
+                throw new RangeError('Index out of range');
+            }
+            return false;
+        }
         this._offset = offset;
-        return this.checkEOF();
+        return true;
     }
 
     private _readNumber(bufferFunction: (offset: number, noAssert?: boolean) => number, byteSize: number): number {

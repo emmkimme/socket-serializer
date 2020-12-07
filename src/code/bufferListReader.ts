@@ -12,10 +12,11 @@ export class BufferListReader extends ReaderBase {
 
     private _length: number;
     private _buffers: Buffer[];
+
     private _curBufferIndex: number;
     private _curBufferOffset: number;
-    private _timestamp: number;
 
+    private _timestamp: number;
     private _contexts: BufferListReaderContext[];
 
     constructor(buffers?: Buffer[], offset?: number) {
@@ -96,33 +97,27 @@ export class BufferListReader extends ReaderBase {
 
     seek(offset: number): boolean {
         if (this._offset !== offset) {
+            if ((offset < 0) || (offset >= this.length)) {
+                if (!this._noAssert) {
+                    throw new RangeError('Index out of range');
+                }
+                return false;
+            }
             let curBuffer = this._buffers[this._curBufferIndex];
             this._curBufferOffset += (offset - this._offset);
             this._offset = offset;
             while (this._curBufferOffset >= curBuffer.length) {
-                if (this._curBufferIndex >= this._buffers.length - 1) {
-                    if (!this._noAssert) {
-                        throw new RangeError('Index out of range');
-                    }
-                    return false;
-                }
                 this._curBufferOffset -= curBuffer.length;
                 ++this._curBufferIndex;
                 curBuffer = this._buffers[this._curBufferIndex];
             }
             while (this._curBufferOffset < 0) {
-                if (this._curBufferIndex <= 0) {
-                    if (!this._noAssert) {
-                        throw new RangeError('Index out of range');
-                    }
-                    return false;
-                }
                 --this._curBufferIndex;
                 curBuffer = this._buffers[this._curBufferIndex];
                 this._curBufferOffset += curBuffer.length;
             }
         }
-        return this.checkEOF();
+        return true;
     }
 
     reduce() {
