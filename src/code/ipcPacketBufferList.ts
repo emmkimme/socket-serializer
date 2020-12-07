@@ -86,7 +86,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     }
 
     keepDecodingFromReader(bufferReader: Reader): boolean {
-        if (this._partial && (this._type !== BufferType.NotValid)) {
+        if (this._partial && (this._type !== BufferType.NotValid) && (this._type !== BufferType.PartialHeader)) {
             const packetSize = this.packetSize;
             if (bufferReader.checkEOF(packetSize)) {
                 this._buffers = bufferReader.subarrayList(packetSize);
