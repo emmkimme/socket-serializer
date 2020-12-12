@@ -1,4 +1,5 @@
 import { IpcPacketContent } from './ipcPacketContent';
+import { Reader } from './reader';
 
 export namespace IpcPacketBufferCore {
     export interface RawContent extends IpcPacketContent.RawContent {
@@ -17,73 +18,55 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
     abstract get buffer(): Buffer;
     abstract get buffers(): Buffer[];
 
-    protected abstract _serializeAndCheck(checker: () => boolean, data: any): boolean;
+    protected abstract _parseReader(): Reader;
 
-    serializeNumber(dataNumber: number): boolean {
-        return this._serializeAndCheck(this.isNumber, dataNumber);
+    parse(checker?: () => boolean): any | null {
+        if (checker && (checker.call(this) === false)) {
+            return null;
+        }
+        return this._readContent(0, this._parseReader());
     }
 
-    serializeBoolean(dataBoolean: boolean): boolean {
-        return this._serializeAndCheck(this.isBoolean, dataBoolean);
-    }
-
-    serializeDate(dataDate: boolean): boolean {
-        return this._serializeAndCheck(this.isDate, dataDate);
-    }
-
-    protected abstract serializeString(data: string, encoding?: BufferEncoding): boolean;
-
-    serializeObject(dataObject: Object): boolean {
-        return this._serializeAndCheck(this.isObject, dataObject);
-    }
-
-    serializeBuffer(dataBuffer: Buffer): boolean {
-        return this._serializeAndCheck(this.isBuffer, dataBuffer);
-    }
-
-    serializeArray(args: any[]): boolean {
-        return this._serializeAndCheck(this.isArray, args);
-    }
-
-    serialize(data: any): boolean {
-        return this._serializeAndCheck(this.isComplete, data);
-    }
-
-    protected abstract _parseAndCheck(checker: () => boolean): any;
-
-    parse(): any {
-        return this._parseAndCheck(this.isComplete);
-    }
-
+    // FOR PERFORMANCE PURPOSE, do not check the inner type, trust the caller
     parseBoolean(): boolean | null {
-        return this._parseAndCheck(this.isBoolean);
+        return this._readContent(0, this._parseReader());
     }
 
     parseNumber(): number | null {
-        return this._parseAndCheck(this.isNumber);
+        return this._readContent(0, this._parseReader());
     }
 
     parseDate(): Date | null {
-        return this._parseAndCheck(this.isDate);
+        return this._readContent(0, this._parseReader());
     }
 
     parseObject(): any | null {
-        return this._parseAndCheck(this.isObject);
+        return this._readContent(0, this._parseReader());
     }
 
     parseBuffer(): Buffer | null {
-        return this._parseAndCheck(this.isBuffer);
+        return this._readContent(0, this._parseReader());
     }
 
     parseArray(): any[] | null {
-        return this._parseAndCheck(this.isArray);
+        return this._readArray(0, this._parseReader());
     }
 
     parseString(): string | null {
-        return this._parseAndCheck(this.isString);
+        return this._readString(this._parseReader(), this._contentSize);
     }
 
-    abstract parseArrayLength(): number | null;
-    abstract parseArrayAt(index: number): any | null;
-    abstract parseArraySlice(start?: number, end?: number): any | null;
-}
+    parseArrayLength(): number {
+        const bufferReader = this._parseReader();
+        return this._readArrayLength(bufferReader);
+    }
+
+    parseArrayAt(index: number): any | null {
+        const bufferReader = this._parseReader();
+        return this._readArrayAt(bufferReader, index);
+    }
+
+    parseArraySlice(start?: number, end?: number): any | null {
+        const bufferReader = this._parseReader();
+        return this._readArraySlice(bufferReader, start, end);
+    }}

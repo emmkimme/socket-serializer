@@ -44,7 +44,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         return this._buffers[0];
     }
 
-    private _singleBufferAvailable(): Buffer | null {
+    protected _singleBufferAvailable(): Buffer | null {
         if (this._buffers.length === 1) {
             return this._buffers[0];
         }
@@ -52,6 +52,12 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
             return IpcPacketBufferCore.EmptyBuffer;
         }
         return null;
+    }
+
+    protected _parseReader(): Reader {
+        const buffer = this._singleBufferAvailable();
+        const bufferReader = buffer ? new BufferReader(buffer, this._headerSize) : new BufferListReader(this.buffers, this._headerSize);
+        return bufferReader;
     }
 
     setRawContent(rawContent: IpcPacketBufferList.RawContent): void {
@@ -127,57 +133,53 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         return isComplete;
     }
 
-    protected _serializeAndCheck(checker: () => boolean, data: any): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.write(bufferWriter, data);
-        this._buffers = bufferWriter.buffers;
-        return checker.call(this);
+    serialize(data: any, checker?: () => boolean): boolean {
+        const writer = new BufferListWriter();
+        this.write(writer, data);
+        this._buffers = writer.buffers;
+        return checker ? checker.call(this) : true;
     }
 
-    serializeString(data: string, encoding?: BufferEncoding): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.writeString(bufferWriter, data, encoding);
-        this._buffers = bufferWriter.buffers;
-        return this.isString();
+    // FOR PERFORMANCE PURPOSE, do not check the inner type, trust the caller
+    serializeNumber(data: number): void {
+        const writer = new BufferListWriter();
+        this.writeNumber(writer, data);
+        this._buffers = writer.buffers;
     }
 
-    protected _parseAndCheck(checker: () => boolean): any {
-        if (checker.call(this)) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readContent(0, bufferReader);
-        }
-        return null;
+    serializeBoolean(data: boolean): void {
+        const writer = new BufferListWriter();
+        this.writeBoolean(writer, data);
+        this._buffers = writer.buffers;
     }
 
-    parseArrayLength(): number | null {
-        if (this.isArray()) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readArrayLength(bufferReader);
-        }
-        return null;
+    serializeDate(data: Date): void {
+        const writer = new BufferListWriter();
+        this.writeDate(writer, data);
+        this._buffers = writer.buffers;
     }
 
-    parseArrayAt(index: number): any | null {
-        if (this.isArray()) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readArrayAt(bufferReader, index);
-        }
-        return null;
+    serializeString(data: string, encoding?: BufferEncoding): void {
+        const writer = new BufferListWriter();
+        this.writeString(writer, data, encoding);
+        this._buffers = writer.buffers;
     }
 
-    parseArraySlice(start?: number, end?: number): any | null {
-        if (this.isArray()) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readArraySlice(bufferReader, start, end);
-        }
-        return null;
+    serializeObject(data: Object): void {
+        const writer = new BufferListWriter();
+        this.writeObject(writer, data);
+        this._buffers = writer.buffers;
+    }
+
+    serializeBuffer(data: Buffer): void {
+        const writer = new BufferListWriter();
+        this.writeBuffer(writer, data);
+        this._buffers = writer.buffers;
+    }
+
+    serializeArray(data: any[]): void {
+        const writer = new BufferListWriter();
+        this.writeArray(writer, data);
+        this._buffers = writer.buffers;
     }
 }

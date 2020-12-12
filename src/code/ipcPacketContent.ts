@@ -536,7 +536,7 @@ export class IpcPacketContent {
                 return this._readString(bufferReader, this._contentSize);
 
             case BufferType.Buffer:
-                return bufferReader.slice(this._contentSize);
+                return bufferReader.subarray(this._contentSize);
 
             case BufferType.Double:
                 return bufferReader.readDouble();
@@ -560,7 +560,7 @@ export class IpcPacketContent {
             case BufferType.Object:
                 return this._readObjectDirect(depth, bufferReader);
             case BufferType.ObjectSTRINGIFY:
-                return this._readObjectSTRINGIFY2(depth, bufferReader);
+                return this._readObject(depth, bufferReader);
 
             case BufferType.Null:
                 return null;
@@ -574,24 +574,24 @@ export class IpcPacketContent {
     }
 
     // Header has been read and checked
-    private _readString(bufferReader: Reader, len: number): string {
+    protected _readString(bufferReader: Reader, len: number): string {
         // Encoding will be managed later
         return bufferReader.readString('utf8', len);
     }
 
     // Header has been read and checked
-    // private _readObjectSTRINGIFY1(depth: number, bufferReader: Reader): string {
+    // protected _readObjectSTRINGIFY1(depth: number, bufferReader: Reader): string {
     //     const data = bufferReader.readString('utf8', this._contentSize);
     //     return JSON.parse(data);
     // }
 
-    private _readObjectSTRINGIFY2(depth: number, bufferReader: Reader): string {
+    protected _readObject(depth: number, bufferReader: Reader): string {
         const data = bufferReader.readString('utf8', this._contentSize);
         return JSONParser.parse(data);
     }
 
     // Header has been read and checked
-    private _readObjectDirect(depth: number, bufferReader: Reader): any {
+    protected _readObjectDirect(depth: number, bufferReader: Reader): any {
         // Preserve the top type/content size
         const tmpPacketContent = (depth === 0) ? new IpcPacketContent() : this;
 
@@ -606,7 +606,7 @@ export class IpcPacketContent {
     }
 
     // Header has been read and checked
-    private _readArray(depth: number, bufferReader: Reader): any[] {
+    protected _readArray(depth: number, bufferReader: Reader): any[] {
         // Preserve the top type/content size
         const tmpPacketContent = (depth === 0) ? new IpcPacketContent() : this;
 

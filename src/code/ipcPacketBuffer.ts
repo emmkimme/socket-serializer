@@ -37,6 +37,11 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         return [this._buffer];
     }
 
+    protected _parseReader(): Reader {
+       const bufferReader = new BufferReader(this._buffer, this._headerSize);
+        return bufferReader;
+    }
+
     setRawContent(rawContent: IpcPacketBuffer.RawContent): void {
         super.setRawContent(rawContent);
         if (rawContent) {
@@ -103,49 +108,54 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         return isComplete;
     }
 
-    protected _serializeAndCheck(checker: () => boolean, data: any): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.write(bufferWriter, data);
-        this._buffer = bufferWriter.buffer;
-        return checker.call(this);
+    serialize(data: any, checker?: () => boolean): boolean {
+        const writer = new BufferListWriter();
+        this.write(writer, data);
+        this._buffer = writer.buffer;
+        return checker ? checker.call(this) : true;
     }
 
-    serializeString(data: string, encoding?: BufferEncoding): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.writeString(bufferWriter, data, encoding);
-        this._buffer = bufferWriter.buffer;
-        return this.isString();
+    // FOR PERFORMANCE PURPOSE, do not check the inner type, trust the caller
+    serializeNumber(data: number): void {
+        const writer = new BufferListWriter();
+        this.writeNumber(writer, data);
+        this._buffer = writer.buffer;
     }
 
-    protected _parseAndCheck(checker: () => boolean): any {
-        if (checker.call(this)) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readContent(0, bufferReader);
-        }
-        return null;
+    serializeBoolean(data: boolean): void {
+        const writer = new BufferListWriter();
+        this.writeBoolean(writer, data);
+        this._buffer = writer.buffer;
     }
 
-    parseArrayLength(): number | null {
-        if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readArrayLength(bufferReader);
-        }
-        return null;
+    serializeDate(data: Date):  void {
+        const writer = new BufferListWriter();
+        this.writeDate(writer, data);
+        this._buffer = writer.buffer;
     }
 
-    parseArrayAt(index: number): any | null {
-        if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readArrayAt(bufferReader, index);
-        }
-        return null;
+    serializeString(data: string, encoding?: BufferEncoding): void {
+        const writer = new BufferListWriter();
+        this.writeString(writer, data, encoding);
+        this._buffer = writer.buffer;
     }
 
-    parseArraySlice(start?: number, end?: number): any | null {
-        if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readArraySlice(bufferReader, start, end);
-        }
-        return null;
+    serializeObject(data: Object):  void {
+        const writer = new BufferListWriter();
+        this.writeObject(writer, data);
+        this._buffer = writer.buffer;
+    }
+
+    serializeBuffer(data: Buffer):  void {
+        const writer = new BufferListWriter();
+        this.writeBuffer(writer, data);
+        this._buffer = writer.buffer;
+    }
+
+    serializeArray(data: any[]):  void {
+        const writer = new BufferListWriter();
+        this.writeArray(writer, data);
+        this._buffer = writer.buffer;
     }
 }
+ 
