@@ -20,53 +20,53 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
 
     protected abstract _parseReader(): Reader;
 
-    parse(checker?: () => boolean): any | null {
+    parse(checker?: () => boolean): any | undefined {
         if (checker && (checker.call(this) === false)) {
-            return null;
+            return undefined;
         }
         return this._readContent(0, this._parseReader());
     }
 
     // FOR PERFORMANCE PURPOSE, do not check the inner type, trust the caller
-    parseBoolean(): boolean | null {
+    parseBoolean(): boolean | undefined {
         return this._readContent(0, this._parseReader());
     }
 
-    parseNumber(): number | null {
+    parseNumber(): number | undefined {
         return this._readContent(0, this._parseReader());
     }
 
-    parseDate(): Date | null {
+    parseDate(): Date | undefined {
         return this._readContent(0, this._parseReader());
     }
 
-    parseObject(): any | null {
+    parseObject(): any | undefined {
         return this._readContent(0, this._parseReader());
     }
 
-    parseBuffer(): Buffer | null {
+    parseBuffer(): Buffer | undefined {
         return this._readContent(0, this._parseReader());
     }
 
-    parseArray(): any[] | null {
+    parseArray(): any[] | undefined {
         return this._readArray(0, this._parseReader());
     }
 
-    parseString(): string | null {
+    parseString(): string | undefined {
         return this._readString(this._parseReader(), this._contentSize);
     }
 
-    parseArrayLength(): number {
+    parseArrayLength(): number | undefined{
         const bufferReader = this._parseReader();
         return this._readArrayLength(bufferReader);
     }
 
-    parseArrayAt(index: number): any | null {
+    parseArrayAt(index: number): any | undefined {
         const bufferReader = this._parseReader();
         return this._readArrayAt(bufferReader, index);
     }
 
-    parseArraySlice(start?: number, end?: number): any | null {
+    parseArraySlice(start?: number, end?: number): any | undefined {
         const bufferReader = this._parseReader();
         return this._readArraySlice(bufferReader, start, end);
     }}

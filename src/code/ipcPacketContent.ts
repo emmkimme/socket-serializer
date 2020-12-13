@@ -516,21 +516,21 @@ export class IpcPacketContent {
         this.writeFooter(bufferWriter);
     }
 
-    read(bufferReader: Reader): any {
+    read(bufferReader: Reader): any | undefined {
         return this._read(0, bufferReader);
     }
 
-    protected _read(depth: number, bufferReader: Reader): any {
+    protected _read(depth: number, bufferReader: Reader): any | undefined {
         if (this._readHeader(bufferReader)) {
             const arg = this._readContent(depth, bufferReader);
             bufferReader.skip(FooterLength);
             return arg;
         }
         // throw err ?
-        return null;
+        return undefined;
     }
 
-    protected _readContent(depth: number, bufferReader: Reader): any {
+    protected _readContent(depth: number, bufferReader: Reader): any | undefined {
         switch (this._type) {
             case BufferType.String:
                 return this._readString(bufferReader, this._contentSize);
@@ -659,7 +659,7 @@ export class IpcPacketContent {
             }
             --index;
         }
-        return headerArg.read(bufferReader);
+        return headerArg._read(0, bufferReader);
     }
 
     protected readArrayAt(bufferReader: Reader, index: number): any | null {
@@ -709,7 +709,7 @@ export class IpcPacketContent {
         const args = new Array(end);
         let argIndex = 0;
         while (argIndex < end) {
-            const arg = headerArg.read(bufferReader);
+            const arg = headerArg._read(0, bufferReader);
             args[argIndex++] = arg;
         }
         return args;
