@@ -20,7 +20,7 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
 
     protected abstract _parseReader(): Reader;
 
-    parse(checker?: () => boolean): any | undefined {
+    parse<T = any>(checker?: () => boolean): T | undefined {
         if (checker && (checker.call(this) === false)) {
             return undefined;
         }

@@ -621,16 +621,16 @@ export class IpcPacketContent {
     }
 
     // Header has been read and checked
-    protected _readArrayLength(bufferReader: Reader): number | null {
+    protected _readArrayLength(bufferReader: Reader): number| undefined {
         return bufferReader.readUInt32();
     }
 
-    protected readArrayLength(bufferReader: Reader): number | null {
+    protected readArrayLength(bufferReader: Reader): number| undefined {
         this._readHeader(bufferReader);
         if (this.isArray()) {
             return this._readArrayLength(bufferReader);
         }
-        return null;
+        return undefined;
     }
 
     protected byPass(bufferReader: Reader): boolean {
@@ -643,10 +643,10 @@ export class IpcPacketContent {
     }
 
     // Header has been read and checked
-    protected _readArrayAt(bufferReader: Reader, index: number): any | null {
+    protected _readArrayAt(bufferReader: Reader, index: number): any | undefined {
         const argsLen = bufferReader.readUInt32();
         if (index >= argsLen) {
-            return null;
+            return undefined;
         }
 
         // Create a tempory wrapper for keeping the original header info
@@ -655,23 +655,23 @@ export class IpcPacketContent {
             // Do not decode data just skip
             if (headerArg.byPass(bufferReader) === false) {
                 // throw err ?
-                return null;
+                return undefined;
             }
             --index;
         }
         return headerArg._read(0, bufferReader);
     }
 
-    protected readArrayAt(bufferReader: Reader, index: number): any | null {
+    protected readArrayAt(bufferReader: Reader, index: number): any | undefined {
         this._readHeader(bufferReader);
         if (this.isArray()) {
             return this._readArrayAt(bufferReader, index);
         }
-        return null;
+        return undefined;
     }
 
     // Header has been read and checked
-    protected _readArraySlice(bufferReader: Reader, start?: number, end?: number): any | null {
+    protected _readArraySlice(bufferReader: Reader, start?: number, end?: number): any | undefined {
         const argsLen = bufferReader.readUInt32();
         if (start == null) {
             start = 0;
@@ -701,7 +701,7 @@ export class IpcPacketContent {
             // Do not decode data just skip
             if (headerArg.byPass(bufferReader) === false) {
                 // throw err ?
-                return null;
+                return undefined;
             }
             --start;
             --end;
@@ -715,11 +715,11 @@ export class IpcPacketContent {
         return args;
     }
 
-    protected readArraySlice(bufferReader: Reader, start?: number, end?: number): any | null {
+    protected readArraySlice(bufferReader: Reader, start?: number, end?: number): any | undefined {
         this._readHeader(bufferReader);
         if (this.isArray()) {
             return this._readArraySlice(bufferReader, start, end);
         }
-        return null;
+        return undefined;
     }
 }
