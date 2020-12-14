@@ -103,49 +103,15 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         return isComplete;
     }
 
-    protected _serializeAndCheck(checker: () => boolean, data: any): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.write(bufferWriter, data);
-        this._buffer = bufferWriter.buffer;
-        return checker.call(this);
-    }
-
-    serializeString(data: string, encoding?: BufferEncoding): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.writeString(bufferWriter, data, encoding);
-        this._buffer = bufferWriter.buffer;
-        return this.isString();
-    }
-
-    protected _parseAndCheck(checker: () => boolean): any {
-        if (checker.call(this)) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readContent(0, bufferReader);
-        }
-        return null;
-    }
-
-    parseArrayLength(): number | null {
-        if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readArrayLength(bufferReader);
-        }
-        return null;
-    }
-
-    parseArrayAt(index: number): any | null {
-        if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readArrayAt(bufferReader, index);
-        }
-        return null;
-    }
-
-    parseArraySlice(start?: number, end?: number): any | null {
-        if (this.isArray()) {
-            const bufferReader = new BufferReader(this._buffer, this._headerSize);
-            return this._readArraySlice(bufferReader, start, end);
-        }
-        return null;
+    protected _parseReader(): Reader {
+        const bufferReader = new BufferReader(this._buffer, this._headerSize);
+         return bufferReader;
+     }
+ 
+    protected _serialize(serializer: (...args: any[]) => void, ...args: any[]): void {
+        const writer = new BufferListWriter();
+        serializer.call(this, writer, ...args);
+        this._buffer = writer.buffer;
     }
 }
+ 

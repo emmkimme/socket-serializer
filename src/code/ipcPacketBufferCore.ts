@@ -1,4 +1,5 @@
 import { IpcPacketContent } from './ipcPacketContent';
+import { Reader } from './reader';
 
 export namespace IpcPacketBufferCore {
     export interface RawContent extends IpcPacketContent.RawContent {
@@ -17,73 +18,68 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
     abstract get buffer(): Buffer;
     abstract get buffers(): Buffer[];
 
-    protected abstract _serializeAndCheck(checker: () => boolean, data: any): boolean;
+    protected abstract _serialize(serializer: (...args: any[]) => void, ...args: any[]): void;
 
-    serializeNumber(dataNumber: number): boolean {
-        return this._serializeAndCheck(this.isNumber, dataNumber);
+    serialize(data: any): void {
+        this._serialize(this.write, data);
     }
 
-    serializeBoolean(dataBoolean: boolean): boolean {
-        return this._serializeAndCheck(this.isBoolean, dataBoolean);
+    // FOR PERFORMANCE PURPOSE, do not check the type, trust the caller
+    serializeNumber(data: number): void {
+        this._serialize(this.writeNumber, data);
     }
 
-    serializeDate(dataDate: boolean): boolean {
-        return this._serializeAndCheck(this.isDate, dataDate);
+    serializeBoolean(data: boolean): void {
+        this._serialize(this.writeBoolean, data);
     }
 
-    protected abstract serializeString(data: string, encoding?: BufferEncoding): boolean;
-
-    serializeObject(dataObject: Object): boolean {
-        return this._serializeAndCheck(this.isObject, dataObject);
+    serializeDate(data: Date):  void {
+        this._serialize(this.writeDate, data);
     }
 
-    serializeBuffer(dataBuffer: Buffer): boolean {
-        return this._serializeAndCheck(this.isBuffer, dataBuffer);
+    serializeString(data: string, encoding?: BufferEncoding): void {
+        this._serialize(this.writeString, data, encoding);
     }
 
-    serializeArray(args: any[]): boolean {
-        return this._serializeAndCheck(this.isArray, args);
+    serializeObject(data: Object):  void {
+        this._serialize(this.writeObject, data);
     }
 
-    serialize(data: any): boolean {
-        return this._serializeAndCheck(this.isComplete, data);
+    serializeBuffer(data: Buffer):  void {
+        this._serialize(this.writeBuffer, data);
     }
 
-    protected abstract _parseAndCheck(checker: () => boolean): any;
-
-    parse(): any {
-        return this._parseAndCheck(this.isComplete);
+    serializeArray(data: any[]):  void {
+        this._serialize(this.writeArray, data);
     }
 
-    parseBoolean(): boolean | null {
-        return this._parseAndCheck(this.isBoolean);
+    protected abstract _parseReader(): Reader;
+
+    parse<T = any>(): T | undefined {
+        return this._readContent(0, this._parseReader());
     }
 
-    parseNumber(): number | null {
-        return this._parseAndCheck(this.isNumber);
+    parseArrayLength(): number | undefined {
+        if (this.isArray()) {
+            const bufferReader = this._parseReader();
+            return this._readArrayLength(bufferReader);
+        }
+        return undefined;
     }
 
-    parseDate(): Date | null {
-        return this._parseAndCheck(this.isDate);
+    parseArrayAt(index: number): any | undefined {
+        if (this.isArray()) {
+            const bufferReader = this._parseReader();
+            return this._readArrayAt(bufferReader, index);
+        }
+        return undefined;
     }
 
-    parseObject(): any | null {
-        return this._parseAndCheck(this.isObject);
+    parseArraySlice(start?: number, end?: number): any | undefined {
+        if (this.isArray()) {
+            const bufferReader = this._parseReader();
+            return this._readArraySlice(bufferReader, start, end);
+        }
+        return undefined;
     }
-
-    parseBuffer(): Buffer | null {
-        return this._parseAndCheck(this.isBuffer);
-    }
-
-    parseArray(): any[] | null {
-        return this._parseAndCheck(this.isArray);
-    }
-
-    parseString(): string | null {
-        return this._parseAndCheck(this.isString);
-    }
-
-    abstract parseArrayLength(): number | null;
-    abstract parseArrayAt(index: number): any | null;
-    abstract parseArraySlice(start?: number, end?: number): any | null;
 }

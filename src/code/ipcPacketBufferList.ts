@@ -44,7 +44,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         return this._buffers[0];
     }
 
-    private _singleBufferAvailable(): Buffer | null {
+    protected _singleBufferAvailable(): Buffer | null {
         if (this._buffers.length === 1) {
             return this._buffers[0];
         }
@@ -127,57 +127,15 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         return isComplete;
     }
 
-    protected _serializeAndCheck(checker: () => boolean, data: any): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.write(bufferWriter, data);
-        this._buffers = bufferWriter.buffers;
-        return checker.call(this);
+    protected _parseReader(): Reader {
+        const buffer = this._singleBufferAvailable();
+        const bufferReader = buffer ? new BufferReader(buffer, this._headerSize) : new BufferListReader(this._buffers, this._headerSize);
+        return bufferReader;
     }
 
-    serializeString(data: string, encoding?: BufferEncoding): boolean {
-        const bufferWriter = new BufferListWriter();
-        this.writeString(bufferWriter, data, encoding);
-        this._buffers = bufferWriter.buffers;
-        return this.isString();
-    }
-
-    protected _parseAndCheck(checker: () => boolean): any {
-        if (checker.call(this)) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readContent(0, bufferReader);
-        }
-        return null;
-    }
-
-    parseArrayLength(): number | null {
-        if (this.isArray()) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readArrayLength(bufferReader);
-        }
-        return null;
-    }
-
-    parseArrayAt(index: number): any | null {
-        if (this.isArray()) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readArrayAt(bufferReader, index);
-        }
-        return null;
-    }
-
-    parseArraySlice(start?: number, end?: number): any | null {
-        if (this.isArray()) {
-            const buffer = this._singleBufferAvailable();
-            const bufferReader = buffer ? new BufferReader(buffer) : new BufferListReader(this._buffers);
-            bufferReader.seek(this._headerSize);
-            return this._readArraySlice(bufferReader, start, end);
-        }
-        return null;
+   protected _serialize(serializer: (...args: any[]) => void, ...args: any[]): void {
+        const writer = new BufferListWriter();
+        serializer.call(this, writer, ...args);
+        this._buffers = writer.buffers;
     }
 }
