@@ -594,13 +594,14 @@ export class IpcPacketContent {
     protected _readObjectDirect(depth: number, bufferReader: Reader): any {
         // Preserve the top type/content size
         const tmpPacketContent = (depth === 0) ? new IpcPacketContent() : this;
+        ++depth;
 
         const offsetContentSize = bufferReader.offset + this._contentSize;
         const dataObject: any = {};
         while (bufferReader.offset < offsetContentSize) {
             let keyLen = bufferReader.readUInt32();
             let key = bufferReader.readString('utf8', keyLen);
-            dataObject[key] = tmpPacketContent._read(depth + 1, bufferReader);
+            dataObject[key] = tmpPacketContent._read(depth, bufferReader);
         }
         return dataObject;
     }
@@ -609,12 +610,13 @@ export class IpcPacketContent {
     protected _readArray(depth: number, bufferReader: Reader): any[] {
         // Preserve the top type/content size
         const tmpPacketContent = (depth === 0) ? new IpcPacketContent() : this;
+        ++depth;
 
         const argsLen = bufferReader.readUInt32();
         const args = new Array(argsLen);
         let argIndex = 0;
         while (argIndex < argsLen) {
-            const arg = tmpPacketContent._read(depth + 1, bufferReader);
+            const arg = tmpPacketContent._read(depth, bufferReader);
             args[argIndex++] = arg;
         }
         return args;
@@ -623,14 +625,6 @@ export class IpcPacketContent {
     // Header has been read and checked
     protected _readArrayLength(bufferReader: Reader): number| undefined {
         return bufferReader.readUInt32();
-    }
-
-    protected readArrayLength(bufferReader: Reader): number| undefined {
-        this._readHeader(bufferReader);
-        if (this.isArray()) {
-            return this._readArrayLength(bufferReader);
-        }
-        return undefined;
     }
 
     protected byPass(bufferReader: Reader): boolean {
@@ -660,14 +654,6 @@ export class IpcPacketContent {
             --index;
         }
         return headerArg._read(0, bufferReader);
-    }
-
-    protected readArrayAt(bufferReader: Reader, index: number): any | undefined {
-        this._readHeader(bufferReader);
-        if (this.isArray()) {
-            return this._readArrayAt(bufferReader, index);
-        }
-        return undefined;
     }
 
     // Header has been read and checked

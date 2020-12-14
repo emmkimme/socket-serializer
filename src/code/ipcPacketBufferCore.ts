@@ -18,55 +18,68 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
     abstract get buffer(): Buffer;
     abstract get buffers(): Buffer[];
 
+    protected abstract _serialize(serializer: (...args: any[]) => void, ...args: any[]): void;
+
+    serialize(data: any): void {
+        this._serialize(this.write, data);
+    }
+
+    // FOR PERFORMANCE PURPOSE, do not check the type, trust the caller
+    serializeNumber(data: number): void {
+        this._serialize(this.writeNumber, data);
+    }
+
+    serializeBoolean(data: boolean): void {
+        this._serialize(this.writeBoolean, data);
+    }
+
+    serializeDate(data: Date):  void {
+        this._serialize(this.writeDate, data);
+    }
+
+    serializeString(data: string, encoding?: BufferEncoding): void {
+        this._serialize(this.writeString, data, encoding);
+    }
+
+    serializeObject(data: Object):  void {
+        this._serialize(this.writeObject, data);
+    }
+
+    serializeBuffer(data: Buffer):  void {
+        this._serialize(this.writeBuffer, data);
+    }
+
+    serializeArray(data: any[]):  void {
+        this._serialize(this.writeArray, data);
+    }
+
     protected abstract _parseReader(): Reader;
 
-    parse<T = any>(checker?: () => boolean): T | undefined {
-        if (checker && (checker.call(this) === false)) {
-            return undefined;
+    parse<T = any>(): T | undefined {
+        return this._readContent(0, this._parseReader());
+    }
+
+    parseArrayLength(): number | undefined {
+        if (this.isArray()) {
+            const bufferReader = this._parseReader();
+            return this._readArrayLength(bufferReader);
         }
-        return this._readContent(0, this._parseReader());
-    }
-
-    // FOR PERFORMANCE PURPOSE, do not check the inner type, trust the caller
-    parseBoolean(): boolean | undefined {
-        return this._readContent(0, this._parseReader());
-    }
-
-    parseNumber(): number | undefined {
-        return this._readContent(0, this._parseReader());
-    }
-
-    parseDate(): Date | undefined {
-        return this._readContent(0, this._parseReader());
-    }
-
-    parseObject(): any | undefined {
-        return this._readContent(0, this._parseReader());
-    }
-
-    parseBuffer(): Buffer | undefined {
-        return this._readContent(0, this._parseReader());
-    }
-
-    parseArray(): any[] | undefined {
-        return this._readArray(0, this._parseReader());
-    }
-
-    parseString(): string | undefined {
-        return this._readString(this._parseReader(), this._contentSize);
-    }
-
-    parseArrayLength(): number | undefined{
-        const bufferReader = this._parseReader();
-        return this._readArrayLength(bufferReader);
+        return undefined;
     }
 
     parseArrayAt(index: number): any | undefined {
-        const bufferReader = this._parseReader();
-        return this._readArrayAt(bufferReader, index);
+        if (this.isArray()) {
+            const bufferReader = this._parseReader();
+            return this._readArrayAt(bufferReader, index);
+        }
+        return undefined;
     }
 
     parseArraySlice(start?: number, end?: number): any | undefined {
-        const bufferReader = this._parseReader();
-        return this._readArraySlice(bufferReader, start, end);
-    }}
+        if (this.isArray()) {
+            const bufferReader = this._parseReader();
+            return this._readArraySlice(bufferReader, start, end);
+        }
+        return undefined;
+    }
+}

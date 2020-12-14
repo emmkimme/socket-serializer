@@ -16,11 +16,11 @@ function test(ipcPacketCore) {
     describe('serialize', function () {
       it(`explicit should return a type ${typeof paramArray}`, function () {
         ipcPacketCore.serializeArray(paramArray);
-        assert(ArrayEqual(ipcPacketCore.parseArray(), paramArray));
+        assert(ArrayEqual(ipcPacketCore.parse(), paramArray));
       });
       it(`implicit should return a type ${typeof paramArray}`, function () {
         ipcPacketCore.serialize(paramArray);
-        assert(ArrayEqual(ipcPacketCore.parseArray(), paramArray));
+        assert(ArrayEqual(ipcPacketCore.parse(), paramArray));
       });
     });
 
