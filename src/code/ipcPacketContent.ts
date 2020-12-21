@@ -296,6 +296,7 @@ export class IpcPacketContent {
         // Write header
         bufferWriter.pushContext();
         bufferWriter.writeUInt16(bufferType);
+        bufferWriter.writeUInt32(contentSize);
     }
 
     protected popContent(bufferWriter: Writer): void {
@@ -307,11 +308,6 @@ export class IpcPacketContent {
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
     protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num?: number): void {
-        this._partialContent = false;
-        this._type = bufferType;
-        this._headerSize = FixedHeaderSize;
-        this._contentSize = contentSize;
-
         // assert(this.isFixedSize() === true);
         // Write the whole in one block buffer, to avoid multiple small buffers
         const packetSize = FixedHeaderSize + contentSize + FooterLength;
@@ -337,7 +333,13 @@ export class IpcPacketContent {
         }
         // Write footer
         bufferWriteAllInOne.writeByte(footerSeparator);
+
         // Push block in origin writer
+        this._partialContent = false;
+        this._type = bufferType;
+        this._headerSize = FixedHeaderSize;
+        this._contentSize = contentSize;
+
         bufferWriter.pushContext();
         bufferWriter.writeBuffer(bufferWriteAllInOne.buffer);
         bufferWriter.popContext();
@@ -439,7 +441,6 @@ export class IpcPacketContent {
         const buffer = Buffer.from(data, 'utf8');
         const contentSize = buffer.length;
         this.pushDynamicContent(bufferWriter, BufferType.String, contentSize);
-        bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeBuffer(buffer);
         this.popContent(bufferWriter);
     }
@@ -447,7 +448,6 @@ export class IpcPacketContent {
     writeBuffer(bufferWriter: Writer, buffer: Buffer): void {
         const contentSize = buffer.length;
         this.pushDynamicContent(bufferWriter, BufferType.Buffer, contentSize);
-        bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeBuffer(buffer);
         this.popContent(bufferWriter);
     }
@@ -466,7 +466,6 @@ export class IpcPacketContent {
             }
             const contentSize = contentBufferWriter.length;
             this.pushDynamicContent(bufferWriter, BufferType.Object, contentSize);
-            bufferWriter.writeUInt32(contentSize);
             bufferWriter.write(contentBufferWriter);
             this.popContent(bufferWriter);
         }
@@ -493,7 +492,6 @@ export class IpcPacketContent {
             }
             const contentSize = contentBufferWriter.length;
             this.pushDynamicContent(bufferWriter, BufferType.Object, contentSize);
-            bufferWriter.writeUInt32(contentSize);
             bufferWriter.write(contentBufferWriter);
             this.popContent(bufferWriter);
         }
@@ -508,7 +506,6 @@ export class IpcPacketContent {
             const buffer = Buffer.from(stringifycation);
             const contentSize = buffer.length;
             this.pushDynamicContent(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
-            bufferWriter.writeUInt32(contentSize);
             bufferWriter.writeBuffer(buffer);
             this.popContent(bufferWriter);
         }
@@ -524,7 +521,6 @@ export class IpcPacketContent {
             const buffer = Buffer.from(stringifycation, 'utf8');
             const contentSize = buffer.length;
             this.pushDynamicContent(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
-            bufferWriter.writeUInt32(contentSize);
             bufferWriter.writeBuffer(buffer);
             this.popContent(bufferWriter);
         }
@@ -541,7 +537,6 @@ export class IpcPacketContent {
         // Add args.length size
         const contentSize = contentBufferWriter.length + ArrayFieldSize;
         this.pushDynamicContent(bufferWriter, BufferType.ArrayWithSize, contentSize);
-        bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeUInt32(args.length);
         bufferWriter.write(contentBufferWriter);
         this.popContent(bufferWriter);
