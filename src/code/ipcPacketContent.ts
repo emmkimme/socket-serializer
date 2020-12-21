@@ -287,7 +287,7 @@ export class IpcPacketContent {
         return true;
     }
 
-    protected pushContext(bufferWriter: Writer, bufferType: BufferType, contentSize: number): void {
+    protected pushDynamicContent(bufferWriter: Writer, bufferType: BufferType, contentSize: number): void {
         this._partialContent = false;
         this._type = bufferType;
         this._headerSize = DynamicHeaderSize;
@@ -298,25 +298,25 @@ export class IpcPacketContent {
         bufferWriter.writeUInt16(bufferType);
     }
 
-    protected popContext(bufferWriter: Writer): void {
+    protected popContent(bufferWriter: Writer): void {
         // Write Footer
         bufferWriter.writeByte(footerSeparator);
         bufferWriter.popContext();
     }
 
-    protected writeDynamicSizeHeader(bufferWriter: Writer, bufferType: BufferType, contentSize: number): void {
-        this.pushContext(bufferWriter, bufferType, contentSize);
-        bufferWriter.writeUInt32(contentSize);
-    }
-
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
     protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num?: number): void {
+        this._partialContent = false;
+        this._type = bufferType;
+        this._headerSize = FixedHeaderSize;
+        this._contentSize = contentSize;
+
         // assert(this.isFixedSize() === true);
         // Write the whole in one block buffer, to avoid multiple small buffers
         const packetSize = FixedHeaderSize + contentSize + FooterLength;
         const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
-        this.pushContext(bufferWriteAllInOne, bufferType, contentSize);
+        bufferWriteAllInOne.writeUInt16(bufferType);
         // Write content
         switch (bufferType) {
             case BufferType.NegativeInteger:
@@ -336,7 +336,7 @@ export class IpcPacketContent {
             //     throw new Error('socket-serializer - write: not expected data');
         }
         // Write footer
-        this.popContext(bufferWriteAllInOne);
+        bufferWriteAllInOne.writeByte(footerSeparator);
         // Push block in origin writer
         bufferWriter.pushContext();
         bufferWriter.writeBuffer(bufferWriteAllInOne.buffer);
@@ -438,18 +438,18 @@ export class IpcPacketContent {
         // case 'utf-16le':
         const buffer = Buffer.from(data, 'utf8');
         const contentSize = buffer.length;
-        this.pushContext(bufferWriter, BufferType.String, contentSize);
+        this.pushDynamicContent(bufferWriter, BufferType.String, contentSize);
         bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeBuffer(buffer);
-        this.popContext(bufferWriter);
+        this.popContent(bufferWriter);
     }
 
     writeBuffer(bufferWriter: Writer, buffer: Buffer): void {
         const contentSize = buffer.length;
-        this.pushContext(bufferWriter, BufferType.Buffer, contentSize);
+        this.pushDynamicContent(bufferWriter, BufferType.Buffer, contentSize);
         bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeBuffer(buffer);
-        this.popContext(bufferWriter);
+        this.popContent(bufferWriter);
     }
 
     writeObjectDirect1(bufferWriter: Writer, dataObject: any): void {
@@ -465,10 +465,10 @@ export class IpcPacketContent {
                 this.write(contentBufferWriter, value);
             }
             const contentSize = contentBufferWriter.length;
-            this.pushContext(bufferWriter, BufferType.Object, contentSize);
+            this.pushDynamicContent(bufferWriter, BufferType.Object, contentSize);
             bufferWriter.writeUInt32(contentSize);
             bufferWriter.write(contentBufferWriter);
-            this.popContext(bufferWriter);
+            this.popContent(bufferWriter);
         }
     }
 
@@ -492,10 +492,10 @@ export class IpcPacketContent {
                 }
             }
             const contentSize = contentBufferWriter.length;
-            this.pushContext(bufferWriter, BufferType.Object, contentSize);
+            this.pushDynamicContent(bufferWriter, BufferType.Object, contentSize);
             bufferWriter.writeUInt32(contentSize);
             bufferWriter.write(contentBufferWriter);
-            this.popContext(bufferWriter);
+            this.popContent(bufferWriter);
         }
     }
 
@@ -507,10 +507,10 @@ export class IpcPacketContent {
             const stringifycation = JSON.stringify(dataObject);
             const buffer = Buffer.from(stringifycation);
             const contentSize = buffer.length;
-            this.pushContext(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
+            this.pushDynamicContent(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
             bufferWriter.writeUInt32(contentSize);
             bufferWriter.writeBuffer(buffer);
-            this.popContext(bufferWriter);
+            this.popContent(bufferWriter);
         }
     }
 
@@ -523,10 +523,10 @@ export class IpcPacketContent {
             const stringifycation = JSONParser.stringify(dataObject);
             const buffer = Buffer.from(stringifycation, 'utf8');
             const contentSize = buffer.length;
-            this.pushContext(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
+            this.pushDynamicContent(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
             bufferWriter.writeUInt32(contentSize);
             bufferWriter.writeBuffer(buffer);
-            this.popContext(bufferWriter);
+            this.popContent(bufferWriter);
         }
     }
 
@@ -540,11 +540,11 @@ export class IpcPacketContent {
         // JSONParser.uninstall();
         // Add args.length size
         const contentSize = contentBufferWriter.length + ArrayFieldSize;
-        this.pushContext(bufferWriter, BufferType.ArrayWithSize, contentSize);
+        this.pushDynamicContent(bufferWriter, BufferType.ArrayWithSize, contentSize);
         bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeUInt32(args.length);
         bufferWriter.write(contentBufferWriter);
-        this.popContext(bufferWriter);
+        this.popContent(bufferWriter);
     }
 
     read(bufferReader: Reader): any | undefined {
