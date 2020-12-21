@@ -307,7 +307,12 @@ export class IpcPacketContent {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num?: number): void {
+    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num: number): void {
+        this._partialContent = false;
+        this._type = bufferType;
+        this._headerSize = FixedHeaderSize;
+        this._contentSize = contentSize;
+
         // assert(this.isFixedSize() === true);
         // Write the whole in one block buffer, to avoid multiple small buffers
         const packetSize = FixedHeaderSize + contentSize + FooterLength;
@@ -335,11 +340,6 @@ export class IpcPacketContent {
         bufferWriteAllInOne.writeByte(footerSeparator);
 
         // Push block in origin writer
-        this._partialContent = false;
-        this._type = bufferType;
-        this._headerSize = FixedHeaderSize;
-        this._contentSize = contentSize;
-
         bufferWriter.pushContext();
         bufferWriter.writeBuffer(bufferWriteAllInOne.buffer);
         bufferWriter.popContext();
@@ -382,7 +382,7 @@ export class IpcPacketContent {
                 this.writeBoolean(bufferWriter, data);
                 break;
             case 'undefined':
-                this.writeFixedSize(bufferWriter, BufferType.Undefined, NullUndefinedContentSize);
+                this.writeFixedSize(bufferWriter, BufferType.Undefined, NullUndefinedContentSize, -1);
                 break;
             case 'symbol':
             default:
@@ -392,7 +392,7 @@ export class IpcPacketContent {
 
     writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
         const type = dataBoolean ? BufferType.BooleanTrue : BufferType.BooleanFalse;
-        this.writeFixedSize(bufferWriter, type, BooleanContentSize);
+        this.writeFixedSize(bufferWriter, type, BooleanContentSize, -1);
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
@@ -420,7 +420,7 @@ export class IpcPacketContent {
 
     writeDate(bufferWriter: Writer, data: Date) {
         const t = data.getTime();
-        this.writeFixedSize(bufferWriter, BufferType.Date, t);
+        this.writeFixedSize(bufferWriter, BufferType.Date, DateContentSize, t);
     }
 
     // We do not use writeFixedSize
@@ -454,7 +454,7 @@ export class IpcPacketContent {
 
     writeObjectDirect1(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
         }
         else {
             const contentBufferWriter = new BufferListWriter();
@@ -473,7 +473,7 @@ export class IpcPacketContent {
 
     writeObjectDirect2(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
         }
         else {
             const contentBufferWriter = new BufferListWriter();
@@ -499,7 +499,7 @@ export class IpcPacketContent {
 
     writeObjectSTRINGIFY1(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
         }
         else {
             const stringifycation = JSON.stringify(dataObject);
@@ -514,7 +514,7 @@ export class IpcPacketContent {
     // Default methods for these kind of data
     writeObject(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
         }
         else {
             const stringifycation = JSONParser.stringify(dataObject);
@@ -670,16 +670,16 @@ export class IpcPacketContent {
         }
 
         // Create a tempory wrapper for keeping the original header info
-        const headerArg = new IpcPacketContent();
+        const packetArg = new IpcPacketContent();
         while (index > 0) {
             // Do not decode data just skip
-            if (headerArg.byPass(bufferReader) === false) {
+            if (packetArg.byPass(bufferReader) === false) {
                 // throw err ?
                 return undefined;
             }
             --index;
         }
-        return headerArg._read(0, bufferReader);
+        return packetArg._read(0, bufferReader);
     }
 
     // Header has been read and checked
@@ -708,10 +708,10 @@ export class IpcPacketContent {
         }
 
         // Create a tempory wrapper for keeping the original header info
-        const headerArg = new IpcPacketContent();
+        const packetArg = new IpcPacketContent();
         while (start > 0) {
             // Do not decode data just skip
-            if (headerArg.byPass(bufferReader) === false) {
+            if (packetArg.byPass(bufferReader) === false) {
                 // throw err ?
                 return undefined;
             }
@@ -721,7 +721,7 @@ export class IpcPacketContent {
         const args = new Array(end);
         let argIndex = 0;
         while (argIndex < end) {
-            const arg = headerArg._read(0, bufferReader);
+            const arg = packetArg._read(0, bufferReader);
             args[argIndex++] = arg;
         }
         return args;
