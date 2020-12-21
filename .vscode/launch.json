@@ -12,7 +12,6 @@
                     // "test/ipcPacketNet.test.js",
                     // "test/perf.test.js",
                     "test/ipcPacketBuffer.test.js",
-                    // "test/ipcPacketNet.test.js",
                     // "test/ipcPacketNetBuffer.test.js",
                     // "test/**/*.test.js",
                     // "test",

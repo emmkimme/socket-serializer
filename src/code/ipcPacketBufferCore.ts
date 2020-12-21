@@ -24,7 +24,7 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
         this._serialize(this.write, data);
     }
 
-    // FOR PERFORMANCE PURPOSE, do not check the type, trust the caller
+    // Caller must be sure and must ensure this is the expected type, else result would be unpredictable
     serializeNumber(data: number): void {
         this._serialize(this.writeNumber, data);
     }
@@ -59,27 +59,19 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
         return this._readContent(0, this._parseReader());
     }
 
+    // Caller must be sure and must ensure this is an array, else result would be unpredictable
     parseArrayLength(): number | undefined {
-        if (this.isArray()) {
-            const bufferReader = this._parseReader();
-            return this._readArrayLength(bufferReader);
-        }
-        return undefined;
+        const bufferReader = this._parseReader();
+        return this._readArrayLength(bufferReader);
     }
 
     parseArrayAt(index: number): any | undefined {
-        if (this.isArray()) {
-            const bufferReader = this._parseReader();
-            return this._readArrayAt(bufferReader, index);
-        }
-        return undefined;
+        const bufferReader = this._parseReader();
+        return this._readArrayAt(bufferReader, index);
     }
 
     parseArraySlice(start?: number, end?: number): any | undefined {
-        if (this.isArray()) {
-            const bufferReader = this._parseReader();
-            return this._readArraySlice(bufferReader, start, end);
-        }
-        return undefined;
+        const bufferReader = this._parseReader();
+        return this._readArraySlice(bufferReader, start, end);
     }
 }
