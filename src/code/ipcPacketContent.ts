@@ -336,8 +336,9 @@ export class IpcPacketContent {
             //     throw new Error('socket-serializer - write: not expected data');
         }
         // Write footer
-        bufferWriteAllInOne.writeByte(footerSeparator);
+        this.popContext(bufferWriteAllInOne);
         // Push block in origin writer
+        bufferWriter.pushContext();
         bufferWriter.writeBuffer(bufferWriteAllInOne.buffer);
         bufferWriter.popContext();
     }
