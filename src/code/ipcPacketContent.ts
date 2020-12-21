@@ -264,7 +264,7 @@ export class IpcPacketContent {
         if (this._type === BufferType.NotValid) {
             return false;
         }
-        if (this._headerSize >= DynamicHeaderSize) {
+        if (this._headerSize === DynamicHeaderSize) {
             // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = ContentFieldSize
             if (bufferReader.checkEOF(ContentFieldSize)) {
                 this._type = BufferType.PartialHeader;
@@ -274,13 +274,13 @@ export class IpcPacketContent {
             this._contentSize = bufferReader.readUInt32();
         }
         if (bufferReader.checkEOF(this._contentSize + FooterLength)) {
-            // Should be part of the header
-            if (this._type === BufferType.ArrayWithSize) {
-                if (bufferReader.checkEOF(ArrayFieldSize)) {
-                    this._type = BufferType.PartialHeader;
-                    return false;
-                }
-            }
+            // Should be part of the header ?
+            // if (this._type === BufferType.ArrayWithSize) {
+            //     if (bufferReader.checkEOF(ArrayFieldSize)) {
+            //         this._type = BufferType.PartialHeader;
+            //         return false;
+            //     }
+            // }
             this._partialContent = true;
             return false;
         }
