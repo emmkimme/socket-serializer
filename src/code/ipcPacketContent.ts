@@ -15,6 +15,12 @@ const ArrayFieldSize = 4;
 const DynamicHeaderSize = FixedHeaderSize + ContentFieldSize;
 // const ArrayHeaderSize = DynamicHeaderSize + ArrayFieldSize;
 
+export const DoubleContentSize = 8;
+export const DateContentSize = 8;
+export const IntegerContentSize = 4;
+export const BooleanContentSize = 0;
+export const NullUndefinedContentSize = 0;
+
 function BufferTypeHeader(type: string): number {
     return (type.charCodeAt(0) << 8) + headerSeparator;
 }
@@ -79,7 +85,6 @@ export class IpcPacketContent {
         }
     }
 
-
     reset(): void {
         this.setTypeAndContentSize(BufferType.NotValid, -1);
     }
@@ -123,24 +128,27 @@ export class IpcPacketContent {
         this._type = bufferType;
         switch (bufferType) {
             case BufferType.Date:
+                this._headerSize = FixedHeaderSize;
+                this._contentSize = DateContentSize;
+                break;
             case BufferType.Double:
                 this._headerSize = FixedHeaderSize;
-                // 8 by default
-                this._contentSize = 8;
+                this._contentSize = DoubleContentSize;
                 break;
             case BufferType.NegativeInteger:
             case BufferType.PositiveInteger:
                 this._headerSize = FixedHeaderSize;
-                // 4 by default
-                this._contentSize = 4;
+                this._contentSize = IntegerContentSize;
                 break;
             case BufferType.BooleanTrue:
             case BufferType.BooleanFalse:
+                this._headerSize = FixedHeaderSize;
+                this._contentSize = BooleanContentSize;
+                break;
             case BufferType.Null:
             case BufferType.Undefined:
                 this._headerSize = FixedHeaderSize;
-                // 0 by default
-                this._contentSize = 0;
+                this._contentSize = NullUndefinedContentSize;
                 break;
             // case BufferType.ArrayWithLen:
             //     this._headerSize = MinHeaderLength;
@@ -279,29 +287,36 @@ export class IpcPacketContent {
         return true;
     }
 
-    protected writeFooter(bufferWriter: Writer): void {
+    protected pushContext(bufferWriter: Writer, bufferType: BufferType, contentSize: number): void {
+        this._partialContent = false;
+        this._type = bufferType;
+        this._headerSize = DynamicHeaderSize;
+        this._contentSize = contentSize;
+
+        // Write header
+        bufferWriter.pushContext();
+        bufferWriter.writeUInt16(bufferType);
+    }
+
+    protected popContext(bufferWriter: Writer): void {
+        // Write Footer
         bufferWriter.writeByte(footerSeparator);
         bufferWriter.popContext();
     }
 
     protected writeDynamicSizeHeader(bufferWriter: Writer, bufferType: BufferType, contentSize: number): void {
-        bufferWriter.pushContext();
-        this.setTypeAndContentSize(bufferType, contentSize);
-        // assert(this.isFixedSize() === false);
-        bufferWriter.writeUInt16(this._type);
-        bufferWriter.writeUInt32(this._contentSize);
+        this.pushContext(bufferWriter, bufferType, contentSize);
+        bufferWriter.writeUInt32(contentSize);
     }
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, num?: number): void {
-        bufferWriter.pushContext();
-        this.setTypeAndContentSize(bufferType, -1);
+    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num?: number): void {
         // assert(this.isFixedSize() === true);
         // Write the whole in one block buffer, to avoid multiple small buffers
-        const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(this.packetSize));
-        // Write header
-        bufferWriteAllInOne.writeUInt16(this._type);
+        const packetSize = FixedHeaderSize + contentSize + FooterLength;
+        const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
+        this.pushContext(bufferWriteAllInOne, bufferType, contentSize);
         // Write content
         switch (bufferType) {
             case BufferType.NegativeInteger:
@@ -364,7 +379,7 @@ export class IpcPacketContent {
                 this.writeBoolean(bufferWriter, data);
                 break;
             case 'undefined':
-                this.writeFixedSize(bufferWriter, BufferType.Undefined);
+                this.writeFixedSize(bufferWriter, BufferType.Undefined, NullUndefinedContentSize);
                 break;
             case 'symbol':
             default:
@@ -373,7 +388,8 @@ export class IpcPacketContent {
     }
 
     writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
-        this.writeFixedSize(bufferWriter, dataBoolean ? BufferType.BooleanTrue : BufferType.BooleanFalse);
+        const type = dataBoolean ? BufferType.BooleanTrue : BufferType.BooleanFalse;
+        this.writeFixedSize(bufferWriter, type, BooleanContentSize);
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
@@ -385,18 +401,18 @@ export class IpcPacketContent {
             if (absDataNumber <= 0xFFFFFFFF) {
                 // Negative integer
                 if (dataNumber < 0) {
-                    this.writeFixedSize(bufferWriter, BufferType.NegativeInteger, absDataNumber);
+                    this.writeFixedSize(bufferWriter, BufferType.NegativeInteger, IntegerContentSize, absDataNumber);
                 }
                 // Positive integer
                 else {
-                    this.writeFixedSize(bufferWriter, BufferType.PositiveInteger, absDataNumber);
+                    this.writeFixedSize(bufferWriter, BufferType.PositiveInteger, IntegerContentSize, absDataNumber);
                 }
                 return;
             }
         }
         // Either this is not an integer or it is outside of a 32-bit integer.
         // Save as a double.
-        this.writeFixedSize(bufferWriter, BufferType.Double, dataNumber);
+        this.writeFixedSize(bufferWriter, BufferType.Double, DoubleContentSize, dataNumber);
     }
 
     writeDate(bufferWriter: Writer, data: Date) {
@@ -420,20 +436,24 @@ export class IpcPacketContent {
         // case 'utf16le':
         // case 'utf-16le':
         const buffer = Buffer.from(data, 'utf8');
-        this.writeDynamicSizeHeader(bufferWriter, BufferType.String, buffer.length);
+        const contentSize = buffer.length;
+        this.pushContext(bufferWriter, BufferType.String, contentSize);
+        bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeBuffer(buffer);
-        this.writeFooter(bufferWriter);
+        this.popContext(bufferWriter);
     }
 
     writeBuffer(bufferWriter: Writer, buffer: Buffer): void {
-        this.writeDynamicSizeHeader(bufferWriter, BufferType.Buffer, buffer.length);
+        const contentSize = buffer.length;
+        this.pushContext(bufferWriter, BufferType.Buffer, contentSize);
+        bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeBuffer(buffer);
-        this.writeFooter(bufferWriter);
+        this.popContext(bufferWriter);
     }
 
     writeObjectDirect1(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
         }
         else {
             const contentBufferWriter = new BufferListWriter();
@@ -443,15 +463,17 @@ export class IpcPacketContent {
                 contentBufferWriter.writeBuffer(buffer);
                 this.write(contentBufferWriter, value);
             }
-            this.writeDynamicSizeHeader(bufferWriter, BufferType.Object, contentBufferWriter.length);
+            const contentSize = contentBufferWriter.length;
+            this.pushContext(bufferWriter, BufferType.Object, contentSize);
+            bufferWriter.writeUInt32(contentSize);
             bufferWriter.write(contentBufferWriter);
-            this.writeFooter(bufferWriter);
+            this.popContext(bufferWriter);
         }
     }
 
     writeObjectDirect2(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
         }
         else {
             const contentBufferWriter = new BufferListWriter();
@@ -468,36 +490,42 @@ export class IpcPacketContent {
                     this.write(contentBufferWriter, desc.value);
                 }
             }
-            this.writeDynamicSizeHeader(bufferWriter, BufferType.Object, contentBufferWriter.length);
+            const contentSize = contentBufferWriter.length;
+            this.pushContext(bufferWriter, BufferType.Object, contentSize);
+            bufferWriter.writeUInt32(contentSize);
             bufferWriter.write(contentBufferWriter);
-            this.writeFooter(bufferWriter);
+            this.popContext(bufferWriter);
         }
     }
 
     writeObjectSTRINGIFY1(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
         }
         else {
             const stringifycation = JSON.stringify(dataObject);
             const buffer = Buffer.from(stringifycation);
-            this.writeDynamicSizeHeader(bufferWriter, BufferType.ObjectSTRINGIFY, buffer.length);
+            const contentSize = buffer.length;
+            this.pushContext(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
+            bufferWriter.writeUInt32(contentSize);
             bufferWriter.writeBuffer(buffer);
-            this.writeFooter(bufferWriter);
+            this.popContext(bufferWriter);
         }
     }
 
     // Default methods for these kind of data
     writeObject(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null);
+            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize);
         }
         else {
             const stringifycation = JSONParser.stringify(dataObject);
             const buffer = Buffer.from(stringifycation, 'utf8');
-            this.writeDynamicSizeHeader(bufferWriter, BufferType.ObjectSTRINGIFY, buffer.length);
+            const contentSize = buffer.length;
+            this.pushContext(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
+            bufferWriter.writeUInt32(contentSize);
             bufferWriter.writeBuffer(buffer);
-            this.writeFooter(bufferWriter);
+            this.popContext(bufferWriter);
         }
     }
 
@@ -510,10 +538,12 @@ export class IpcPacketContent {
         }
         // JSONParser.uninstall();
         // Add args.length size
-        this.writeDynamicSizeHeader(bufferWriter, BufferType.ArrayWithSize, contentBufferWriter.length + ArrayFieldSize);
+        const contentSize = contentBufferWriter.length + ArrayFieldSize;
+        this.pushContext(bufferWriter, BufferType.ArrayWithSize, contentSize);
+        bufferWriter.writeUInt32(contentSize);
         bufferWriter.writeUInt32(args.length);
         bufferWriter.write(contentBufferWriter);
-        this.writeFooter(bufferWriter);
+        this.popContext(bufferWriter);
     }
 
     read(bufferReader: Reader): any | undefined {
