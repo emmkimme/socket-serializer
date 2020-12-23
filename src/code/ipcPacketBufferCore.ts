@@ -63,16 +63,16 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
     // Caller must be sure and must ensure this is an array, else result would be unpredictable
     parseArrayLength(): number | undefined {
         const bufferReader = this._parseReader();
-        return this.readArrayLength(bufferReader);
+        return this._readContentArrayLength(bufferReader);
     }
 
     parseArrayAt(index: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this.readArrayAt(bufferReader, index);
+        return this._readContentArrayAt(bufferReader, index);
     }
 
     parseArraySlice(start?: number, end?: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this.readArraySlice(bufferReader, start, end);
+        return this._readContentArraySlice(bufferReader, start, end);
     }
 }

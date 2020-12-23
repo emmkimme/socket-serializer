@@ -47,7 +47,7 @@ export class IpcPacketContent extends IpcPacketCore {
     }
 
     // Header has been read and checked
-    protected _readObjectDirect(bufferReader: Reader): any {
+    _readContentObjectDirect(bufferReader: Reader): any {
         // Preserve the top type/content size
         const packetCore = new IpcPacketCore();
 
@@ -62,19 +62,19 @@ export class IpcPacketContent extends IpcPacketCore {
     }
 
     // Header has been read and checked
-    readArray(bufferReader: Reader): any[] {
+    _readContentArray(bufferReader: Reader): any[] {
         const packetCore = new IpcPacketCore();
-        return packetCore.readArray(bufferReader);
+        return packetCore._readContentArray(bufferReader);
     }
 
     // Header has been read and checked
-    readArrayAt(bufferReader: Reader, index: number): any | undefined {
+    _readContentArrayAt(bufferReader: Reader, index: number): any | undefined {
         const packetCore = new IpcPacketCore();
-        return packetCore.readArrayAt(bufferReader, index);
+        return packetCore._readContentArrayAt(bufferReader, index);
     }
 
-    readArraySlice(bufferReader: Reader, start?: number, end?: number): any | undefined {
+    _readContentArraySlice(bufferReader: Reader, start?: number, end?: number): any | undefined {
         const packetCore = new IpcPacketCore();
-        return packetCore.readArraySlice(bufferReader, start, end);
+        return packetCore._readContentArraySlice(bufferReader, start, end);
     }
 }

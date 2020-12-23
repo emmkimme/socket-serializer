@@ -252,7 +252,7 @@ export class IpcPacketCore {
         return (this._headerSize === FixedHeaderSize);
     }
 
-    protected _readHeader(bufferReader: Reader): boolean {
+    _readHeader(bufferReader: Reader): boolean {
         // Header minimum size is FixedHeaderSize
         if (bufferReader.checkEOF(FixedHeaderSize)) {
             this._type = BufferType.PartialHeader;
@@ -542,10 +542,10 @@ export class IpcPacketCore {
         return undefined;
     }
 
-    protected _readContent(bufferReader: Reader): any | undefined {
+    _readContent(bufferReader: Reader): any | undefined {
         switch (this._type) {
             case BufferType.String:
-                return this._readString(bufferReader, this._contentSize);
+                return this._readContentString(bufferReader, this._contentSize);
 
             case BufferType.Buffer:
                 return bufferReader.subarray(this._contentSize);
@@ -567,12 +567,12 @@ export class IpcPacketCore {
     
                 // case BufferType.ArrayWithLen:
             case BufferType.ArrayWithSize:
-                return this.readArray(bufferReader);
+                return this._readContentArray(bufferReader);
 
             case BufferType.Object:
-                return this._readObjectDirect(bufferReader);
+                return this._readContentObjectDirect(bufferReader);
             case BufferType.ObjectSTRINGIFY:
-                return this._readObject(bufferReader);
+                return this._readContentObject(bufferReader);
 
             case BufferType.Null:
                 return null;
@@ -586,7 +586,7 @@ export class IpcPacketCore {
     }
 
     // Header has been read and checked
-    protected _readString(bufferReader: Reader, len: number): string {
+    _readContentString(bufferReader: Reader, len: number): string {
         // Encoding will be managed later
         return bufferReader.readString('utf8', len);
     }
@@ -597,13 +597,13 @@ export class IpcPacketCore {
     //     return JSON.parse(data);
     // }
 
-    protected _readObject(bufferReader: Reader): string {
+    _readContentObject(bufferReader: Reader): string {
         const data = bufferReader.readString('utf8', this._contentSize);
         return JSONParser.parse(data);
     }
 
     // Header has been read and checked
-    protected _readObjectDirect(bufferReader: Reader): any {
+    _readContentObjectDirect(bufferReader: Reader): any {
         const offsetContentSize = bufferReader.offset + this._contentSize;
         const dataObject: any = {};
         while (bufferReader.offset < offsetContentSize) {
@@ -615,7 +615,7 @@ export class IpcPacketCore {
     }
 
     // Header has been read and checked
-    readArray(bufferReader: Reader): any[] {
+    _readContentArray(bufferReader: Reader): any[] {
         const argsLen = bufferReader.readUInt32();
         const args = new Array(argsLen);
         let argIndex = 0;
@@ -627,7 +627,7 @@ export class IpcPacketCore {
     }
 
     // Header has been read and checked
-    readArrayLength(bufferReader: Reader): number| undefined {
+    _readContentArrayLength(bufferReader: Reader): number| undefined {
         return bufferReader.readUInt32();
     }
 
@@ -641,7 +641,7 @@ export class IpcPacketCore {
     }
 
     // Header has been read and checked
-    readArrayAt(bufferReader: Reader, index: number): any | undefined {
+    _readContentArrayAt(bufferReader: Reader, index: number): any | undefined {
         const argsLen = bufferReader.readUInt32();
         if (index >= argsLen) {
             return undefined;
@@ -658,7 +658,7 @@ export class IpcPacketCore {
     }
 
     // Header has been read and checked
-    readArraySlice(bufferReader: Reader, start?: number, end?: number): any | undefined {
+    _readContentArraySlice(bufferReader: Reader, start?: number, end?: number): any | undefined {
         const argsLen = bufferReader.readUInt32();
         if (start == null) {
             start = 0;
