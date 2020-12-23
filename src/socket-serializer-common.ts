@@ -3,7 +3,8 @@ export { IpcPacketBuffer } from './code/ipcPacketBuffer';
 export { IpcPacketBufferList } from './code/ipcPacketBufferList';
 export { IpcPacketBufferCore } from './code/ipcPacketBufferCore';
 export { IpcPacketContent } from './code/ipcPacketContent';
-export { BufferType } from './code/ipcPacketContent';
+export { IpcPacketCore } from './code/ipcPacketCore';
+export { BufferType } from './code/ipcPacketCore';
 
 export { Writer } from './code/writer';
 export { BufferWriter } from './code/bufferWriter';

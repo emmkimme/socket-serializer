@@ -1,8 +1,9 @@
 import { IpcPacketContent } from './ipcPacketContent';
+import { IpcPacketCore } from './ipcPacketCore';
 import { Reader } from './reader';
 
 export namespace IpcPacketBufferCore {
-    export interface RawContent extends IpcPacketContent.RawContent {
+    export interface RawContent extends IpcPacketCore.RawContent {
         buffer?: Buffer;
         buffers?: Buffer[];
     }
@@ -56,22 +57,22 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
     protected abstract _parseReader(): Reader;
 
     parse<T = any>(): T | undefined {
-        return this._readContent(0, this._parseReader());
+        return this._readContent(this._parseReader());
     }
 
     // Caller must be sure and must ensure this is an array, else result would be unpredictable
     parseArrayLength(): number | undefined {
         const bufferReader = this._parseReader();
-        return this._readArrayLength(bufferReader);
+        return this.readArrayLength(bufferReader);
     }
 
     parseArrayAt(index: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this._readArrayAt(bufferReader, index);
+        return this.readArrayAt(bufferReader, index);
     }
 
     parseArraySlice(start?: number, end?: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this._readArraySlice(bufferReader, start, end);
+        return this.readArraySlice(bufferReader, start, end);
     }
 }
