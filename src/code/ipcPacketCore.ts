@@ -62,6 +62,9 @@ export enum BufferType {
     Date = BufferTypeHeader('D'),
 };
 
+const BufferFooter = Buffer.allocUnsafe(1).fill(footerSeparator);
+// const BufferBooleanTrue = Buffer.allocUnsafe(new Uint8Array() BooleanContentSize + FixedHeaderSize + FooterLength).fill([headerSeparator, string('T').charCodeAt(0), footerSeparator);
+
 export namespace IpcPacketCore {
     export interface RawContent {
         type: BufferType;
@@ -294,9 +297,9 @@ export class IpcPacketCore {
         bufferWriter.writeUInt32(contentSize);
     }
 
-    protected popContent(bufferWriter: Writer): void {
+    protected popDynamicContent(bufferWriter: Writer): void {
         // Write Footer
-        bufferWriter.writeByte(footerSeparator);
+        bufferWriter.writeBuffer(BufferFooter);
         bufferWriter.popContext();
     }
 
@@ -432,14 +435,14 @@ export class IpcPacketCore {
         const contentSize = buffer.length;
         this.pushDynamicContent(bufferWriter, BufferType.String, contentSize);
         bufferWriter.writeBuffer(buffer);
-        this.popContent(bufferWriter);
+        this.popDynamicContent(bufferWriter);
     }
 
     writeBuffer(bufferWriter: Writer, buffer: Buffer): void {
         const contentSize = buffer.length;
         this.pushDynamicContent(bufferWriter, BufferType.Buffer, contentSize);
         bufferWriter.writeBuffer(buffer);
-        this.popContent(bufferWriter);
+        this.popDynamicContent(bufferWriter);
     }
 
     writeObjectDirect1(bufferWriter: Writer, dataObject: any): void {
@@ -457,7 +460,7 @@ export class IpcPacketCore {
             const contentSize = contentBufferWriter.length;
             this.pushDynamicContent(bufferWriter, BufferType.Object, contentSize);
             bufferWriter.write(contentBufferWriter);
-            this.popContent(bufferWriter);
+            this.popDynamicContent(bufferWriter);
         }
     }
 
@@ -483,7 +486,7 @@ export class IpcPacketCore {
             const contentSize = contentBufferWriter.length;
             this.pushDynamicContent(bufferWriter, BufferType.Object, contentSize);
             bufferWriter.write(contentBufferWriter);
-            this.popContent(bufferWriter);
+            this.popDynamicContent(bufferWriter);
         }
     }
 
@@ -497,7 +500,7 @@ export class IpcPacketCore {
             const contentSize = buffer.length;
             this.pushDynamicContent(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
             bufferWriter.writeBuffer(buffer);
-            this.popContent(bufferWriter);
+            this.popDynamicContent(bufferWriter);
         }
     }
 
@@ -512,7 +515,7 @@ export class IpcPacketCore {
             const contentSize = buffer.length;
             this.pushDynamicContent(bufferWriter, BufferType.ObjectSTRINGIFY, contentSize);
             bufferWriter.writeBuffer(buffer);
-            this.popContent(bufferWriter);
+            this.popDynamicContent(bufferWriter);
         }
     }
 
@@ -529,7 +532,7 @@ export class IpcPacketCore {
         this.pushDynamicContent(bufferWriter, BufferType.ArrayWithSize, contentSize);
         bufferWriter.writeUInt32(args.length);
         bufferWriter.write(contentBufferWriter);
-        this.popContent(bufferWriter);
+        this.popDynamicContent(bufferWriter);
     }
 
     read(bufferReader: Reader): any | undefined {

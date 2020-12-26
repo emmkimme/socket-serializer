@@ -43,7 +43,7 @@ export class IpcPacketContent extends IpcPacketCore {
         this.pushDynamicContent(bufferWriter, BufferType.ArrayWithSize, contentSize);
         bufferWriter.writeUInt32(args.length);
         bufferWriter.write(contentBufferWriter);
-        this.popContent(bufferWriter);
+        this.popDynamicContent(bufferWriter);
     }
 
     // Header has been read and checked
