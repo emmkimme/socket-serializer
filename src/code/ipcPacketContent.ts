@@ -2,47 +2,53 @@
 import { Reader } from './reader';
 import { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
-import { BufferType, DynamicHeaderSize, FixedHeaderSize, ArrayFieldSize, IpcPacketCore, FooterLength } from './ipcPacketCore';
+import { BufferType, DynamicHeaderSize, FixedHeaderSize, IpcPacketCore, FooterLength } from './ipcPacketCore';
 
 export class IpcPacketContent extends IpcPacketCore {
     constructor(rawContent?: IpcPacketCore.RawContent) {
         super(rawContent);
     }
 
-    protected pushDynamicContent(writer: Writer, bufferType: BufferType, contentSize: number): void {
+    protected writeDynamicBuffer(writer: Writer, bufferType: BufferType, bufferContent: Buffer): void {
         this._partialContent = false;
         this._type = bufferType;
         this._headerSize = DynamicHeaderSize;
-        this._contentSize = contentSize;
+        this._contentSize = bufferContent.length;
 
-        super.pushDynamicContent(writer, bufferType, contentSize);
+        super.writeDynamicBuffer(writer, bufferType, bufferContent);
+    }
+
+    protected writeDynamicContent(writer: Writer, bufferType: BufferType, writerContent: Writer): void {
+        this._partialContent = false;
+        this._type = bufferType;
+        this._headerSize = DynamicHeaderSize;
+        this._contentSize = writerContent.length;
+
+        super.writeDynamicContent(writer, bufferType, writerContent);
     }
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, bufferContent?: Buffer): void {
+    protected writeFixedContent(bufferWriter: Writer, bufferType: BufferType, bufferContent?: Buffer): void {
         this._partialContent = false;
         this._type = bufferType;
         this._headerSize = FixedHeaderSize;
         this._contentSize = bufferContent ? bufferContent.length - FixedHeaderSize - FooterLength : 0;
-        super.writeFixedSize(bufferWriter, bufferType, bufferContent);
+        super.writeFixedContent(bufferWriter, bufferType, bufferContent);
     }
 
     // Default methods for these kind of data
     writeArray(bufferWriter: Writer, args: any[]): void {
         const packetCore = new IpcPacketCore();
-        const contentBufferWriter = new BufferListWriter();
+        const contentWriter = new BufferListWriter();
+        contentWriter.writeUInt32(args.length);
         // JSONParser.install();
         for (let i = 0, l = args.length; i < l; ++i) {
-            packetCore.write(contentBufferWriter, args[i]);
+            packetCore.write(contentWriter, args[i]);
         }
         // JSONParser.uninstall();
         // Add args.length size
-        const contentSize = contentBufferWriter.length + ArrayFieldSize;
-        this.pushDynamicContent(bufferWriter, BufferType.ArrayWithSize, contentSize);
-        bufferWriter.writeUInt32(args.length);
-        bufferWriter.write(contentBufferWriter);
-        this.popDynamicContent(bufferWriter);
+        this.writeDynamicContent(bufferWriter, BufferType.ArrayWithSize, contentWriter);
     }
 
     // Header has been read and checked
