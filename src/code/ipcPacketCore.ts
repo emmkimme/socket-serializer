@@ -63,7 +63,19 @@ export enum BufferType {
 };
 
 const BufferFooter = Buffer.allocUnsafe(1).fill(footerSeparator);
-// const BufferBooleanTrue = Buffer.allocUnsafe(new Uint8Array() BooleanContentSize + FixedHeaderSize + FooterLength).fill([headerSeparator, string('T').charCodeAt(0), footerSeparator);
+
+function CreateFixedSizeBuffer(type: BufferType): Buffer {
+    const packetSize = FixedHeaderSize + FooterLength;
+    const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
+    bufferWriteAllInOne.writeUInt16(type);
+    bufferWriteAllInOne.writeByte(footerSeparator);
+    return bufferWriteAllInOne.buffer;
+}
+
+const BufferBooleanTrue = CreateFixedSizeBuffer(BufferType.BooleanTrue);
+const BufferBooleanFalse = CreateFixedSizeBuffer(BufferType.BooleanFalse);
+const BufferUndefined = CreateFixedSizeBuffer(BufferType.Undefined);
+const BufferNull = CreateFixedSizeBuffer(BufferType.Null);
 
 export namespace IpcPacketCore {
     export interface RawContent {
@@ -307,34 +319,48 @@ export class IpcPacketCore {
     // Only for basic types except string, buffer and object
     protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num: number): void {
         // assert(this.isFixedSize() === true);
+        let bufferContent: Buffer;
         // Write the whole in one block buffer, to avoid multiple small buffers
-        const packetSize = FixedHeaderSize + contentSize + FooterLength;
-        const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
-        bufferWriteAllInOne.writeUInt16(bufferType);
         // Write content
         switch (bufferType) {
             case BufferType.NegativeInteger:
-            case BufferType.PositiveInteger:
+            case BufferType.PositiveInteger: {
+                const packetSize = FixedHeaderSize + contentSize + FooterLength;
+                const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
+                bufferWriteAllInOne.writeUInt16(bufferType);
                 bufferWriteAllInOne.writeUInt32(num);
+                bufferWriteAllInOne.writeByte(footerSeparator);
+                bufferContent = bufferWriteAllInOne.buffer;
                 break;
+            }
             case BufferType.Double:
-            case BufferType.Date:
+            case BufferType.Date: {
+                const packetSize = FixedHeaderSize + contentSize + FooterLength;
+                const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
+                bufferWriteAllInOne.writeUInt16(bufferType);
                 bufferWriteAllInOne.writeDouble(num);
+                bufferWriteAllInOne.writeByte(footerSeparator);
+                bufferContent = bufferWriteAllInOne.buffer;
                 break;
-            // case BufferType.Null:
-            // case BufferType.Undefined:
-            // case BufferType.BooleanFalse:
-            // case BufferType.BooleanTrue:
-            //     break;
+            }
+            case BufferType.Null:
+                bufferContent = BufferNull;
+                break;
+            case BufferType.Undefined:
+                bufferContent = BufferUndefined;
+                break;
+            case BufferType.BooleanFalse:
+                bufferContent = BufferBooleanFalse;
+                break;
+            case BufferType.BooleanTrue:
+                bufferContent = BufferBooleanTrue;
+                break;
             // default :
             //     throw new Error('socket-serializer - write: not expected data');
         }
-        // Write footer
-        bufferWriteAllInOne.writeByte(footerSeparator);
-
         // Push block in origin writer
         bufferWriter.pushContext();
-        bufferWriter.writeBuffer(bufferWriteAllInOne.buffer);
+        bufferWriter.writeBuffer(bufferContent);
         bufferWriter.popContext();
     }
 
