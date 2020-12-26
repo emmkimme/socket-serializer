@@ -64,18 +64,39 @@ export enum BufferType {
 
 const BufferFooter = Buffer.allocUnsafe(1).fill(footerSeparator);
 
-function CreateFixedSizeBuffer(type: BufferType): Buffer {
-    const packetSize = FixedHeaderSize + FooterLength;
+function CreateBufferFor(bufferType: BufferType, contentSize: number, num: number): Buffer {
+    // assert(this.isFixedSize() === true);
+    // Write the whole in one block buffer, to avoid multiple small buffers
+    const packetSize = FixedHeaderSize + contentSize + FooterLength;
     const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
-    bufferWriteAllInOne.writeUInt16(type);
+    bufferWriteAllInOne.writeUInt16(bufferType);
+    // Write content
+    switch (bufferType) {
+        case BufferType.NegativeInteger:
+        case BufferType.PositiveInteger:
+            bufferWriteAllInOne.writeUInt32(num);
+            break;
+        case BufferType.Double:
+        case BufferType.Date:
+            bufferWriteAllInOne.writeDouble(num);
+            break;
+        // case BufferType.Null:
+        // case BufferType.Undefined:
+        // case BufferType.BooleanFalse:
+        // case BufferType.BooleanTrue:
+        //     break;
+        // default :
+        //     throw new Error('socket-serializer - write: not expected data');
+    }
+    // Write footer
     bufferWriteAllInOne.writeByte(footerSeparator);
     return bufferWriteAllInOne.buffer;
 }
 
-const BufferBooleanTrue = CreateFixedSizeBuffer(BufferType.BooleanTrue);
-const BufferBooleanFalse = CreateFixedSizeBuffer(BufferType.BooleanFalse);
-const BufferUndefined = CreateFixedSizeBuffer(BufferType.Undefined);
-const BufferNull = CreateFixedSizeBuffer(BufferType.Null);
+const BufferBooleanTrue = CreateBufferFor(BufferType.BooleanTrue, BooleanContentSize, -1);
+const BufferBooleanFalse = CreateBufferFor(BufferType.BooleanFalse, BooleanContentSize, -1);
+const BufferUndefined = CreateBufferFor(BufferType.Undefined, NullUndefinedContentSize, -1);
+const BufferNull = CreateBufferFor(BufferType.Null, NullUndefinedContentSize, -1);
 
 export namespace IpcPacketCore {
     export interface RawContent {
@@ -317,32 +338,15 @@ export class IpcPacketCore {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num: number): void {
-        // assert(this.isFixedSize() === true);
-        let bufferContent: Buffer;
-        // Write the whole in one block buffer, to avoid multiple small buffers
-        // Write content
+// Write header, content and footer in one block
+    // Only for basic types except string, buffer and object
+    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, bufferContent?: Buffer): void {
         switch (bufferType) {
             case BufferType.NegativeInteger:
-            case BufferType.PositiveInteger: {
-                const packetSize = FixedHeaderSize + contentSize + FooterLength;
-                const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
-                bufferWriteAllInOne.writeUInt16(bufferType);
-                bufferWriteAllInOne.writeUInt32(num);
-                bufferWriteAllInOne.writeByte(footerSeparator);
-                bufferContent = bufferWriteAllInOne.buffer;
-                break;
-            }
+            case BufferType.PositiveInteger:
             case BufferType.Double:
-            case BufferType.Date: {
-                const packetSize = FixedHeaderSize + contentSize + FooterLength;
-                const bufferWriteAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
-                bufferWriteAllInOne.writeUInt16(bufferType);
-                bufferWriteAllInOne.writeDouble(num);
-                bufferWriteAllInOne.writeByte(footerSeparator);
-                bufferContent = bufferWriteAllInOne.buffer;
+            case BufferType.Date:
                 break;
-            }
             case BufferType.Null:
                 bufferContent = BufferNull;
                 break;
@@ -401,7 +405,7 @@ export class IpcPacketCore {
                 this.writeBoolean(bufferWriter, data);
                 break;
             case 'undefined':
-                this.writeFixedSize(bufferWriter, BufferType.Undefined, NullUndefinedContentSize, -1);
+                this.writeFixedSize(bufferWriter, BufferType.Undefined);
                 break;
             case 'symbol':
             default:
@@ -411,7 +415,7 @@ export class IpcPacketCore {
 
     writeBoolean(bufferWriter: Writer, dataBoolean: boolean) {
         const type = dataBoolean ? BufferType.BooleanTrue : BufferType.BooleanFalse;
-        this.writeFixedSize(bufferWriter, type, BooleanContentSize, -1);
+        this.writeFixedSize(bufferWriter, type);
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
@@ -423,23 +427,26 @@ export class IpcPacketCore {
             if (absDataNumber <= 0xFFFFFFFF) {
                 // Negative integer
                 if (dataNumber < 0) {
-                    this.writeFixedSize(bufferWriter, BufferType.NegativeInteger, IntegerContentSize, absDataNumber);
+                    const bufferContent = CreateBufferFor(BufferType.NegativeInteger, IntegerContentSize, absDataNumber);
+                    this.writeFixedSize(bufferWriter, BufferType.NegativeInteger, bufferContent);
                 }
                 // Positive integer
                 else {
-                    this.writeFixedSize(bufferWriter, BufferType.PositiveInteger, IntegerContentSize, absDataNumber);
+                    const bufferContent = CreateBufferFor(BufferType.PositiveInteger, IntegerContentSize, absDataNumber);
+                    this.writeFixedSize(bufferWriter, BufferType.PositiveInteger, bufferContent);
                 }
                 return;
             }
         }
         // Either this is not an integer or it is outside of a 32-bit integer.
         // Save as a double.
-        this.writeFixedSize(bufferWriter, BufferType.Double, DoubleContentSize, dataNumber);
+        const bufferContent = CreateBufferFor(BufferType.Double, DoubleContentSize, dataNumber);
+        this.writeFixedSize(bufferWriter, BufferType.Double, bufferContent);
     }
 
     writeDate(bufferWriter: Writer, data: Date) {
-        const t = data.getTime();
-        this.writeFixedSize(bufferWriter, BufferType.Date, DateContentSize, t);
+        const bufferContent = CreateBufferFor(BufferType.Date, DateContentSize, data.getTime());
+        this.writeFixedSize(bufferWriter, BufferType.Date, bufferContent);
     }
 
     // We do not use writeFixedSize
@@ -473,7 +480,7 @@ export class IpcPacketCore {
 
     writeObjectDirect1(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
+            this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
             const contentBufferWriter = new BufferListWriter();
@@ -492,7 +499,7 @@ export class IpcPacketCore {
 
     writeObjectDirect2(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
+            this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
             const contentBufferWriter = new BufferListWriter();
@@ -518,7 +525,7 @@ export class IpcPacketCore {
 
     writeObjectSTRINGIFY1(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
+            this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
             const stringifycation = JSON.stringify(dataObject);
@@ -533,7 +540,7 @@ export class IpcPacketCore {
     // Default methods for these kind of data
     writeObject(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
-            this.writeFixedSize(bufferWriter, BufferType.Null, NullUndefinedContentSize, -1);
+            this.writeFixedSize(bufferWriter, BufferType.Null);
         }
         else {
             const stringifycation = JSONParser.stringify(dataObject);

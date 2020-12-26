@@ -2,7 +2,7 @@
 import { Reader } from './reader';
 import { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
-import { BufferType, DynamicHeaderSize, FixedHeaderSize, ArrayFieldSize, IpcPacketCore } from './ipcPacketCore';
+import { BufferType, DynamicHeaderSize, FixedHeaderSize, ArrayFieldSize, IpcPacketCore, FooterLength } from './ipcPacketCore';
 
 export class IpcPacketContent extends IpcPacketCore {
     constructor(rawContent?: IpcPacketCore.RawContent) {
@@ -20,13 +20,12 @@ export class IpcPacketContent extends IpcPacketCore {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, contentSize: number, num: number): void {
+    protected writeFixedSize(bufferWriter: Writer, bufferType: BufferType, bufferContent?: Buffer): void {
         this._partialContent = false;
         this._type = bufferType;
         this._headerSize = FixedHeaderSize;
-        this._contentSize = contentSize;
-
-        super.writeFixedSize(bufferWriter, bufferType, contentSize, num);
+        this._contentSize = bufferContent ? bufferContent.length - FixedHeaderSize - FooterLength : 0;
+        super.writeFixedSize(bufferWriter, bufferType, bufferContent);
     }
 
     // Default methods for these kind of data
