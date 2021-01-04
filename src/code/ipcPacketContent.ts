@@ -14,7 +14,6 @@ export class IpcPacketContent extends IpcPacketCore {
         this._type = bufferType;
         this._headerSize = DynamicHeaderSize;
         this._contentSize = bufferContent.length;
-
         super.writeDynamicBuffer(writer, bufferType, bufferContent);
     }
 
@@ -23,7 +22,6 @@ export class IpcPacketContent extends IpcPacketCore {
         this._type = bufferType;
         this._headerSize = DynamicHeaderSize;
         this._contentSize = writerContent.length;
-
         super.writeDynamicContent(writer, bufferType, writerContent);
     }
 
@@ -41,29 +39,14 @@ export class IpcPacketContent extends IpcPacketCore {
     writeArray(bufferWriter: Writer, args: any[]): void {
         const packetCore = new IpcPacketCore();
         const contentWriter = new BufferListWriter();
+        // Add args.length size
         contentWriter.writeUInt32(args.length);
         // JSONParser.install();
         for (let i = 0, l = args.length; i < l; ++i) {
             packetCore.write(contentWriter, args[i]);
         }
         // JSONParser.uninstall();
-        // Add args.length size
         this.writeDynamicContent(bufferWriter, BufferType.ArrayWithSize, contentWriter);
-    }
-
-    // Header has been read and checked
-    _readContentObjectDirect(bufferReader: Reader): any {
-        // Preserve the top type/content size
-        const packetCore = new IpcPacketCore();
-
-        const offsetContentSize = bufferReader.offset + this._contentSize;
-        const dataObject: any = {};
-        while (bufferReader.offset < offsetContentSize) {
-            let keyLen = bufferReader.readUInt32();
-            let key = bufferReader.readString('utf8', keyLen);
-            dataObject[key] = packetCore.read(bufferReader);
-        }
-        return dataObject;
     }
 
     // Header has been read and checked

@@ -190,7 +190,7 @@ export class IpcPacketCore {
             //     this._headerSize = MinHeaderLength;
             //     this._contentSize = 0;
             //     break;
-            case BufferType.Object:
+            // case BufferType.Object:
             case BufferType.ObjectSTRINGIFY:
             case BufferType.String:
             case BufferType.Buffer:
@@ -243,7 +243,7 @@ export class IpcPacketCore {
 
     isObject(): boolean {
         switch (this._type) {
-            case BufferType.Object:
+            // case BufferType.Object:
             case BufferType.ObjectSTRINGIFY:
                 return true;
             default:
@@ -479,56 +479,6 @@ export class IpcPacketCore {
         this.writeDynamicBuffer(bufferWriter, BufferType.Buffer, buffer);
     }
 
-    writeObjectDirect1(bufferWriter: Writer, dataObject: any): void {
-        if (dataObject === null) {
-            this.writeFixedContent(bufferWriter, BufferType.Null);
-        }
-        else {
-            const contentWriter = new BufferListWriter();
-            for (let [key, value] of Object.entries(dataObject)) {
-                const buffer = Buffer.from(key, 'utf8');
-                contentWriter.writeUInt32(buffer.length);
-                contentWriter.writeBuffer(buffer);
-                this.write(contentWriter, value);
-            }
-            this.writeDynamicContent(bufferWriter, BufferType.Object, contentWriter);
-        }
-    }
-
-    writeObjectDirect2(bufferWriter: Writer, dataObject: any): void {
-        if (dataObject === null) {
-            this.writeFixedContent(bufferWriter, BufferType.Null);
-        }
-        else {
-            const contentWriter = new BufferListWriter();
-            // let keys = Object.getOwnPropertyNames(dataObject);
-            const keys = Object.keys(dataObject);
-            for (let i = 0, l = keys.length; i < l; ++i) {
-                const key = keys[i];
-                const desc = Object.getOwnPropertyDescriptor(dataObject, key);
-                if (desc && (typeof desc.value !== 'function')) {
-                    const buffer = Buffer.from(key, 'utf8');
-                    contentWriter.writeUInt32(buffer.length);
-                    contentWriter.writeBuffer(buffer);
-                    // this.write(contentBufferWriter, desc.value || dataObject[key]);
-                    this.write(contentWriter, desc.value);
-                }
-            }
-            this.writeDynamicContent(bufferWriter, BufferType.Object, contentWriter);
-        }
-    }
-
-    writeObjectSTRINGIFY1(bufferWriter: Writer, dataObject: any): void {
-        if (dataObject === null) {
-            this.writeFixedContent(bufferWriter, BufferType.Null);
-        }
-        else {
-            const stringifycation = JSON.stringify(dataObject);
-            const buffer = Buffer.from(stringifycation);
-            this.writeDynamicBuffer(bufferWriter, BufferType.ObjectSTRINGIFY, buffer);
-        }
-    }
-
     // Default methods for these kind of data
     writeObject(bufferWriter: Writer, dataObject: any): void {
         if (dataObject === null) {
@@ -590,8 +540,8 @@ export class IpcPacketCore {
             case BufferType.ArrayWithSize:
                 return this._readContentArray(bufferReader);
 
-            case BufferType.Object:
-                return this._readContentObjectDirect(bufferReader);
+            // case BufferType.Object:
+            //     return this._readContentObjectDirect(bufferReader);
             case BufferType.ObjectSTRINGIFY:
                 return this._readContentObject(bufferReader);
 
@@ -612,27 +562,9 @@ export class IpcPacketCore {
         return bufferReader.readString('utf8', len);
     }
 
-    // Header has been read and checked
-    // protected _readObjectSTRINGIFY1(bufferReader: Reader): string {
-    //     const data = bufferReader.readString('utf8', this._contentSize);
-    //     return JSON.parse(data);
-    // }
-
     _readContentObject(bufferReader: Reader): string {
         const data = bufferReader.readString('utf8', this._contentSize);
         return JSONParser.parse(data);
-    }
-
-    // Header has been read and checked
-    _readContentObjectDirect(bufferReader: Reader): any {
-        const offsetContentSize = bufferReader.offset + this._contentSize;
-        const dataObject: any = {};
-        while (bufferReader.offset < offsetContentSize) {
-            let keyLen = bufferReader.readUInt32();
-            let key = bufferReader.readString('utf8', keyLen);
-            dataObject[key] = this.read(bufferReader);
-        }
-        return dataObject;
     }
 
     // Header has been read and checked

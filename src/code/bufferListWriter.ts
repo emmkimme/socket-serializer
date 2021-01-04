@@ -115,8 +115,12 @@ export class BufferListWriter extends BufferListWriterBase {
     }
 
     protected _appendBuffers(length: number, buffers: Buffer[]): number {
-        // 'push' is faster than 'concat'
-        this._buffers.push.apply(this._buffers, buffers);
+        // 'push' is faster than 'concat' but may have a "Maximum call stack size exceeded" exception when buffers length is very long
+        // this._buffers.push.apply(this._buffers, buffers);
+        // for (let i = 0, l = buffers.length; i < l; ++i) {
+        //     this._buffers.push(buffers[i]);
+        // }
+        this._buffers = this._buffers.concat(buffers);
         this._length += length;
         return this._length;
     }
