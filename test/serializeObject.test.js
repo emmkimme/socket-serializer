@@ -10,7 +10,7 @@ function ObjectEqual(a1, a2) {
   return JSON.stringify(a1) === JSON.stringify(a2);
 }
 
-function readContentObjectDirect(bufferReader, len)
+function readContentObjectDirect(bufferReader, len) {
   const offsetContentSize = bufferReader.offset + len;
   const dataObject = {};
   while (bufferReader.offset < offsetContentSize) {
