@@ -1,5 +1,8 @@
+import { IpcPacketCore } from './ipcPacketCore';
 import { IpcPacketContent } from './ipcPacketContent';
 import { Reader } from './reader';
+import { BufferListWriter } from './bufferListWriter';
+import { Writer } from './writer';
 
 export namespace IpcPacketBufferCore {
     export interface RawContent extends IpcPacketContent.RawContent {
@@ -8,7 +11,7 @@ export namespace IpcPacketBufferCore {
     }
 }
 
-export abstract class IpcPacketBufferCore extends IpcPacketContent {
+export abstract class IpcPacketBufferCore extends IpcPacketCore {
     static readonly EmptyBuffer = Buffer.allocUnsafe(0);
 
     constructor(rawContent?: IpcPacketBufferCore.RawContent) {
@@ -18,60 +21,76 @@ export abstract class IpcPacketBufferCore extends IpcPacketContent {
     abstract get buffer(): Buffer;
     abstract get buffers(): Buffer[];
 
-    protected abstract _serialize(serializer: (...args: any[]) => void, ...args: any[]): void;
+    protected abstract _serializeDone(writer: Writer): void;
 
     serialize(data: any): void {
-        this._serialize(this.write, data);
+        const writer = new BufferListWriter();
+        this.write(writer, data);
+        this._serializeDone(writer);
     }
 
     // Caller must be sure and must ensure this is the expected type, else result would be unpredictable
     serializeNumber(data: number): void {
-        this._serialize(this.writeNumber, data);
+        const writer = new BufferListWriter();
+        this.writeNumber(writer, data);
+        this._serializeDone(writer);
     }
 
     serializeBoolean(data: boolean): void {
-        this._serialize(this.writeBoolean, data);
+        const writer = new BufferListWriter();
+        this.writeBoolean(writer, data);
+        this._serializeDone(writer);
     }
 
     serializeDate(data: Date):  void {
-        this._serialize(this.writeDate, data);
+        const writer = new BufferListWriter();
+        this.writeDate(writer, data);
+        this._serializeDone(writer);
     }
 
     serializeString(data: string, encoding?: BufferEncoding): void {
-        this._serialize(this.writeString, data, encoding);
+        const writer = new BufferListWriter();
+        this.writeString(writer, data, encoding);
+        this._serializeDone(writer);
     }
 
     serializeObject(data: Object):  void {
-        this._serialize(this.writeObject, data);
+        const writer = new BufferListWriter();
+        this.writeObject(writer, data);
+        this._serializeDone(writer);
     }
 
     serializeBuffer(data: Buffer):  void {
-        this._serialize(this.writeBuffer, data);
+        const writer = new BufferListWriter();
+        this.writeBuffer(writer, data);
+        this._serializeDone(writer);
     }
 
     serializeArray(data: any[]):  void {
-        this._serialize(this.writeArray, data);
+        const writer = new BufferListWriter();
+        this.writeArray(writer, data);
+        this._serializeDone(writer);
     }
 
     protected abstract _parseReader(): Reader;
 
     parse<T = any>(): T | undefined {
-        return this._readContent(0, this._parseReader());
+        return this._readContent(this._parseReader());
     }
 
     // Caller must be sure and must ensure this is an array, else result would be unpredictable
     parseArrayLength(): number | undefined {
         const bufferReader = this._parseReader();
-        return this._readArrayLength(bufferReader);
+        return this._readContentArrayLength(bufferReader);
     }
 
     parseArrayAt(index: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this._readArrayAt(bufferReader, index);
+        return this._readContentArrayAt(bufferReader, index);
     }
 
     parseArraySlice(start?: number, end?: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this._readArraySlice(bufferReader, start, end);
+        return this._readContentArraySlice(bufferReader, start, end);
     }
 }

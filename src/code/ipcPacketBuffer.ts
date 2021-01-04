@@ -2,7 +2,7 @@ import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
-import { BufferListWriter } from './bufferListWriter';
+import { Writer } from './writer';
 
 export namespace IpcPacketBuffer {
     export type RawContent = IpcPacketBufferCore.RawContent;
@@ -80,7 +80,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
         const context = bufferReader.getContext();
-        const isComplete = this._readHeader(bufferReader);
+        const isComplete = this.readHeader(bufferReader);
         bufferReader.setContext(context);
         if (isComplete) {
             this._buffer = bufferReader.subarray(this.packetSize);
@@ -93,7 +93,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        const isComplete = this._readHeader(new BufferReader(buffer));
+        const isComplete = this.readHeader(new BufferReader(buffer));
         if (isComplete) {
             this._buffer = buffer;
         }
@@ -108,9 +108,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
          return bufferReader;
      }
  
-    protected _serialize(serializer: (...args: any[]) => void, ...args: any[]): void {
-        const writer = new BufferListWriter();
-        serializer.call(this, writer, ...args);
+    protected _serializeDone(writer: Writer) {
         this._buffer = writer.buffer;
     }
 }

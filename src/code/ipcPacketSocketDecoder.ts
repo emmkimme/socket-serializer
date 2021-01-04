@@ -5,7 +5,7 @@ import * as net from 'net';
 import { IpcPacketBufferList } from './ipcPacketBufferList';
 import { BufferListReader } from './bufferListReader';
 
-export class IpcPacketBufferDecoder {
+export class IpcPacketSocketDecoder {
     private _bufferListReader: BufferListReader;
     private _packet: IpcPacketBufferList;
 
