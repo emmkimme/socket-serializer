@@ -10,8 +10,8 @@ function ObjectEqual(a1, a2) {
   return JSON.stringify(a1) === JSON.stringify(a2);
 }
 
-function readContentObjectDirect(bufferReader) {
-  const offsetContentSize = bufferReader.offset + this._contentSize;
+function readContentObjectDirect(bufferReader, len)
+  const offsetContentSize = bufferReader.offset + len;
   const dataObject = {};
   while (bufferReader.offset < offsetContentSize) {
     let keyLen = bufferReader.readUInt32();
@@ -63,8 +63,8 @@ function writeObjectSTRINGIFY1(bufferWriter, dataObject) {
   this.writeDynamicBuffer(bufferWriter, ssModule.IpcPacketType.ObjectSTRINGIFY, buffer);
 }
 
-function readObjectSTRINGIFY1(bufferReader) {
-  const data = bufferReader.readString('utf8', this._contentSize);
+function readObjectSTRINGIFY1(bufferReader, len) {
+  const data = bufferReader.readString('utf8', len);
   return JSON.parse(data);
 }
 
