@@ -265,7 +265,7 @@ export class IpcPacketContent extends IpcPacketHeader {
             // case IpcPacketType.Object:
             //     return this._readContentObjectDirect(bufferReader);
             case IpcPacketType.ObjectSTRINGIFY:
-                return this._readContentObject(bufferReader);
+                return this._readContentObject(bufferReader, this._contentSize);
 
             case IpcPacketType.Null:
                 return null;
@@ -284,8 +284,8 @@ export class IpcPacketContent extends IpcPacketHeader {
         return bufferReader.readString('utf8', len);
     }
 
-    protected _readContentObject(bufferReader: Reader): string {
-        const data = bufferReader.readString('utf8', this._contentSize);
+    protected _readContentObject(bufferReader: Reader, len: number): string {
+        const data = bufferReader.readString('utf8', len);
         return JSONParser.parse(data);
     }
 
