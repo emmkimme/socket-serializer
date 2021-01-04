@@ -2,8 +2,8 @@ import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
-import { BufferListWriter } from './bufferListWriter';
 import { BufferListReader } from './bufferListReader';
+import { Writer } from './writer';
 
 export namespace IpcPacketBufferList {
     export type RawContent = IpcPacketBufferCore.RawContent;
@@ -15,7 +15,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     constructor(rawContent?: IpcPacketBufferList.RawContent) {
         super(rawContent);
         if (rawContent) {
-            // buffer is faster take it when available
+            // buffer is faster, take it when available
             if (rawContent.buffer) {
                 this._buffers = [rawContent.buffer];
             }
@@ -104,7 +104,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
         const context = bufferReader.getContext();
-        const isComplete = this._readHeader(bufferReader);
+        const isComplete = this.readHeader(bufferReader);
         bufferReader.setContext(context);
         if (isComplete) {
             this._buffers = bufferReader.subarrayList(this.packetSize);
@@ -117,7 +117,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        const isComplete = this._readHeader(new BufferReader(buffer));
+        const isComplete = this.readHeader(new BufferReader(buffer));
         if (isComplete) {
             this._buffers = [buffer];
         }
@@ -133,9 +133,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         return bufferReader;
     }
 
-   protected _serialize(serializer: (...args: any[]) => void, ...args: any[]): void {
-        const writer = new BufferListWriter();
-        serializer.call(this, writer, ...args);
+    protected _serializeDone(writer: Writer) {
         this._buffers = writer.buffers;
     }
 }

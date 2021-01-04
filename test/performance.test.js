@@ -9,7 +9,7 @@ const Conversions = {
 
 describe(`Performance IPCPacketBuffer`, () => {
   const rawContent = {
-    type: ipcSocket.BufferType.NotValid,
+    type: ipcSocket.IpcPacketType.NotValid,
     contentSize: 0,
     buffer: Buffer.alloc(128)
   };
@@ -81,3 +81,12 @@ describe(`Performance IPCPacketBuffer`, () => {
 })
 
 
+// describe('packet type reader', () => {
+//   const size = 10000;
+//   it(`reuse`, () => {
+//       const header = new ipcSocket.IpcPacketHeader();
+//       for (let i = 0; i < size; ++i) {
+//         header.
+//       }
+//   });
+// });

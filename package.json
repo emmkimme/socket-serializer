@@ -43,7 +43,7 @@
   "browser": "./lib/socket-serializer-browser.js",
   "types": "./lib/socket-serializer.d.ts",
   "devDependencies": {
-    "@types/node": "^14.14.13",
+    "@types/node": "^14.14.19",
     "chai": "^4.2.0",
     "del": "^6.0.0",
     "del-cli": "^3.0.1",

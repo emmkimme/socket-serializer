@@ -194,7 +194,7 @@ function test(ipcPacketCore) {
 
     const nullObject = null;
     describe('serialize null', () => {
-      testSerialization(nullObject, ipcPacketCore, ipcPacketCore.serializeObject, ipcPacketCore.isNull, (a, b) => ObjectEqual(a, b));
+      testSerialization(nullObject, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isNull, (a, b) => ObjectEqual(a, b));
       // it(`explicit should return a type ${typeof nullObject} = ${JSON.stringify(nullObject)}`, () => {
       //   ipb.serializeObject(nullObject);
       //   assert(ipb.parseObject() == nullObject);

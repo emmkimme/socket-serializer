@@ -1,9 +1,6 @@
 import * as net from 'net';
-// import * as util from 'util';
-// import { EventEmitter } from 'events';
 import { IpcSocket } from './ipcSocket';
-import { IpcPacketBufferDecoder } from './ipcPacketBufferDecoder';
-// import { IpcPacketBuffer } from './ipcPacketBuffer';
+import { IpcPacketSocketDecoder } from './ipcPacketSocketDecoder';
 
 export class IpcPacketSocket extends IpcSocket {
   constructor(options?: any) {
@@ -17,7 +14,7 @@ export class IpcPacketSocket extends IpcSocket {
   //   }
 
   protected _parseStream(socket: net.Socket, server?: net.Server) {
-    let ipcPacketDecoder = new IpcPacketBufferDecoder(this, socket, server);
+    let ipcPacketDecoder = new IpcPacketSocketDecoder(this, socket, server);
 
     function handleData(buffer: Buffer) {
       ipcPacketDecoder.handleData(buffer);
