@@ -306,7 +306,7 @@ export class IpcPacketContent extends IpcPacketHeader {
         return bufferReader.readUInt32();
     }
 
-    protected byPass(bufferReader: Reader): boolean {
+    protected _byPass(bufferReader: Reader): boolean {
         // Do not decode data just skip
         if (this.readHeader(bufferReader)) {
             bufferReader.skip(this._contentSize + FooterLength);
@@ -324,7 +324,7 @@ export class IpcPacketContent extends IpcPacketHeader {
         const packetContent = new IpcPacketContent();
         while (index > 0) {
             // Do not decode data just skip
-            if (packetContent.byPass(bufferReader) === false) {
+            if (packetContent._byPass(bufferReader) === false) {
                 // throw err ?
                 return undefined;
             }
@@ -361,7 +361,7 @@ export class IpcPacketContent extends IpcPacketHeader {
         const packetContent = new IpcPacketContent();
         while (start > 0) {
             // Do not decode data just skip
-            if (packetContent.byPass(bufferReader) === false) {
+            if (packetContent._byPass(bufferReader) === false) {
                 // throw err ?
                 return undefined;
             }
