@@ -74,14 +74,18 @@ export class IpcPacketHeader {
     constructor(rawContent?: IpcPacketHeader.RawContent) {
         if (rawContent) {
             this.setTypeAndContentSize(rawContent.type, rawContent.contentSize);
+            this._partialContent = rawContent.partialContent;
         }
         else {
-            this.setTypeAndContentSize(IpcPacketType.NotValid, -1);
+            this.reset();
         }
     }
 
     reset(): void {
-        this.setTypeAndContentSize(IpcPacketType.NotValid, -1);
+        this._type = IpcPacketType.NotValid;
+        this._headerSize = -1;
+        this._contentSize = -1;
+        this._partialContent = false;
     }
 
     setRawContent(rawContent: IpcPacketHeader.RawContent): void {

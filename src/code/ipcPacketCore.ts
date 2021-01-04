@@ -50,14 +50,4 @@ export class IpcPacketCore extends IpcPacketContent {
         const packetContent = new IpcPacketContent();
         return packetContent._readContentArray(bufferReader);
     }
-
-    _readContentArrayAt(bufferReader: Reader, index: number): any | undefined {
-        const packetContent = new IpcPacketContent();
-        return packetContent._readContentArrayAt(bufferReader, index);
-    }
-
-    _readContentArraySlice(bufferReader: Reader, start?: number, end?: number): any | undefined {
-        const packetContent = new IpcPacketContent();
-        return packetContent._readContentArraySlice(bufferReader, start, end);
-    }
 }
