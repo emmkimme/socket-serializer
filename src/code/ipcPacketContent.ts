@@ -51,8 +51,6 @@ export namespace IpcPacketContent {
 }
 
 export class IpcPacketContent extends IpcPacketHeader {
-    private _cb: (rawContent: IpcPacketHeader.RawContent) => void;
-
     protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, bufferContent: Buffer, cb: (rawContent: IpcPacketHeader.RawContent) => void): void {
         writer.pushContext();
         writer.writeUInt16(type);
@@ -122,11 +120,6 @@ export class IpcPacketContent extends IpcPacketHeader {
         }
     }
 
-    write(bufferWriter: Writer, data: any, cb?: (rawContent: IpcPacketHeader.RawContent) => void): void {
-        this._cb = cb;
-        this._write(bufferWriter, data);
-    }
-
     // http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.3
     // Type of val              Result
     // ------------------------------------
@@ -138,9 +131,7 @@ export class IpcPacketContent extends IpcPacketHeader {
     // Object (native and does not implement [[Call]])      "object"
     // Object (native or host and does implement [[Call]])  "function"
     // Object (host and does not implement [[Call]])        Implementation-defined except may not be "undefined", "boolean", "number", or "string".
-    protected _write(bufferWriter: Writer, data: any): void {
-        const cb = this._cb;
-        this._cb = null;
+    write(bufferWriter: Writer, data: any, cb?: (rawContent: IpcPacketHeader.RawContent) => void): void {
         switch (typeof data) {
             case 'object':
                 if (data === null) {
@@ -240,7 +231,7 @@ export class IpcPacketContent extends IpcPacketHeader {
         contentWriter.writeUInt32(args.length);
         // JSONParser.install();
         for (let i = 0, l = args.length; i < l; ++i) {
-            this._write(contentWriter, args[i]);
+            this.write(contentWriter, args[i]);
         }
         // JSONParser.uninstall();
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter, cb);

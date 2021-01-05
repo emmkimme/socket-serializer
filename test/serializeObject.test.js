@@ -22,7 +22,7 @@ function readContentObjectDirect(bufferReader, contentSize) {
 }
 
 // let depth1 = 0;
-function writeObjectDirect1(bufferWriter, dataObject) {
+function writeObjectDirect1(bufferWriter, dataObject, cb) {
   // ++depth1;
   const contentWriter = new ssModule.BufferListWriter();
   const entries = Object.entries(dataObject);
@@ -31,15 +31,15 @@ function writeObjectDirect1(bufferWriter, dataObject) {
     const buffer = Buffer.from(entry[0], 'utf8');
     contentWriter.writeUInt32(buffer.length);
     contentWriter.writeBuffer(buffer);
-    this._write(contentWriter, entry[1]);
+    this.write(contentWriter, entry[1]);
   }
   // --depth1;
   // console.log(`depth1 ${depth1}`);
-  this._writeDynamicContent(bufferWriter, ssModule.IpcPacketType.ObjectSTRINGIFY, contentWriter);
+  this._writeDynamicContent(bufferWriter, ssModule.IpcPacketType.ObjectSTRINGIFY, contentWriter, cb);
 }
 
 let depth2 = 0;
-function writeObjectDirect2(bufferWriter, dataObject) {
+function writeObjectDirect2(bufferWriter, dataObject, cb) {
   const contentWriter = new ssModule.BufferListWriter();
   // let keys = Object.getOwnPropertyNames(dataObject);
   const keys = Object.keys(dataObject);
@@ -51,16 +51,16 @@ function writeObjectDirect2(bufferWriter, dataObject) {
       contentWriter.writeUInt32(buffer.length);
       contentWriter.writeBuffer(buffer);
       // this.write(contentBufferWriter, desc.value || dataObject[key]);
-      this._write(contentWriter, desc.value);
+      this.write(contentWriter, desc.value);
     }
   }
-  this._writeDynamicContent(bufferWriter, ssModule.IpcPacketType.ObjectSTRINGIFY, contentWriter);
+  this._writeDynamicContent(bufferWriter, ssModule.IpcPacketType.ObjectSTRINGIFY, contentWriter, cb);
 }
 
-function writeObjectSTRINGIFY1(bufferWriter, dataObject) {
+function writeObjectSTRINGIFY1(bufferWriter, dataObject, cb) {
   const stringifycation = JSON.stringify(dataObject);
   const buffer = Buffer.from(stringifycation);
-  this._writeDynamicBuffer(bufferWriter, ssModule.IpcPacketType.ObjectSTRINGIFY, buffer);
+  this._writeDynamicBuffer(bufferWriter, ssModule.IpcPacketType.ObjectSTRINGIFY, buffer, cb);
 }
 
 function readObjectSTRINGIFY1(bufferReader, contentSize) {
@@ -80,7 +80,7 @@ function test(type, ipcPacketCoreClass) {
         ipcPacketCore._readContentObject = readObjectSTRINGIFY1;
         const bufferWriter = new ssModule.BufferListWriter();
         console.time('JSON serialize - big json');
-        ipcPacketCore._write(bufferWriter, bigData);
+        ipcPacketCore.write(bufferWriter, bigData);
         console.timeEnd('JSON serialize - big json');
 
         const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
@@ -94,7 +94,7 @@ function test(type, ipcPacketCoreClass) {
         const ipcPacketCore = new ipcPacketCoreClass();
         const bufferWriter = new ssModule.BufferListWriter();
         console.time('JSONParser serialize - big json');
-        ipcPacketCore._write(bufferWriter, bigData);
+        ipcPacketCore.write(bufferWriter, bigData);
         console.timeEnd('JSONParser serialize - big json');
 
         const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
@@ -111,7 +111,7 @@ function test(type, ipcPacketCoreClass) {
       //   ipcPacketCore._readContentObject = readContentObjectDirect;
       //   const bufferWriter = new ssModule.BufferListWriter();
       //   console.time('direct1 serialize - big json');
-      //   ipcPacketCore._write(bufferWriter, bigData);
+      //   ipcPacketCore.write(bufferWriter, bigData);
       //   console.timeEnd('direct1 serialize - big json');
 
       //   const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
@@ -128,7 +128,7 @@ function test(type, ipcPacketCoreClass) {
       //   ipcPacketCore._readContentObject = readContentObjectDirect;
       //   const bufferWriter = new ssModule.BufferListWriter();
       //   console.time('direct2 serialize - big json');
-      //   ipcPacketCore._write(bufferWriter, bigData);
+      //   ipcPacketCore.write(bufferWriter, bigData);
       //   console.timeEnd('direct2 serialize - big json');
 
       //   const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
@@ -190,7 +190,7 @@ function test(type, ipcPacketCoreClass) {
         for (i = 0; i < 10000; ++i) {
           const ipcPacketCore = new ipcPacketCoreClass();
           const bufferWriter = new ssModule.BufferListWriter();
-          ipcPacketCore._write(bufferWriter, busEvent);
+          ipcPacketCore.write(bufferWriter, busEvent);
           const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
           newBusEvent;
@@ -200,7 +200,7 @@ function test(type, ipcPacketCoreClass) {
         console.time('JSONParser deserialize - small json');
         const ipcPacketCore = new ipcPacketCoreClass();
         const bufferWriter = new ssModule.BufferListWriter();
-        ipcPacketCore._write(bufferWriter, busEvent);
+        ipcPacketCore.write(bufferWriter, busEvent);
         for (i = 0; i < 10000; ++i) {
           const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
@@ -244,7 +244,7 @@ function test(type, ipcPacketCoreClass) {
           ipcPacketCore._writeObject = writeObjectDirect2;
           ipcPacketCore._readContentObject = readContentObjectDirect;
           const bufferWriter = new ssModule.BufferListWriter();
-          ipcPacketCore._write(bufferWriter, busEvent);
+          ipcPacketCore.write(bufferWriter, busEvent);
           const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
           newBusEvent;
@@ -258,7 +258,7 @@ function test(type, ipcPacketCoreClass) {
         const bufferWriter = new ssModule.BufferListWriter();
         ipcPacketCore._writeObject = writeObjectDirect2;
         ipcPacketCore._readContentObject = readContentObjectDirect;
-        ipcPacketCore._write(bufferWriter, busEvent);
+        ipcPacketCore.write(bufferWriter, busEvent);
         for (i = 0; i < 10000; ++i) {
           const bufferReader = new ssModule.BufferReader(bufferWriter.buffer);
           let newBusEvent = ipcPacketCore.read(bufferReader);
