@@ -2,16 +2,19 @@
 import { Reader } from './reader';
 import { Writer } from './writer';
 import { IpcPacketContent } from './ipcPacketContent';
+import { IpcPacketHeader } from './ipcPacketHeader';
 
-export class IpcPacketCore extends IpcPacketContent {
+export class IpcPacketCore extends IpcPacketHeader {
+    protected static _content = new IpcPacketContent();
+
     write(bufferWriter: Writer, data: any): void {
-        super.write(bufferWriter, data, (rawContent) => {
+        IpcPacketCore._content.write(bufferWriter, data, (rawContent) => {
             this._rawContent = rawContent;
         });
     }
 
     read(bufferReader: Reader): any | undefined {
-        return super.read(bufferReader, (rawContent) => {
+        return IpcPacketCore._content.read(bufferReader, (rawContent) => {
             this._rawContent = rawContent;
         });
     }

@@ -18,22 +18,22 @@ export abstract class IpcPacketBufferCore extends IpcPacketCore {
     protected abstract _parseReader(): Reader;
 
     parse<T = any>(): T | undefined {
-        return this._readContent(this._parseReader(), this._rawContent.type, this._rawContent.contentSize);
+        return IpcPacketCore._content.readContent(this._parseReader(), this._rawContent.type, this._rawContent.contentSize);
     }
 
     // Caller must be sure and must ensure this is an array, else result would be unpredictable
     parseArrayLength(): number | undefined {
         const bufferReader = this._parseReader();
-        return this.readContentArrayLength(bufferReader);
+        return IpcPacketCore._content.readContentArrayLength(bufferReader);
     }
 
     parseArrayAt(index: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this.readContentArrayAt(bufferReader, index);
+        return IpcPacketCore._content.readContentArrayAt(bufferReader, index);
     }
 
     parseArraySlice(start?: number, end?: number): any | undefined {
         const bufferReader = this._parseReader();
-        return this.readContentArraySlice(bufferReader, start, end);
+        return IpcPacketCore._content.readContentArraySlice(bufferReader, start, end);
     }
 }

@@ -45,9 +45,11 @@ const BufferBooleanFalse = CreateBufferFor(IpcPacketType.BooleanFalse, BooleanCo
 const BufferUndefined = CreateBufferFor(IpcPacketType.Undefined, NullUndefinedContentSize, -1);
 const BufferNull = CreateBufferFor(IpcPacketType.Null, NullUndefinedContentSize, -1);
 
+export type IpcPacketContentWriterCallback = (rawContent: IpcPacketHeader.RawContent) => void;
+export type IpcPacketContentReaderCallback = (rawContent: IpcPacketHeader.RawContent, arg?: any) => void;
 
-export class IpcPacketContent extends IpcPacketHeader {
-    protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, bufferContent: Buffer, cb: (rawContent: IpcPacketHeader.RawContent) => void): void {
+export class IpcPacketContent {
+    protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, bufferContent: Buffer, cb: IpcPacketContentWriterCallback): void {
         writer.pushContext();
         writer.writeUInt16(type);
         writer.writeUInt32(bufferContent.length);
@@ -63,7 +65,7 @@ export class IpcPacketContent extends IpcPacketHeader {
         }
     }
 
-    protected _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: (rawContent: IpcPacketHeader.RawContent) => void): void {
+    protected _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: IpcPacketContentWriterCallback): void {
         writer.pushContext();
         writer.writeUInt16(type);
         writer.writeUInt32(writerContent.length);
@@ -81,7 +83,7 @@ export class IpcPacketContent extends IpcPacketHeader {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected _writeFixedContent(writer: Writer, type: IpcPacketType, bufferPacket: Buffer, cb: (rawContent: IpcPacketHeader.RawContent) => void): void {
+    protected _writeFixedContent(writer: Writer, type: IpcPacketType, bufferPacket: Buffer, cb: IpcPacketContentWriterCallback): void {
         switch (type) {
             case IpcPacketType.NegativeInteger:
             case IpcPacketType.PositiveInteger:
@@ -127,7 +129,7 @@ export class IpcPacketContent extends IpcPacketHeader {
     // Object (native and does not implement [[Call]])      "object"
     // Object (native or host and does implement [[Call]])  "function"
     // Object (host and does not implement [[Call]])        Implementation-defined except may not be "undefined", "boolean", "number", or "string".
-    write(bufferWriter: Writer, data: any, cb?: (rawContent: IpcPacketHeader.RawContent) => void): void {
+    write(bufferWriter: Writer, data: any, cb?: IpcPacketContentWriterCallback): void {
         switch (typeof data) {
             case 'object':
                 if (data === null) {
@@ -165,7 +167,7 @@ export class IpcPacketContent extends IpcPacketHeader {
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
-    protected _writeNumber(bufferWriter: Writer, dataNumber: number, cb: (rawContent: IpcPacketHeader.RawContent) => void): void {
+    protected _writeNumber(bufferWriter: Writer, dataNumber: number, cb: IpcPacketContentWriterCallback): void {
         // An integer
         if (Number.isInteger(dataNumber)) {
             const absDataNumber = Math.abs(dataNumber);
@@ -190,14 +192,14 @@ export class IpcPacketContent extends IpcPacketHeader {
         this._writeFixedContent(bufferWriter, IpcPacketType.Double, bufferContent, cb);
     }
 
-    protected _writeDate(bufferWriter: Writer, data: Date, cb: (rawContent: IpcPacketHeader.RawContent) => void) {
+    protected _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketContentWriterCallback) {
         const bufferContent = CreateBufferFor(IpcPacketType.Date, DateContentSize, data.getTime());
         this._writeFixedContent(bufferWriter, IpcPacketType.Date, bufferContent, cb);
     }
 
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
-    protected _writeString(bufferWriter: Writer, data: string, cb: (rawContent: IpcPacketHeader.RawContent) => void) {
+    protected _writeString(bufferWriter: Writer, data: string, cb: IpcPacketContentWriterCallback) {
         // Encoding will be managed later, force 'utf8'
         // case 'hex':
         // case 'utf8':
@@ -215,14 +217,14 @@ export class IpcPacketContent extends IpcPacketHeader {
     }
 
     // Default methods for these kind of data
-    protected _writeObject(bufferWriter: Writer, dataObject: any, cb: (rawContent: IpcPacketHeader.RawContent) => void): void {
+    protected _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketContentWriterCallback): void {
         const stringifycation = JSONParser.stringify(dataObject);
         const buffer = Buffer.from(stringifycation, 'utf8');
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.ObjectSTRINGIFY, buffer, cb);
     }
 
     // Default methods for these kind of data
-    protected _writeArray(bufferWriter: Writer, args: any[], cb: (rawContent: IpcPacketHeader.RawContent) => void): void {
+    protected _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketContentWriterCallback): void {
         const contentWriter = new BufferListWriter();
         contentWriter.writeUInt32(args.length);
         // JSONParser.install();
@@ -233,10 +235,10 @@ export class IpcPacketContent extends IpcPacketHeader {
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter, cb);
     }
 
-    read(bufferReader: Reader, cb?: (rawContent: IpcPacketHeader.RawContent, arg?: any) => void): any | undefined {
+    read(bufferReader: Reader, cb?: IpcPacketContentReaderCallback): any | undefined {
         const rawContent = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawContent.contentSize >= 0) {
-            const arg = this._readContent(bufferReader, rawContent.type, rawContent.contentSize);
+            const arg = this.readContent(bufferReader, rawContent.type, rawContent.contentSize);
             bufferReader.skip(FooterLength);
             if (cb) cb(rawContent, arg);
             return arg;
@@ -249,7 +251,7 @@ export class IpcPacketContent extends IpcPacketHeader {
     protected _read(bufferReader: Reader): any | undefined {
         const rawContent = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawContent.contentSize >= 0) {
-            const arg = this._readContent(bufferReader, rawContent.type, rawContent.contentSize);
+            const arg = this.readContent(bufferReader, rawContent.type, rawContent.contentSize);
             bufferReader.skip(FooterLength);
             return arg;
         }
@@ -257,7 +259,7 @@ export class IpcPacketContent extends IpcPacketHeader {
         return undefined;
     }
 
-    protected _readContent(bufferReader: Reader, type: IpcPacketType, contentSize: number): any | undefined {
+    readContent(bufferReader: Reader, type: IpcPacketType, contentSize: number): any | undefined {
         switch (type) {
             case IpcPacketType.String:
                 return this._readContentString(bufferReader, contentSize);
