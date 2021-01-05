@@ -7,21 +7,21 @@ import { IpcPacketHeader } from './ipcPacketHeader';
 import { BufferListWriter } from './bufferListWriter';
 
 export namespace IpcPacketBufferList {
-    export type RawContent = IpcPacketBufferCore.RawContent;
+    export type RawContent = IpcPacketBufferCore.RawData;
 }
 
 export class IpcPacketBufferList extends IpcPacketBufferCore {
     private _buffers: Buffer[];
 
-    constructor(rawContent?: IpcPacketBufferList.RawContent) {
-        super(rawContent);
-        if (rawContent) {
+    constructor(rawHeader?: IpcPacketBufferList.RawContent) {
+        super(rawHeader);
+        if (rawHeader) {
             // buffer is faster, take it when available
-            if (rawContent.buffer) {
-                this._buffers = [rawContent.buffer];
+            if (rawHeader.buffer) {
+                this._buffers = [rawHeader.buffer];
             }
-            else if (rawContent.buffers) {
-                this._buffers = rawContent.buffers;
+            else if (rawHeader.buffers) {
+                this._buffers = rawHeader.buffers;
             }
         }
         this._buffers = this._buffers || [];
@@ -55,41 +55,41 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         return null;
     }
 
-    setRawContent(rawContent: IpcPacketBufferList.RawContent): void {
-        super.setRawContent(rawContent);
-        if (rawContent) {
+    setRawData(rawHeader: IpcPacketBufferList.RawContent): void {
+        super.setRawData(rawHeader);
+        if (rawHeader) {
             // Parsing a single buffer is faster, take it when available
-            if (rawContent.buffer) {
-                this._buffers = [rawContent.buffer];
+            if (rawHeader.buffer) {
+                this._buffers = [rawHeader.buffer];
             }
-            else if (rawContent.buffers) {
-                this._buffers = rawContent.buffers;
+            else if (rawHeader.buffers) {
+                this._buffers = rawHeader.buffers;
             }
         }
         this._buffers = this._buffers || [];
     }
 
-    getRawContent(): IpcPacketBufferList.RawContent {
-        const rawContent : IpcPacketBufferList.RawContent = {
-            ...this._rawContent
+    getRawData(): IpcPacketBufferList.RawContent {
+        const rawHeader : IpcPacketBufferList.RawContent = {
+            ...this._rawHeader
         };
         const buffer = this._singleBufferAvailable();
         if (buffer) {
-            rawContent.buffer = buffer;
+            rawHeader.buffer = buffer;
         }
         else {
-            rawContent.buffers = this._buffers;
+            rawHeader.buffers = this._buffers;
         }
-        return rawContent;
+        return rawHeader;
     }
 
     // Allocate its own buffer
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
         const context = bufferReader.getContext();
-        this._rawContent = IpcPacketHeader.ReadHeader(bufferReader);
+        this._rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         bufferReader.setContext(context);
-        if (this._rawContent.contentSize >= 0) {
+        if (this._rawHeader.contentSize >= 0) {
             this._buffers = bufferReader.subarrayList(this.packetSize);
             return true;
         }
@@ -101,8 +101,8 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        this._rawContent = IpcPacketHeader.ReadHeader(new BufferReader(buffer));
-        if (this._rawContent.contentSize >= 0) {
+        this._rawHeader = IpcPacketHeader.ReadHeader(new BufferReader(buffer));
+        if (this._rawHeader.contentSize >= 0) {
             this._buffers = [buffer];
             return true;
         }
@@ -114,7 +114,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     protected _parseReader(): Reader {
         const buffer = this._singleBufferAvailable();
-        const bufferReader = buffer ? new BufferReader(buffer, this._rawContent.headerSize) : new BufferListReader(this._buffers, this._rawContent.headerSize);
+        const bufferReader = buffer ? new BufferReader(buffer, this._rawHeader.headerSize) : new BufferListReader(this._buffers, this._rawHeader.headerSize);
         return bufferReader;
     }
 

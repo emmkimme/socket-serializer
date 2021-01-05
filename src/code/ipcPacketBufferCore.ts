@@ -3,7 +3,7 @@ import { Reader } from './reader';
 import { IpcPacketHeader } from './ipcPacketHeader';
 
 export namespace IpcPacketBufferCore {
-    export interface RawContent extends IpcPacketHeader.RawContent {
+    export interface RawData extends IpcPacketHeader.RawData {
         buffer?: Buffer;
         buffers?: Buffer[];
     }
@@ -18,7 +18,7 @@ export abstract class IpcPacketBufferCore extends IpcPacketCore {
     protected abstract _parseReader(): Reader;
 
     parse<T = any>(): T | undefined {
-        return IpcPacketCore._content.readContent(this._parseReader(), this._rawContent.type, this._rawContent.contentSize);
+        return IpcPacketCore._content.readContent(this._parseReader(), this._rawHeader.type, this._rawHeader.contentSize);
     }
 
     // Caller must be sure and must ensure this is an array, else result would be unpredictable

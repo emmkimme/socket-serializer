@@ -8,14 +8,14 @@ export class IpcPacketCore extends IpcPacketHeader {
     protected static _content = new IpcPacketContent();
 
     write(bufferWriter: Writer, data: any): void {
-        IpcPacketCore._content.write(bufferWriter, data, (rawContent) => {
-            this._rawContent = rawContent;
+        IpcPacketCore._content.write(bufferWriter, data, (rawHeader) => {
+            this._rawHeader = rawHeader;
         });
     }
 
     read(bufferReader: Reader): any | undefined {
-        return IpcPacketCore._content.read(bufferReader, (rawContent) => {
-            this._rawContent = rawContent;
+        return IpcPacketCore._content.read(bufferReader, (rawHeader) => {
+            this._rawHeader = rawHeader;
         });
     }
 }

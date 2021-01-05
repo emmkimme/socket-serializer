@@ -58,7 +58,7 @@ export enum IpcPacketType {
 };
 
 export namespace IpcPacketHeader {
-    export interface RawContent {
+    export interface RawData {
         type: IpcPacketType;
         headerSize: number;
         contentSize: number;
@@ -66,11 +66,11 @@ export namespace IpcPacketHeader {
 }
 
 export class IpcPacketHeader {
-    protected _rawContent: IpcPacketHeader.RawContent;
+    protected _rawHeader: IpcPacketHeader.RawData;
 
-    constructor(rawContent?: IpcPacketHeader.RawContent) {
-        if (rawContent) {
-            this._rawContent = rawContent;
+    constructor(rawHeader?: IpcPacketHeader.RawData) {
+        if (rawHeader) {
+            this._rawHeader = rawHeader;
         }
         else {
             this.reset();
@@ -78,31 +78,31 @@ export class IpcPacketHeader {
     }
 
     reset(): void {
-        this._rawContent = {
+        this._rawHeader = {
             type: IpcPacketType.NotValid,
             headerSize: -1,
             contentSize: -1
         };
     }
 
-    setRawContent(rawContent: IpcPacketHeader.RawContent): void {
-        this._rawContent = rawContent;
+    setRawData(rawHeader: IpcPacketHeader.RawData): void {
+        this._rawHeader = rawHeader;
     }
 
-    getRawContent(): IpcPacketHeader.RawContent {
-        return this._rawContent;
+    getRawData(): IpcPacketHeader.RawData {
+        return this._rawHeader;
     }
 
     get type(): IpcPacketType {
-        return this._rawContent.type;
+        return this._rawHeader.type;
     }
 
     get packetSize(): number {
-        return this._rawContent.contentSize + (this._rawContent.headerSize + FooterLength);
+        return this._rawHeader.contentSize + (this._rawHeader.headerSize + FooterLength);
     }
 
     get contentSize(): number {
-        return this._rawContent.contentSize;
+        return this._rawHeader.contentSize;
     }
 
     get footerSize(): number {
@@ -110,28 +110,28 @@ export class IpcPacketHeader {
     }
 
     get headerSize(): number {
-        return this._rawContent.headerSize;
+        return this._rawHeader.headerSize;
     }
 
     isNotValid(): boolean {
-        return (this._rawContent.type === IpcPacketType.NotValid);
+        return (this._rawHeader.type === IpcPacketType.NotValid);
     }
 
     isComplete(): boolean {
-        return (this._rawContent.type !== IpcPacketType.NotValid) && (this._rawContent.type !== IpcPacketType.PartialHeader);
+        return (this._rawHeader.type !== IpcPacketType.NotValid) && (this._rawHeader.type !== IpcPacketType.PartialHeader);
     }
 
     isNull(): boolean {
-        return (this._rawContent.type === IpcPacketType.Null);
+        return (this._rawHeader.type === IpcPacketType.Null);
     }
 
     isUndefined(): boolean {
-        return (this._rawContent.type === IpcPacketType.Undefined);
+        return (this._rawHeader.type === IpcPacketType.Undefined);
     }
 
     isArray(): boolean {
-        return (this._rawContent.type === IpcPacketType.ArrayWithSize);
-        // switch (this._rawContent.type) {
+        return (this._rawHeader.type === IpcPacketType.ArrayWithSize);
+        // switch (this._rawHeader.type) {
         //     case IpcPacketType.ArrayWithSize:
         //     case IpcPacketType.ArrayWithLen:
         //         return true;
@@ -141,16 +141,16 @@ export class IpcPacketHeader {
     }
 
     // isArrayWithSize(): boolean {
-    //     return this._rawContent.type === IpcPacketType.ArrayWithSize;
+    //     return this._rawHeader.type === IpcPacketType.ArrayWithSize;
     // }
 
     // isArrayWithLen(): boolean {
-    //     return this._rawContent.type === IpcPacketType.ArrayWithLen;
+    //     return this._rawHeader.type === IpcPacketType.ArrayWithLen;
     // }
 
     isObject(): boolean {
-        return (this._rawContent.type === IpcPacketType.ObjectSTRINGIFY);
-        // switch (this._rawContent.type) {
+        return (this._rawHeader.type === IpcPacketType.ObjectSTRINGIFY);
+        // switch (this._rawHeader.type) {
         //     case IpcPacketType.Object:
         //     case IpcPacketType.ObjectSTRINGIFY:
         //         return true;
@@ -160,19 +160,19 @@ export class IpcPacketHeader {
     }
 
     isString(): boolean {
-        return (this._rawContent.type === IpcPacketType.String);
+        return (this._rawHeader.type === IpcPacketType.String);
     }
 
     isBuffer(): boolean {
-        return (this._rawContent.type === IpcPacketType.Buffer);
+        return (this._rawHeader.type === IpcPacketType.Buffer);
     }
 
     isDate(): boolean {
-        return (this._rawContent.type === IpcPacketType.Date);
+        return (this._rawHeader.type === IpcPacketType.Date);
     }
 
     isNumber(): boolean {
-        switch (this._rawContent.type) {
+        switch (this._rawHeader.type) {
             case IpcPacketType.NegativeInteger:
             case IpcPacketType.PositiveInteger:
             case IpcPacketType.Double:
@@ -183,7 +183,7 @@ export class IpcPacketHeader {
     }
 
     isBoolean(): boolean {
-        switch (this._rawContent.type) {
+        switch (this._rawHeader.type) {
             case IpcPacketType.BooleanTrue:
             case IpcPacketType.BooleanFalse:
                 return true;
@@ -193,10 +193,10 @@ export class IpcPacketHeader {
     }
 
     isFixedSize(): boolean {
-        return (this._rawContent.headerSize === FixedHeaderSize);
+        return (this._rawHeader.headerSize === FixedHeaderSize);
     }
 
-    static CheckType(type: IpcPacketType, contentSize: number): IpcPacketHeader.RawContent {
+    static CheckType(type: IpcPacketType, contentSize: number): IpcPacketHeader.RawData {
         switch (type) {
             case IpcPacketType.Date:
                 return {
@@ -257,28 +257,28 @@ export class IpcPacketHeader {
         }
     }
 
-   static ReadHeader(bufferReader: Reader): IpcPacketHeader.RawContent {
+   static ReadHeader(bufferReader: Reader): IpcPacketHeader.RawData {
         // Header minimum size is FixedHeaderSize
         if (bufferReader.checkEOF(FixedHeaderSize)) {
             return IpcPacketHeader.CheckType(IpcPacketType.PartialHeader, -1);
         }
         // Read separator
         // Read type / header
-        const rawContent = IpcPacketHeader.CheckType(bufferReader.readUInt16(), -1);
-        if (rawContent.type === IpcPacketType.NotValid) {
-            return rawContent;
+        const rawHeader = IpcPacketHeader.CheckType(bufferReader.readUInt16(), -1);
+        if (rawHeader.type === IpcPacketType.NotValid) {
+            return rawHeader;
         }
-        if (rawContent.headerSize === DynamicHeaderSize) {
+        if (rawHeader.headerSize === DynamicHeaderSize) {
             // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = ContentFieldSize
             if (bufferReader.checkEOF(ContentFieldSize)) {
                 return IpcPacketHeader.CheckType(IpcPacketType.PartialHeader, -1);
             }
             // Read dynamic packet size
-            rawContent.contentSize = bufferReader.readUInt32();
+            rawHeader.contentSize = bufferReader.readUInt32();
         }
-        if (bufferReader.checkEOF(rawContent.contentSize + FooterLength)) {
+        if (bufferReader.checkEOF(rawHeader.contentSize + FooterLength)) {
             return IpcPacketHeader.CheckType(IpcPacketType.PartialHeader, -1);
         }
-        return rawContent;
+        return rawHeader;
     }
 }

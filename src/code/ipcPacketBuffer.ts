@@ -6,20 +6,20 @@ import { IpcPacketHeader } from './ipcPacketHeader';
 import { BufferListWriter } from './bufferListWriter';
 
 export namespace IpcPacketBuffer {
-    export type RawContent = IpcPacketBufferCore.RawContent;
+    export type RawData = IpcPacketBufferCore.RawData;
 }
 
 export class IpcPacketBuffer extends IpcPacketBufferCore {
     private _buffer: Buffer;
 
-    constructor(rawContent?: IpcPacketBuffer.RawContent) {
-        super(rawContent);
-        if (rawContent) {
-            if (rawContent.buffer) {
-                this._buffer = rawContent.buffer;
+    constructor(rawHeader?: IpcPacketBuffer.RawData) {
+        super(rawHeader);
+        if (rawHeader) {
+            if (rawHeader.buffer) {
+                this._buffer = rawHeader.buffer;
             }
-            else if (rawContent.buffers) {
-                this._buffer = Buffer.concat(rawContent.buffers);
+            else if (rawHeader.buffers) {
+                this._buffer = Buffer.concat(rawHeader.buffers);
             }
         }
         this._buffer = this._buffer || IpcPacketBufferCore.EmptyBuffer;
@@ -38,34 +38,34 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         return [this._buffer];
     }
 
-    setRawContent(rawContent: IpcPacketBuffer.RawContent): void {
-        super.setRawContent(rawContent);
-        if (rawContent) {
-            if (rawContent.buffer) {
-                this._buffer = rawContent.buffer;
+    setRawData(rawHeader: IpcPacketBuffer.RawData): void {
+        super.setRawData(rawHeader);
+        if (rawHeader) {
+            if (rawHeader.buffer) {
+                this._buffer = rawHeader.buffer;
             }
-            else if (rawContent.buffers) {
-                this._buffer = Buffer.concat(rawContent.buffers);
+            else if (rawHeader.buffers) {
+                this._buffer = Buffer.concat(rawHeader.buffers);
             }
         }
         this._buffer = this._buffer || IpcPacketBufferCore.EmptyBuffer;
     }
 
-    getRawContent(): IpcPacketBuffer.RawContent {
-        const rawContent : IpcPacketBuffer.RawContent = {
-            ...this._rawContent,
+    getRawData(): IpcPacketBuffer.RawData {
+        const rawHeader : IpcPacketBuffer.RawData = {
+            ...this._rawHeader,
             buffer: this._buffer
         };
-        return rawContent;
+        return rawHeader;
     }
 
     // Allocate its own buffer
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
         const context = bufferReader.getContext();
-        this._rawContent = IpcPacketHeader.ReadHeader(bufferReader);
+        this._rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         bufferReader.setContext(context);
-        if (this._rawContent.contentSize >= 0) {
+        if (this._rawHeader.contentSize >= 0) {
             this._buffer = bufferReader.subarray(this.packetSize);
             return true;
         }
@@ -77,8 +77,8 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        this._rawContent = IpcPacketHeader.ReadHeader(new BufferReader(buffer));
-        if (this._rawContent.contentSize >= 0) {
+        this._rawHeader = IpcPacketHeader.ReadHeader(new BufferReader(buffer));
+        if (this._rawHeader.contentSize >= 0) {
             this._buffer = buffer;
             return true;
         }
@@ -89,7 +89,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
     }
 
     protected _parseReader(): Reader {
-        const bufferReader = new BufferReader(this._buffer, this._rawContent.headerSize);
+        const bufferReader = new BufferReader(this._buffer, this._rawHeader.headerSize);
          return bufferReader;
      }
  

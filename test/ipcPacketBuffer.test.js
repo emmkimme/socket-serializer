@@ -33,16 +33,16 @@ function testSerialization(param, ipb, fctSerialize, checkParse, fctCompare) {
     it(msg, () => {
       console.time(msg);
       ipb.serialize(param);
-      const rawContent = ipb.getRawContent();
-      assert(rawContent.type === ipb.type);
-      assert(rawContent.contentSize === ipb.contentSize);
-      if (rawContent.buffers) {
-        // assert(rawContent.buffers === ipb.buffers);
+      const rawHeader = ipb.getRawContent();
+      assert(rawHeader.type === ipb.type);
+      assert(rawHeader.contentSize === ipb.contentSize);
+      if (rawHeader.buffers) {
+        // assert(rawHeader.buffers === ipb.buffers);
       }
       else {
-        assert(BufferEqual(rawContent.buffer, ipb.buffer));
+        assert(BufferEqual(rawHeader.buffer, ipb.buffer));
       }
-      ipb.setRawContent(rawContent);
+      ipb.setRawContent(rawHeader);
       assert(fctCompare(ipb.parse(), param));
       console.timeEnd(msg);
     });
