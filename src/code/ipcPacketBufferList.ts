@@ -71,8 +71,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     getRawContent(): IpcPacketBufferList.RawContent {
         const rawContent : IpcPacketBufferList.RawContent = {
             type: this._type,
-            contentSize: this._contentSize,
-            partialContent: this._partialContent,
+            contentSize: this._contentSize
         };
         const buffer = this._singleBufferAvailable();
         if (buffer) {
@@ -82,22 +81,6 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
             rawContent.buffers = this._buffers;
         }
         return rawContent;
-    }
-
-    keepDecodingFromReader(bufferReader: Reader): boolean {
-        if (this._partialContent) {
-            const packetSize = this.packetSize;
-            if (bufferReader.checkEOF(packetSize) === false) {
-                this._partialContent = false;
-                this._buffers = bufferReader.subarrayList(packetSize);
-                return true;
-            }
-            else {
-                this._buffers = [];
-                return false;
-            }
-        }
-        return this.decodeFromReader(bufferReader);
     }
 
     // Allocate its own buffer
