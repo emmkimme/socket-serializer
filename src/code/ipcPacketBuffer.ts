@@ -2,8 +2,8 @@ import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 
 import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
-import { Writer } from './writer';
 import { IpcPacketHeader } from './ipcPacketHeader';
+import { BufferListWriter } from './bufferListWriter';
 
 export namespace IpcPacketBuffer {
     export type RawContent = IpcPacketBufferCore.RawContent;
@@ -93,7 +93,9 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
          return bufferReader;
      }
  
-    protected _serializeDone(writer: Writer) {
+     serialize(data: any): void {
+        const writer = new BufferListWriter();
+        this.write(writer, data);
         this._buffer = writer.buffer;
     }
 }
