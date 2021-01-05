@@ -8,23 +8,29 @@ import { IpcPacketContent } from './ipcPacketContent';
 export class IpcPacketCore extends IpcPacketContent {
     // We save top header info
     protected writeDynamicBuffer(writer: Writer, type: IpcPacketType, bufferContent: Buffer): void {
-        this._type = type;
-        this._headerSize = DynamicHeaderSize;
-        this._contentSize = bufferContent.length;
+        this._rawContent = {
+            type,
+            headerSize: DynamicHeaderSize,
+            contentSize: bufferContent.length
+        };
         super.writeDynamicBuffer(writer, type, bufferContent);
     }
 
     protected writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer): void {
-        this._type = type;
-        this._headerSize = DynamicHeaderSize;
-        this._contentSize = writerContent.length;
+        this._rawContent = {
+            type,
+            headerSize: DynamicHeaderSize,
+            contentSize: writerContent.length
+        };
         super.writeDynamicContent(writer, type, writerContent);
     }
 
     protected writeFixedContent(bufferWriter: Writer, type: IpcPacketType, bufferContent?: Buffer): void {
-        this._type = type;
-        this._headerSize = FixedHeaderSize;
-        this._contentSize = bufferContent ? bufferContent.length - FixedHeaderSize - FooterLength : 0;
+        this._rawContent = {
+            type,
+            headerSize: FixedHeaderSize,
+            contentSize: bufferContent ? bufferContent.length - FixedHeaderSize - FooterLength : 0
+        };
         super.writeFixedContent(bufferWriter, type, bufferContent);
     }
 

@@ -4,6 +4,7 @@ import { BufferReader } from './bufferReader';
 import { Reader } from './reader';
 import { BufferListReader } from './bufferListReader';
 import { Writer } from './writer';
+import { IpcPacketHeader } from './ipcPacketHeader';
 
 export namespace IpcPacketBufferList {
     export type RawContent = IpcPacketBufferCore.RawContent;
@@ -70,8 +71,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
 
     getRawContent(): IpcPacketBufferList.RawContent {
         const rawContent : IpcPacketBufferList.RawContent = {
-            type: this._type,
-            contentSize: this._contentSize
+            ...this._rawContent
         };
         const buffer = this._singleBufferAvailable();
         if (buffer) {
@@ -87,32 +87,34 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
     decodeFromReader(bufferReader: Reader): boolean {
         // Do not modify offset
         const context = bufferReader.getContext();
-        const isComplete = this.readHeader(bufferReader);
+        this._rawContent = IpcPacketHeader.ReadHeader(bufferReader);
         bufferReader.setContext(context);
-        if (isComplete) {
+        if (this._rawContent.contentSize >= 0) {
             this._buffers = bufferReader.subarrayList(this.packetSize);
+            return true;
         }
         else {
             this._buffers = [];
+            return false;
         }
-        return isComplete;
     }
 
     // Add ref to the buffer
     decodeFromBuffer(buffer: Buffer): boolean {
-        const isComplete = this.readHeader(new BufferReader(buffer));
-        if (isComplete) {
+        this._rawContent = IpcPacketHeader.ReadHeader(new BufferReader(buffer));
+        if (this._rawContent.contentSize >= 0) {
             this._buffers = [buffer];
+            return true;
         }
         else {
             this._buffers = [];
+            return false;
         }
-        return isComplete;
     }
 
     protected _parseReader(): Reader {
         const buffer = this._singleBufferAvailable();
-        const bufferReader = buffer ? new BufferReader(buffer, this._headerSize) : new BufferListReader(this._buffers, this._headerSize);
+        const bufferReader = buffer ? new BufferReader(buffer, this._rawContent.headerSize) : new BufferListReader(this._buffers, this._rawContent.headerSize);
         return bufferReader;
     }
 

@@ -226,8 +226,9 @@ export class IpcPacketContent extends IpcPacketHeader {
     }
 
     read(bufferReader: Reader): any | undefined {
-        if (this.readHeader(bufferReader)) {
-            const arg = this._readContent(bufferReader, this._type, this._contentSize);
+        const rawContent = IpcPacketHeader.ReadHeader(bufferReader);
+        if (rawContent.contentSize >= 0) {
+            const arg = this._readContent(bufferReader, rawContent.type, rawContent.contentSize);
             bufferReader.skip(FooterLength);
             return arg;
         }
@@ -308,8 +309,9 @@ export class IpcPacketContent extends IpcPacketHeader {
 
     protected _byPass(bufferReader: Reader): boolean {
         // Do not decode data just skip
-        if (this.readHeader(bufferReader)) {
-            bufferReader.skip(this._contentSize + FooterLength);
+        const rawContent = IpcPacketHeader.ReadHeader(bufferReader);
+        if (rawContent.contentSize >= 0) {
+            bufferReader.skip(rawContent.contentSize + FooterLength);
             return true;
         }
         return false;
