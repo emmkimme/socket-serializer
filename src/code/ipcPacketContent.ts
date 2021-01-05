@@ -45,10 +45,6 @@ const BufferBooleanFalse = CreateBufferFor(IpcPacketType.BooleanFalse, BooleanCo
 const BufferUndefined = CreateBufferFor(IpcPacketType.Undefined, NullUndefinedContentSize, -1);
 const BufferNull = CreateBufferFor(IpcPacketType.Null, NullUndefinedContentSize, -1);
 
-export namespace IpcPacketContent {
-    export interface RawContent extends IpcPacketHeader.RawContent {
-    }
-}
 
 export class IpcPacketContent extends IpcPacketHeader {
     protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, bufferContent: Buffer, cb: (rawContent: IpcPacketHeader.RawContent) => void): void {

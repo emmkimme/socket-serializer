@@ -1,9 +1,9 @@
 import { IpcPacketCore } from './ipcPacketCore';
-import { IpcPacketContent } from './ipcPacketContent';
 import { Reader } from './reader';
+import { IpcPacketHeader } from './ipcPacketHeader';
 
 export namespace IpcPacketBufferCore {
-    export interface RawContent extends IpcPacketContent.RawContent {
+    export interface RawContent extends IpcPacketHeader.RawContent {
         buffer?: Buffer;
         buffers?: Buffer[];
     }

@@ -1,4 +1,3 @@
-import { IpcPacketContent } from './ipcPacketContent';
 import { Reader } from './reader';
 
 export const HeaderSeparator = '['.charCodeAt(0);
@@ -67,7 +66,7 @@ export namespace IpcPacketHeader {
 }
 
 export class IpcPacketHeader {
-    protected _rawContent: IpcPacketContent.RawContent;
+    protected _rawContent: IpcPacketHeader.RawContent;
 
     constructor(rawContent?: IpcPacketHeader.RawContent) {
         if (rawContent) {
