@@ -45,11 +45,13 @@ const BufferBooleanFalse = CreatePacketBufferFor(IpcPacketType.BooleanFalse, Boo
 const BufferUndefined = CreatePacketBufferFor(IpcPacketType.Undefined, NullUndefinedContentSize, -1);
 const BufferNull = CreatePacketBufferFor(IpcPacketType.Null, NullUndefinedContentSize, -1);
 
-export type IpcPacketContentWriterCallback = (rawHeader: IpcPacketHeader.RawData) => void;
-export type IpcPacketContentReaderCallback = (rawHeader: IpcPacketHeader.RawData, arg?: any) => void;
+export namespace IpcPacketContent {
+    export type WriterCallback = (rawHeader: IpcPacketHeader.RawData) => void;
+    export type ReaderCallback = (rawHeader: IpcPacketHeader.RawData, arg?: any) => void;
+}
 
 export class IpcPacketContent {
-    protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketContentWriterCallback): void {
+    protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketContent.WriterCallback): void {
         const contentSize = packetBuffer.length;
         writer.pushContext();
         writer.writeUInt16(type);
@@ -66,7 +68,7 @@ export class IpcPacketContent {
         }
     }
 
-    protected _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: IpcPacketContentWriterCallback): void {
+    protected _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: IpcPacketContent.WriterCallback): void {
         const contentSize = writerContent.length;
         writer.pushContext();
         writer.writeUInt16(type);
@@ -85,7 +87,7 @@ export class IpcPacketContent {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected _writeFixedContent(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketContentWriterCallback): void {
+    protected _writeFixedContent(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketContent.WriterCallback): void {
         switch (type) {
             case IpcPacketType.NegativeInteger:
             case IpcPacketType.PositiveInteger:
@@ -131,7 +133,7 @@ export class IpcPacketContent {
     // Object (native and does not implement [[Call]])      "object"
     // Object (native or host and does implement [[Call]])  "function"
     // Object (host and does not implement [[Call]])        Implementation-defined except may not be "undefined", "boolean", "number", or "string".
-    write(bufferWriter: Writer, data: any, cb?: IpcPacketContentWriterCallback): void {
+    write(bufferWriter: Writer, data: any, cb?: IpcPacketContent.WriterCallback): void {
         switch (typeof data) {
             case 'object':
                 if (data === null) {
@@ -169,7 +171,7 @@ export class IpcPacketContent {
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
-    protected _writeNumber(bufferWriter: Writer, dataNumber: number, cb: IpcPacketContentWriterCallback): void {
+    protected _writeNumber(bufferWriter: Writer, dataNumber: number, cb: IpcPacketContent.WriterCallback): void {
         // An integer
         if (Number.isInteger(dataNumber)) {
             const absDataNumber = Math.abs(dataNumber);
@@ -194,14 +196,14 @@ export class IpcPacketContent {
         this._writeFixedContent(bufferWriter, IpcPacketType.Double, packetBuffer, cb);
     }
 
-    protected _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketContentWriterCallback) {
+    protected _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketContent.WriterCallback) {
         const packetBuffer = CreatePacketBufferFor(IpcPacketType.Date, DateContentSize, data.getTime());
         this._writeFixedContent(bufferWriter, IpcPacketType.Date, packetBuffer, cb);
     }
 
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
-    protected _writeString(bufferWriter: Writer, data: string, cb: IpcPacketContentWriterCallback) {
+    protected _writeString(bufferWriter: Writer, data: string, cb: IpcPacketContent.WriterCallback) {
         // Encoding will be managed later, force 'utf8'
         // case 'hex':
         // case 'utf8':
@@ -219,14 +221,14 @@ export class IpcPacketContent {
     }
 
     // Default methods for these kind of data
-    protected _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketContentWriterCallback): void {
+    protected _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketContent.WriterCallback): void {
         const stringifycation = JSONParser.stringify(dataObject);
         const buffer = Buffer.from(stringifycation, 'utf8');
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.ObjectSTRINGIFY, buffer, cb);
     }
 
     // Default methods for these kind of data
-    protected _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketContentWriterCallback): void {
+    protected _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketContent.WriterCallback): void {
         const contentWriter = new BufferListWriter();
         contentWriter.writeUInt32(args.length);
         // JSONParser.install();
@@ -237,7 +239,7 @@ export class IpcPacketContent {
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter, cb);
     }
 
-    read(bufferReader: Reader, cb?: IpcPacketContentReaderCallback): any | undefined {
+    read(bufferReader: Reader, cb?: IpcPacketContent.ReaderCallback): any | undefined {
         const rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawHeader.contentSize >= 0) {
             const arg = this.readContent(bufferReader, rawHeader.type, rawHeader.contentSize);
