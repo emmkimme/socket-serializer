@@ -2,7 +2,7 @@
 import { Reader } from './reader';
 import { Writer } from './writer';
 import { BufferListWriter } from './bufferListWriter';
-import { IpcPacketType, DynamicHeaderSize, FixedHeaderSize, FooterLength } from './ipcPacketHeader';
+import { IpcPacketType, DynamicHeaderSize, FixedHeaderSize, FooterLength, IpcPacketHeader } from './ipcPacketHeader';
 import { IpcPacketContent } from './ipcPacketContent';
 
 export class IpcPacketCore extends IpcPacketContent {
@@ -48,9 +48,14 @@ export class IpcPacketCore extends IpcPacketContent {
         this.writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter);
     }
 
-    // We create an IpcPacketContent to keep current top header info untouched
-    _readContentArray(bufferReader: Reader): any[] {
-        const packetContent = new IpcPacketContent();
-        return packetContent._readContentArray(bufferReader);
+    read(bufferReader: Reader): any | undefined {
+        this._rawContent = IpcPacketHeader.ReadHeader(bufferReader);
+        if (this._rawContent.contentSize >= 0) {
+            const arg = this._readContent(bufferReader, this._rawContent.type, this._rawContent.contentSize);
+            bufferReader.skip(FooterLength);
+            return arg;
+        }
+        // throw err ?
+        return undefined;
     }
 }

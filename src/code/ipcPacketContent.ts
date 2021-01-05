@@ -226,6 +226,10 @@ export class IpcPacketContent extends IpcPacketHeader {
     }
 
     read(bufferReader: Reader): any | undefined {
+        return this._read(bufferReader);
+    }
+
+    protected _read(bufferReader: Reader): any | undefined {
         const rawContent = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawContent.contentSize >= 0) {
             const arg = this._readContent(bufferReader, rawContent.type, rawContent.contentSize);
@@ -291,12 +295,12 @@ export class IpcPacketContent extends IpcPacketHeader {
     }
 
     // Header has been read and checked
-    _readContentArray(bufferReader: Reader): any[] {
+    protected _readContentArray(bufferReader: Reader): any[] {
         const argsLen = bufferReader.readUInt32();
         const args = new Array(argsLen);
         let argIndex = 0;
         while (argIndex < argsLen) {
-            const arg = this.read(bufferReader);
+            const arg = this._read(bufferReader);
             args[argIndex++] = arg;
         }
         return args;
@@ -323,16 +327,15 @@ export class IpcPacketContent extends IpcPacketHeader {
         if (index >= argsLen) {
             return undefined;
         }
-        const packetContent = new IpcPacketContent();
         while (index > 0) {
             // Do not decode data just skip
-            if (packetContent._byPass(bufferReader) === false) {
+            if (this._byPass(bufferReader) === false) {
                 // throw err ?
                 return undefined;
             }
             --index;
         }
-        return packetContent.read(bufferReader);
+        return this._read(bufferReader);
     }
 
     // Header has been read and checked
@@ -360,10 +363,9 @@ export class IpcPacketContent extends IpcPacketHeader {
             return [];
         }
 
-        const packetContent = new IpcPacketContent();
         while (start > 0) {
             // Do not decode data just skip
-            if (packetContent._byPass(bufferReader) === false) {
+            if (this._byPass(bufferReader) === false) {
                 // throw err ?
                 return undefined;
             }
@@ -373,7 +375,7 @@ export class IpcPacketContent extends IpcPacketHeader {
         const args = new Array(end);
         let argIndex = 0;
         while (argIndex < end) {
-            const arg = packetContent.read(bufferReader);
+            const arg = this._read(bufferReader);
             args[argIndex++] = arg;
         }
         return args;
