@@ -51,28 +51,28 @@ export namespace IpcPacketContent {
 }
 
 export class IpcPacketContent extends IpcPacketHeader {
-    protected writeDynamicBuffer(bufferWriter: Writer, bufferType: IpcPacketType, bufferContent: Buffer): void {
-        bufferWriter.pushContext();
-        bufferWriter.writeUInt16(bufferType);
-        bufferWriter.writeUInt32(bufferContent.length);
-        bufferWriter.writeBuffer(bufferContent);
-        bufferWriter.writeBuffer(BufferFooter);
-        bufferWriter.popContext();
+    protected writeDynamicBuffer(writer: Writer, type: IpcPacketType, bufferContent: Buffer): void {
+        writer.pushContext();
+        writer.writeUInt16(type);
+        writer.writeUInt32(bufferContent.length);
+        writer.writeBuffer(bufferContent);
+        writer.writeBuffer(BufferFooter);
+        writer.popContext();
     }
 
-    protected writeDynamicContent(bufferWriter: Writer, bufferType: IpcPacketType, writerContent: Writer): void {
-        bufferWriter.pushContext();
-        bufferWriter.writeUInt16(bufferType);
-        bufferWriter.writeUInt32(writerContent.length);
-        bufferWriter.write(writerContent);
-        bufferWriter.writeBuffer(BufferFooter);
-        bufferWriter.popContext();
+    protected writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer): void {
+        writer.pushContext();
+        writer.writeUInt16(type);
+        writer.writeUInt32(writerContent.length);
+        writer.write(writerContent);
+        writer.writeBuffer(BufferFooter);
+        writer.popContext();
     }
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected writeFixedContent(bufferWriter: Writer, bufferType: IpcPacketType, bufferContent?: Buffer): void {
-        switch (bufferType) {
+    protected writeFixedContent(writer: Writer, type: IpcPacketType, bufferContent?: Buffer): void {
+        switch (type) {
             case IpcPacketType.NegativeInteger:
             case IpcPacketType.PositiveInteger:
             case IpcPacketType.Double:
@@ -94,9 +94,9 @@ export class IpcPacketContent extends IpcPacketHeader {
             //     throw new Error('socket-serializer - write: not expected data');
         }
         // Push block in origin writer
-        bufferWriter.pushContext();
-        bufferWriter.writeBuffer(bufferContent);
-        bufferWriter.popContext();
+        writer.pushContext();
+        writer.writeBuffer(bufferContent);
+        writer.popContext();
     }
 
     // http://www.ecma-international.org/ecma-262/5.1/#sec-11.4.3
@@ -227,7 +227,7 @@ export class IpcPacketContent extends IpcPacketHeader {
 
     read(bufferReader: Reader): any | undefined {
         if (this.readHeader(bufferReader)) {
-            const arg = this._readContent(bufferReader);
+            const arg = this._readContent(bufferReader, this._type, this._contentSize);
             bufferReader.skip(FooterLength);
             return arg;
         }
@@ -235,13 +235,13 @@ export class IpcPacketContent extends IpcPacketHeader {
         return undefined;
     }
 
-    protected _readContent(bufferReader: Reader): any | undefined {
-        switch (this._type) {
+    protected _readContent(bufferReader: Reader, type: IpcPacketType, contentSize: number): any | undefined {
+        switch (type) {
             case IpcPacketType.String:
-                return this._readContentString(bufferReader, this._contentSize);
+                return this._readContentString(bufferReader, contentSize);
 
             case IpcPacketType.Buffer:
-                return bufferReader.subarray(this._contentSize);
+                return bufferReader.subarray(contentSize);
 
             case IpcPacketType.Double:
                 return bufferReader.readDouble();
@@ -265,7 +265,7 @@ export class IpcPacketContent extends IpcPacketHeader {
             // case IpcPacketType.Object:
             //     return this._readContentObjectDirect(bufferReader);
             case IpcPacketType.ObjectSTRINGIFY:
-                return this._readContentObject(bufferReader, this._contentSize);
+                return this._readContentObject(bufferReader, contentSize);
 
             case IpcPacketType.Null:
                 return null;
@@ -279,13 +279,13 @@ export class IpcPacketContent extends IpcPacketHeader {
     }
 
     // Header has been read and checked
-    protected _readContentString(bufferReader: Reader, len: number): string {
+    protected _readContentString(bufferReader: Reader, contentSize: number): string {
         // Encoding will be managed later
-        return bufferReader.readString('utf8', len);
+        return bufferReader.readString('utf8', contentSize);
     }
 
-    protected _readContentObject(bufferReader: Reader, len: number): string {
-        const data = bufferReader.readString('utf8', len);
+    protected _readContentObject(bufferReader: Reader, contentSize: number): string {
+        const data = bufferReader.readString('utf8', contentSize);
         return JSONParser.parse(data);
     }
 

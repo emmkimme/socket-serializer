@@ -7,28 +7,28 @@ import { IpcPacketContent } from './ipcPacketContent';
 
 export class IpcPacketCore extends IpcPacketContent {
     // We save top header info
-    protected writeDynamicBuffer(writer: Writer, bufferType: IpcPacketType, bufferContent: Buffer): void {
+    protected writeDynamicBuffer(writer: Writer, type: IpcPacketType, bufferContent: Buffer): void {
         this._partialContent = false;
-        this._type = bufferType;
+        this._type = type;
         this._headerSize = DynamicHeaderSize;
         this._contentSize = bufferContent.length;
-        super.writeDynamicBuffer(writer, bufferType, bufferContent);
+        super.writeDynamicBuffer(writer, type, bufferContent);
     }
 
-    protected writeDynamicContent(writer: Writer, bufferType: IpcPacketType, writerContent: Writer): void {
+    protected writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer): void {
         this._partialContent = false;
-        this._type = bufferType;
+        this._type = type;
         this._headerSize = DynamicHeaderSize;
         this._contentSize = writerContent.length;
-        super.writeDynamicContent(writer, bufferType, writerContent);
+        super.writeDynamicContent(writer, type, writerContent);
     }
 
-    protected writeFixedContent(bufferWriter: Writer, bufferType: IpcPacketType, bufferContent?: Buffer): void {
+    protected writeFixedContent(bufferWriter: Writer, type: IpcPacketType, bufferContent?: Buffer): void {
         this._partialContent = false;
-        this._type = bufferType;
+        this._type = type;
         this._headerSize = FixedHeaderSize;
         this._contentSize = bufferContent ? bufferContent.length - FixedHeaderSize - FooterLength : 0;
-        super.writeFixedContent(bufferWriter, bufferType, bufferContent);
+        super.writeFixedContent(bufferWriter, type, bufferContent);
     }
 
     // We create an IpcPacketContent to keep current top header info untouched

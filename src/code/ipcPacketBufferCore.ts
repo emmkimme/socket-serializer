@@ -75,7 +75,7 @@ export abstract class IpcPacketBufferCore extends IpcPacketCore {
     protected abstract _parseReader(): Reader;
 
     parse<T = any>(): T | undefined {
-        return this._readContent(this._parseReader());
+        return this._readContent(this._parseReader(), this._type, this._contentSize);
     }
 
     // Caller must be sure and must ensure this is an array, else result would be unpredictable
