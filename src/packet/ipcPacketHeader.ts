@@ -196,7 +196,7 @@ export class IpcPacketHeader {
         return (this._rawHeader.headerSize === FixedHeaderSize);
     }
 
-    static CheckType(type: IpcPacketType, contentSize: number): IpcPacketHeader.RawData {
+    static DeclareHeader(type: IpcPacketType, contentSize: number): IpcPacketHeader.RawData {
         switch (type) {
             case IpcPacketType.Date:
                 return {
@@ -260,24 +260,24 @@ export class IpcPacketHeader {
    static ReadHeader(bufferReader: Reader): IpcPacketHeader.RawData {
         // Header minimum size is FixedHeaderSize
         if (bufferReader.checkEOF(FixedHeaderSize)) {
-            return IpcPacketHeader.CheckType(IpcPacketType.PartialHeader, -1);
+            return IpcPacketHeader.DeclareHeader(IpcPacketType.PartialHeader, -1);
         }
         // Read separator
         // Read type / header
-        const rawHeader = IpcPacketHeader.CheckType(bufferReader.readUInt16(), -1);
+        const rawHeader = IpcPacketHeader.DeclareHeader(bufferReader.readUInt16(), -1);
         if (rawHeader.type === IpcPacketType.NotValid) {
             return rawHeader;
         }
         if (rawHeader.headerSize === DynamicHeaderSize) {
             // Substract 'FixedHeaderSize' already read : DynamicHeaderSize - FixedHeaderSize = ContentFieldSize
             if (bufferReader.checkEOF(ContentFieldSize)) {
-                return IpcPacketHeader.CheckType(IpcPacketType.PartialHeader, -1);
+                return IpcPacketHeader.DeclareHeader(IpcPacketType.PartialHeader, -1);
             }
             // Read dynamic packet size
             rawHeader.contentSize = bufferReader.readUInt32();
         }
         if (bufferReader.checkEOF(rawHeader.contentSize + FooterLength)) {
-            return IpcPacketHeader.CheckType(IpcPacketType.PartialHeader, -1);
+            return IpcPacketHeader.DeclareHeader(IpcPacketType.PartialHeader, -1);
         }
         return rawHeader;
     }
