@@ -47,14 +47,13 @@ Dependencies
 ```ts
 export class IpcPacketBuffer[List] extends IpcPacketBufferWrap {
     readonly buffer: Buffer;
+    readonly buffers: Buffer[];
 
     isNotValid(): boolean;
     isNotComplete(): boolean;
     isNull(): boolean;
     isUndefined(): boolean;
     isArray(): boolean;
-    isArrayWithSize(): boolean;
-    isArrayWithLen(): boolean;
     isObject(): boolean;
     isString(): boolean;
     isBuffer(): boolean;
@@ -64,24 +63,10 @@ export class IpcPacketBuffer[List] extends IpcPacketBufferWrap {
  // Generic serialization
     serialize(data: any): void;
 
- // Specific serialization methods
-    serializeNumber(dataNumber: number): void;
-    serializeBoolean(dataBoolean: boolean): void;
-    serializeString(data: string, encoding?: BufferEncoding): void;
-    serializeObject(dataObject: Object): void;
-    serializeBuffer(data: Buffer): void;
-    serializeArray(args: any[]): void;
- 
  // Generic parsing method
     parse(): any;
 
  // Specific parsing methods
-    parseBoolean(): boolean | null;
-    parseNumber(): number | null;
-    parseObject(): any | null;
-    parseString(encoding?: BufferEncoding): string | null;
-    parseBuffer(): Buffer | null;
-    parseArray(): any[] | null;
     parseArrayAt(index: number): any | null;
     parseArraySlice(start?: number, end?: numbers): any | null;
 
@@ -209,7 +194,7 @@ socketHelpers.findFirstFreePort({portRange: `>=${port}`, log: false, testConnect
 
 # MIT License
 
-Copyright (c) 2020 Emmanuel Kimmerlin
+Copyright (c) 2021 Emmanuel Kimmerlin
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
