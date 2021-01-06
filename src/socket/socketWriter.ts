@@ -1,6 +1,6 @@
 import * as net from 'net';
 
-import { BufferListWriterBase } from './bufferListWriter';
+import { BufferListWriterBase } from '../buffer/bufferListWriter';
 
 export interface SocketWriterBase {
     readonly socket: net.Socket;

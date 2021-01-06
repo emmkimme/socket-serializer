@@ -1,9 +1,9 @@
-import { IpcPacketBufferCore } from './ipcPacketBufferCore';
+import { BufferReader } from '../buffer/bufferReader';
+import { Reader } from '../buffer/reader';
+import { BufferListWriter } from '../buffer/bufferListWriter';
 
-import { BufferReader } from './bufferReader';
-import { Reader } from './reader';
+import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 import { IpcPacketHeader } from './ipcPacketHeader';
-import { BufferListWriter } from './bufferListWriter';
 
 export namespace IpcPacketBuffer {
     export type RawData = IpcPacketBufferCore.RawData;

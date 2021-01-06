@@ -1,6 +1,7 @@
 import * as net from 'net';
 
-import { BufferListWriter } from './bufferListWriter';
+import { BufferListWriter } from '../buffer/bufferListWriter';
+
 import { SocketWriterBase } from './socketWriter';
 
 export class DelayedSocketWriter extends BufferListWriter implements SocketWriterBase {

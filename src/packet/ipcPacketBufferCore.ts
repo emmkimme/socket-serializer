@@ -1,5 +1,6 @@
+import { Reader } from '../buffer/reader';
+
 import { IpcPacketCore } from './ipcPacketCore';
-import { Reader } from './reader';
 import { IpcPacketHeader } from './ipcPacketHeader';
 
 export namespace IpcPacketBufferCore {
@@ -18,22 +19,22 @@ export abstract class IpcPacketBufferCore extends IpcPacketCore {
     protected abstract _parseReader(): Reader;
 
     parse<T = any>(): T | undefined {
-        return IpcPacketCore._content.readContent(this._parseReader(), this._rawHeader.type, this._rawHeader.contentSize);
+        return IpcPacketCore._reader.readContent(this._parseReader(), this._rawHeader.type, this._rawHeader.contentSize);
     }
 
     // Caller must be sure and must ensure this is an array, else result would be unpredictable
     parseArrayLength(): number | undefined {
         const bufferReader = this._parseReader();
-        return IpcPacketCore._content.readContentArrayLength(bufferReader);
+        return IpcPacketCore._reader.readContentArrayLength(bufferReader);
     }
 
     parseArrayAt(index: number): any | undefined {
         const bufferReader = this._parseReader();
-        return IpcPacketCore._content.readContentArrayAt(bufferReader, index);
+        return IpcPacketCore._reader.readContentArrayAt(bufferReader, index);
     }
 
     parseArraySlice(start?: number, end?: number): any | undefined {
         const bufferReader = this._parseReader();
-        return IpcPacketCore._content.readContentArraySlice(bufferReader, start, end);
+        return IpcPacketCore._reader.readContentArraySlice(bufferReader, start, end);
     }
 }

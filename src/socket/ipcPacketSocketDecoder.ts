@@ -2,8 +2,9 @@
 import { EventEmitter } from 'events';
 import * as net from 'net';
 
-import { IpcPacketBufferList } from './ipcPacketBufferList';
-import { BufferListReader } from './bufferListReader';
+import { BufferListReader } from '../buffer/bufferListReader';
+
+import { IpcPacketBufferList } from '../packet/ipcPacketBufferList';
 
 export class IpcPacketSocketDecoder {
     private _bufferListReader: BufferListReader;

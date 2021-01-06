@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+
 import { Writer, WriterBase } from './writer';
 
 export abstract class BufferListWriterBase extends WriterBase {

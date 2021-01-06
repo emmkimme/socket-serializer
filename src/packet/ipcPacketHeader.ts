@@ -1,4 +1,4 @@
-import { Reader } from './reader';
+import { Reader } from '../buffer/reader';
 
 export const HeaderSeparator = '['.charCodeAt(0);
 export const FooterSeparator = ']'.charCodeAt(0);

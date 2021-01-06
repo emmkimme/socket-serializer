@@ -1,5 +1,3 @@
-// import { Buffer } from 'buffer';
-
 export namespace Reader {
     export function AdjustEnd(offset: number, maxLen: number, len?: number): number {
         // Check null/undefined case first

@@ -19,7 +19,7 @@ describe(`Performance IPCPacketBuffer`, () => {
 
     const time = process.hrtime();
     for (let i = 0; i < 10000; ++i) {
-      ipcBuffer.setRawContent(rawHeader);
+      ipcBuffer.setRawData(rawHeader);
       ipcBuffer.reset();
     }
     const diff = process.hrtime(time);

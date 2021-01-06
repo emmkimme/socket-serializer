@@ -1,10 +1,10 @@
-import { IpcPacketBufferCore } from './ipcPacketBufferCore';
+import { BufferReader } from '../buffer/bufferReader';
+import { Reader } from '../buffer/reader';
+import { BufferListReader } from '../buffer/bufferListReader';
+import { BufferListWriter } from '../buffer/bufferListWriter';
 
-import { BufferReader } from './bufferReader';
-import { Reader } from './reader';
-import { BufferListReader } from './bufferListReader';
+import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 import { IpcPacketHeader } from './ipcPacketHeader';
-import { BufferListWriter } from './bufferListWriter';
 
 export namespace IpcPacketBufferList {
     export type RawContent = IpcPacketBufferCore.RawData;
