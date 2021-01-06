@@ -3,7 +3,7 @@ const assert = chai.assert;
 const expect = chai.expect;
 
 const Buffer = require('buffer').Buffer;
-const { BufferListReader } = require('../lib/code/BufferListReader');
+const { BufferListReader } = require('../lib/buffer/BufferListReader');
 
 
 function fill(buffer) {

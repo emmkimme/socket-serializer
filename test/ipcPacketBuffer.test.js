@@ -19,16 +19,6 @@ function BufferEqual(a1, a2) {
 
 function testSerialization(param, ipb, fctSerialize, checkParse, fctCompare) {
   {
-    let msg = `explicit should return a type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
-    it(msg, () => {
-      console.time(msg);
-      fctSerialize.call(ipb, param);
-      assert(fctCompare(ipb.parse(), param));
-      assert(checkParse.call(ipb), true);
-      console.timeEnd(msg);
-    });
-  }
-  {
     let msg = `implicit should return a type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
     it(msg, () => {
       console.time(msg);
@@ -43,16 +33,16 @@ function testSerialization(param, ipb, fctSerialize, checkParse, fctCompare) {
     it(msg, () => {
       console.time(msg);
       ipb.serialize(param);
-      const rawContent = ipb.getRawContent();
-      assert(rawContent.type === ipb.type);
-      assert(rawContent.contentSize === ipb.contentSize);
-      if (rawContent.buffers) {
-        // assert(rawContent.buffers === ipb.buffers);
+      const rawHeader = ipb.getRawData();
+      assert(rawHeader.type === ipb.type);
+      assert(rawHeader.contentSize === ipb.contentSize);
+      if (rawHeader.buffers) {
+        // assert(rawHeader.buffers === ipb.buffers);
       }
       else {
-        assert(BufferEqual(rawContent.buffer, ipb.buffer));
+        assert(BufferEqual(rawHeader.buffer, ipb.buffer));
       }
-      ipb.setRawContent(rawContent);
+      ipb.setRawData(rawHeader);
       assert(fctCompare(ipb.parse(), param));
       console.timeEnd(msg);
     });
@@ -65,10 +55,10 @@ function test(ipcPacketCore) {
     const paramFalse = false;
 
     describe('serialize true', () => {
-      testSerialization(paramTrue, ipcPacketCore, ipcPacketCore.serializeBoolean, ipcPacketCore.isBoolean, (a, b) => a == b);
+      testSerialization(paramTrue, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isBoolean, (a, b) => a == b);
     });
     describe('serialize false', () => {
-      testSerialization(paramFalse, ipcPacketCore, ipcPacketCore.serializeBoolean, ipcPacketCore.isBoolean, (a, b) => a == b);
+      testSerialization(paramFalse, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isBoolean, (a, b) => a == b);
     });
   });
 
@@ -80,19 +70,19 @@ function test(ipcPacketCore) {
     const paramInt64Negative = -99999999999999;
 
     describe('serialize double', () => {
-      testSerialization(paramDouble, ipcPacketCore, ipcPacketCore.serializeNumber, ipcPacketCore.isNumber, (a, b) => a == b);
+      testSerialization(paramDouble, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isNumber, (a, b) => a == b);
     });
     describe('serialize 32bits positive integer', () => {
-      testSerialization(paramInt32Positive, ipcPacketCore, ipcPacketCore.serializeNumber, ipcPacketCore.isNumber, (a, b) => a == b);
+      testSerialization(paramInt32Positive, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isNumber, (a, b) => a == b);
     });
     describe('serialize 32bits negative integer', () => {
-      testSerialization(paramInt32Negative, ipcPacketCore, ipcPacketCore.serializeNumber, ipcPacketCore.isNumber, (a, b) => a == b);
+      testSerialization(paramInt32Negative, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isNumber, (a, b) => a == b);
     });
     describe('serialize 64bits positive integer', () => {
-      testSerialization(paramInt64Positive, ipcPacketCore, ipcPacketCore.serializeNumber, ipcPacketCore.isNumber, (a, b) => a == b);
+      testSerialization(paramInt64Positive, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isNumber, (a, b) => a == b);
     });
     describe('serialize 64bits negative integer', () => {
-      testSerialization(paramInt64Negative, ipcPacketCore, ipcPacketCore.serializeNumber, ipcPacketCore.isNumber, (a, b) => a == b);
+      testSerialization(paramInt64Negative, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isNumber, (a, b) => a == b);
     });
   });
 
@@ -117,15 +107,15 @@ function test(ipcPacketCore) {
     let emptystring = '';
 
     describe('long string', () => {
-      testSerialization(longstring, ipcPacketCore, ipcPacketCore.serializeString, ipcPacketCore.isString, (a, b) => a == b);
+      testSerialization(longstring, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isString, (a, b) => a == b);
     });
 
     describe('short string', () => {
-      testSerialization(shortstring, ipcPacketCore, ipcPacketCore.serializeString, ipcPacketCore.isString, (a, b) => a == b);
+      testSerialization(shortstring, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isString, (a, b) => a == b);
     });
 
     describe('empty string', () => {
-      testSerialization(emptystring, ipcPacketCore, ipcPacketCore.serializeString, ipcPacketCore.isString, (a, b) => a == b);
+      testSerialization(emptystring, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isString, (a, b) => a == b);
     });
   });
 
@@ -133,10 +123,10 @@ function test(ipcPacketCore) {
     const paramArray = ['this is a test', 255, 56.5, true, ''];
 
     describe('serialize', () => {
-      testSerialization(paramArray, ipcPacketCore, ipcPacketCore.serializeArray, ipcPacketCore.isArray, (a, b) => ArrayEqual(a, b));
+      testSerialization(paramArray, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isArray, (a, b) => ArrayEqual(a, b));
 
       // it(`explicit should return a type ${typeof paramArray}`, () => {
-      //   ipb.serializeArray(paramArray);
+      //   ipb.serialize(paramArray);
       //   assert(ArrayEqual(ipb.parseArray(), paramArray));
       // });
       // it(`implicit should return a type ${typeof paramArray}`, () => {
@@ -153,10 +143,10 @@ function test(ipcPacketCore) {
     }
 
     describe('serialize', () => {
-      testSerialization(paramBuffer, ipcPacketCore, ipcPacketCore.serializeBuffer, ipcPacketCore.isBuffer, (a, b) => BufferEqual(a, b));
+      testSerialization(paramBuffer, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isBuffer, (a, b) => BufferEqual(a, b));
 
       // it(`explicit should return a type ${typeof paramBuffer}`, () => {
-      //   ipb.serializeBuffer(paramBuffer);
+      //   ipb.serialize(paramBuffer);
       //   assert(Buffer.compare(ipb.parseBuffer(), paramBuffer) === 0);
       // });
       // it(`implicit should return a type ${typeof paramBuffer}`, () => {
@@ -181,9 +171,9 @@ function test(ipcPacketCore) {
     };
 
     describe('serialize', () => {
-      testSerialization(paramObject, ipcPacketCore, ipcPacketCore.serializeObject, ipcPacketCore.isObject, (a, b) => ObjectEqual(a, b));
+      testSerialization(paramObject, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isObject, (a, b) => ObjectEqual(a, b));
       // it(`explicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, () => {
-      //   ipb.serializeObject(paramObject);
+      //   ipb.serialize(paramObject);
       //   assert(JSON.stringify(ipb.parseObject()) === JSON.stringify(paramObject));
       // });
       // it(`implicit should return a type ${typeof paramObject} = ${JSON.stringify(paramObject)}`, () => {
@@ -196,7 +186,7 @@ function test(ipcPacketCore) {
     describe('serialize null', () => {
       testSerialization(nullObject, ipcPacketCore, ipcPacketCore.serialize, ipcPacketCore.isNull, (a, b) => ObjectEqual(a, b));
       // it(`explicit should return a type ${typeof nullObject} = ${JSON.stringify(nullObject)}`, () => {
-      //   ipb.serializeObject(nullObject);
+      //   ipb.serialize(nullObject);
       //   assert(ipb.parseObject() == nullObject);
       // });
       // it(`implicit should return a type ${typeof nullObject} = ${JSON.stringify(nullObject)}`, () => {

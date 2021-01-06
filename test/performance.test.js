@@ -8,18 +8,18 @@ const Conversions = {
 };
 
 describe(`Performance IPCPacketBuffer`, () => {
-  const rawContent = {
+  const rawHeader = {
     type: ipcSocket.IpcPacketType.NotValid,
     contentSize: 0,
     buffer: Buffer.alloc(128)
   };
 
-  it('static buffer rawContent', (done) => {
+  it('static buffer rawHeader', (done) => {
     const ipcBuffer = new ipcSocket.IpcPacketBuffer();
 
     const time = process.hrtime();
     for (let i = 0; i < 10000; ++i) {
-      ipcBuffer.setRawContent(rawContent);
+      ipcBuffer.setRawData(rawHeader);
       ipcBuffer.reset();
     }
     const diff = process.hrtime(time);
@@ -28,10 +28,10 @@ describe(`Performance IPCPacketBuffer`, () => {
     done();
   });
 
-  it('dynamic buffer rawContent', (done) => {
+  it('dynamic buffer rawHeader', (done) => {
     const time = process.hrtime();
     for (let i = 0; i < 10000; ++i) {
-      const ipcBuffer = new ipcSocket.IpcPacketBuffer(rawContent);
+      const ipcBuffer = new ipcSocket.IpcPacketBuffer(rawHeader);
     }
     const diff = process.hrtime(time);
     const diffms = diff[0] * Conversions.ms[0] + diff[1] * Conversions.ms[1];
@@ -57,7 +57,7 @@ describe(`Performance IPCPacketBuffer`, () => {
     const ipcBuffer = new ipcSocket.IpcPacketBuffer();
     const time = process.hrtime();
     for (let i = 0; i < 10000; ++i) {
-      ipcBuffer.serializeArray([paramObject, paramObject]);
+      ipcBuffer.serialize([paramObject, paramObject]);
       ipcBuffer.reset();
     }
     const diff = process.hrtime(time);
@@ -70,7 +70,7 @@ describe(`Performance IPCPacketBuffer`, () => {
     const time = process.hrtime();
     for (let i = 0; i < 10000; ++i) {
       const ipcBuffer = new ipcSocket.IpcPacketBuffer();
-      ipcBuffer.serializeArray([paramObject, paramObject]);
+      ipcBuffer.serialize([paramObject, paramObject]);
     }
     const diff = process.hrtime(time);
     const diffms = diff[0] * Conversions.ms[0] + diff[1] * Conversions.ms[1];
