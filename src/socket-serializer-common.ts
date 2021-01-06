@@ -3,6 +3,7 @@ export * from './packet/ipcPacketBufferList';
 export * from './packet/ipcPacketBufferCore';
 export * from './packet/ipcPacketCore';
 export * from './packet/ipcPacketReader';
+export * from './packet/ipcPacketWriter';
 export * from './packet/ipcPacketHeader';
 
 export { Writer } from './buffer/writer';

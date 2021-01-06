@@ -9,6 +9,9 @@ export namespace IpcPacketReader {
 }
 
 export class IpcPacketReader {
+    constructor() {
+    }
+
     read(bufferReader: Reader, cb?: IpcPacketReader.Callback): any | undefined {
         const rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawHeader.contentSize >= 0) {

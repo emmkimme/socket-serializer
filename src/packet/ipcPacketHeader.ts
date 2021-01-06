@@ -11,10 +11,8 @@ export const DynamicHeaderSize = FixedHeaderSize + ContentFieldSize;
 // const ArrayHeaderSize = DynamicHeaderSize + ArrayFieldSize;
 
 export const DoubleContentSize = 8;
-export const DateContentSize = 8;
 export const IntegerContentSize = 4;
-export const BooleanContentSize = 0;
-export const NullUndefinedContentSize = 0;
+export const ZeroContentSize = 0;
 
 function BufferTypeHeader(type: string): number {
     return (type.charCodeAt(0) << 8) + HeaderSeparator;
@@ -199,13 +197,8 @@ export class IpcPacketHeader {
     static DeclareHeader(type: IpcPacketType, contentSize: number): IpcPacketHeader.RawData {
         switch (type) {
             case IpcPacketType.Date:
-                return {
-                    type,
-                    headerSize: FixedHeaderSize,
-                    contentSize: DateContentSize
-                };
             case IpcPacketType.Double:
-                return {
+                    return {
                     type,
                     headerSize: FixedHeaderSize,
                     contentSize: DoubleContentSize
@@ -219,17 +212,12 @@ export class IpcPacketHeader {
                 };
             case IpcPacketType.BooleanTrue:
             case IpcPacketType.BooleanFalse:
-                return {
-                    type,
-                    headerSize: FixedHeaderSize,
-                    contentSize: BooleanContentSize
-                };
             case IpcPacketType.Null:
             case IpcPacketType.Undefined:
                 return {
                     type,
                     headerSize: FixedHeaderSize,
-                    contentSize: NullUndefinedContentSize
+                    contentSize: ZeroContentSize
                 };
             // case IpcPacketType.Object:
             case IpcPacketType.ObjectSTRINGIFY:

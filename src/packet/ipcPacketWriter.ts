@@ -6,48 +6,32 @@ import { BufferWriter } from '../buffer/bufferWriter';
 
 import { IpcPacketType, FooterLength, FixedHeaderSize, IpcPacketHeader, DynamicHeaderSize } from './ipcPacketHeader';
 import { FooterSeparator } from './ipcPacketHeader';
-import { DoubleContentSize, DateContentSize, IntegerContentSize, BooleanContentSize, NullUndefinedContentSize } from './ipcPacketHeader';
+import { DoubleContentSize, IntegerContentSize } from './ipcPacketHeader';
 
-function CreatePacketBufferFor(bufferType: IpcPacketType, contentSize: number, num: number): Buffer {
+function CreateZeroSizeBuffer(bufferType: IpcPacketType): Buffer {
     // assert(this.isFixedSize() === true);
     // Write the whole in one block buffer, to avoid multiple small buffers
-    const packetSize = FixedHeaderSize + contentSize + FooterLength;
+    const packetSize = FixedHeaderSize + FooterLength;
     const bufferWriterAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
     bufferWriterAllInOne.writeUInt16(bufferType);
-    // Write content
-    switch (bufferType) {
-        case IpcPacketType.NegativeInteger:
-        case IpcPacketType.PositiveInteger:
-            bufferWriterAllInOne.writeUInt32(num);
-            break;
-        case IpcPacketType.Double:
-        case IpcPacketType.Date:
-            bufferWriterAllInOne.writeDouble(num);
-            break;
-        // case IpcPacketType.Null:
-        // case IpcPacketType.Undefined:
-        // case IpcPacketType.BooleanFalse:
-        // case IpcPacketType.BooleanTrue:
-        //     break;
-        // default :
-        //     throw new Error('socket-serializer - write: not expected data');
-    }
-    // Write footer
     bufferWriterAllInOne.writeByte(FooterSeparator);
     return bufferWriterAllInOne.buffer;
 }
 
 const BufferFooter = Buffer.allocUnsafe(1).fill(FooterSeparator);
-const BufferBooleanTrue = CreatePacketBufferFor(IpcPacketType.BooleanTrue, BooleanContentSize, -1);
-const BufferBooleanFalse = CreatePacketBufferFor(IpcPacketType.BooleanFalse, BooleanContentSize, -1);
-const BufferUndefined = CreatePacketBufferFor(IpcPacketType.Undefined, NullUndefinedContentSize, -1);
-const BufferNull = CreatePacketBufferFor(IpcPacketType.Null, NullUndefinedContentSize, -1);
+const BufferBooleanTrue = CreateZeroSizeBuffer(IpcPacketType.BooleanTrue);
+const BufferBooleanFalse = CreateZeroSizeBuffer(IpcPacketType.BooleanFalse);
+const BufferUndefined = CreateZeroSizeBuffer(IpcPacketType.Undefined);
+const BufferNull = CreateZeroSizeBuffer(IpcPacketType.Null);
 
 export namespace IpcPacketWriter {
     export type Callback = (rawHeader: IpcPacketHeader.RawData) => void;
 }
 
 export class IpcPacketWriter {
+    constructor() {
+    }
+
     protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketWriter.Callback): void {
         const contentSize = packetBuffer.length;
         writer.pushContext();
@@ -84,13 +68,30 @@ export class IpcPacketWriter {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected _writeFixedContent(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketWriter.Callback): void {
+    protected _writeFixedContent(writer: Writer, type: IpcPacketType, num: number, cb: IpcPacketWriter.Callback): void {
+        let packetBuffer: Buffer;
         switch (type) {
             case IpcPacketType.NegativeInteger:
-            case IpcPacketType.PositiveInteger:
-            case IpcPacketType.Double:
-            case IpcPacketType.Date:
+            case IpcPacketType.PositiveInteger: {
+                const packetSize = FixedHeaderSize + IntegerContentSize + FooterLength;
+                const bufferWriterAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
+                bufferWriterAllInOne.writeUInt16(type);
+                bufferWriterAllInOne.writeUInt32(num);
+                bufferWriterAllInOne.writeByte(FooterSeparator);
+                packetBuffer = bufferWriterAllInOne.buffer;
                 break;
+            }
+
+            case IpcPacketType.Double:
+            case IpcPacketType.Date: {
+                const packetSize = FixedHeaderSize + DoubleContentSize + FooterLength;
+                const bufferWriterAllInOne = new BufferWriter(Buffer.allocUnsafe(packetSize));
+                bufferWriterAllInOne.writeUInt16(type);
+                bufferWriterAllInOne.writeDouble(num);
+                bufferWriterAllInOne.writeByte(FooterSeparator);
+                packetBuffer = bufferWriterAllInOne.buffer;
+                break;
+            }
             case IpcPacketType.Null:
                 packetBuffer = BufferNull;
                 break;
@@ -176,26 +177,22 @@ export class IpcPacketWriter {
             if (absDataNumber <= 0xFFFFFFFF) {
                 // Negative integer
                 if (dataNumber < 0) {
-                    const packetBuffer = CreatePacketBufferFor(IpcPacketType.NegativeInteger, IntegerContentSize, absDataNumber);
-                    this._writeFixedContent(bufferWriter, IpcPacketType.NegativeInteger, packetBuffer, cb);
+                    this._writeFixedContent(bufferWriter, IpcPacketType.NegativeInteger, absDataNumber, cb);
                 }
                 // Positive integer
                 else {
-                    const packetBuffer = CreatePacketBufferFor(IpcPacketType.PositiveInteger, IntegerContentSize, absDataNumber);
-                    this._writeFixedContent(bufferWriter, IpcPacketType.PositiveInteger, packetBuffer, cb);
+                    this._writeFixedContent(bufferWriter, IpcPacketType.PositiveInteger, absDataNumber, cb);
                 }
                 return;
             }
         }
         // Either this is not an integer or it is outside of a 32-bit integer.
         // Save as a double.
-        const packetBuffer = CreatePacketBufferFor(IpcPacketType.Double, DoubleContentSize, dataNumber);
-        this._writeFixedContent(bufferWriter, IpcPacketType.Double, packetBuffer, cb);
+        this._writeFixedContent(bufferWriter, IpcPacketType.Double, dataNumber, cb);
     }
 
     protected _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketWriter.Callback) {
-        const packetBuffer = CreatePacketBufferFor(IpcPacketType.Date, DateContentSize, data.getTime());
-        this._writeFixedContent(bufferWriter, IpcPacketType.Date, packetBuffer, cb);
+        this._writeFixedContent(bufferWriter, IpcPacketType.Date, data.getTime(), cb);
     }
 
     // We do not use writeFixedSize
