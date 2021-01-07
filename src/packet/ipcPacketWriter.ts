@@ -32,7 +32,7 @@ export class IpcPacketWriter {
     constructor() {
     }
 
-    protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketWriter.Callback): void {
+    private _writeDynamicBuffer(writer: Writer, type: IpcPacketType, packetBuffer: Buffer, cb: IpcPacketWriter.Callback): void {
         const contentSize = packetBuffer.length;
         writer.pushContext();
         writer.writeUInt16(type);
@@ -49,7 +49,7 @@ export class IpcPacketWriter {
         }
     }
 
-    protected _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: IpcPacketWriter.Callback): void {
+    private _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: IpcPacketWriter.Callback): void {
         const contentSize = writerContent.length;
         writer.pushContext();
         writer.writeUInt16(type);
@@ -68,7 +68,7 @@ export class IpcPacketWriter {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    protected _writeFixedContent(writer: Writer, type: IpcPacketType, num: number, cb: IpcPacketWriter.Callback): void {
+    private _writeFixedContent(writer: Writer, type: IpcPacketType, num: number, cb: IpcPacketWriter.Callback): void {
         let packetBuffer: Buffer;
         switch (type) {
             case IpcPacketType.NegativeInteger:
@@ -169,7 +169,7 @@ export class IpcPacketWriter {
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
-    protected _writeNumber(bufferWriter: Writer, dataNumber: number, cb: IpcPacketWriter.Callback): void {
+    private _writeNumber(bufferWriter: Writer, dataNumber: number, cb: IpcPacketWriter.Callback): void {
         // An integer
         if (Number.isInteger(dataNumber)) {
             const absDataNumber = Math.abs(dataNumber);
@@ -191,13 +191,13 @@ export class IpcPacketWriter {
         this._writeFixedContent(bufferWriter, IpcPacketType.Double, dataNumber, cb);
     }
 
-    protected _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketWriter.Callback) {
+    private _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketWriter.Callback) {
         this._writeFixedContent(bufferWriter, IpcPacketType.Date, data.getTime(), cb);
     }
 
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
-    protected _writeString(bufferWriter: Writer, data: string, cb: IpcPacketWriter.Callback) {
+    private _writeString(bufferWriter: Writer, data: string, cb: IpcPacketWriter.Callback) {
         // Encoding will be managed later, force 'utf8'
         // case 'hex':
         // case 'utf8':
@@ -215,14 +215,14 @@ export class IpcPacketWriter {
     }
 
     // Default methods for these kind of data
-    protected _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketWriter.Callback): void {
+    private _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketWriter.Callback): void {
         const stringifycation = JSONParser.stringify(dataObject);
         const buffer = Buffer.from(stringifycation, 'utf8');
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.ObjectSTRINGIFY, buffer, cb);
     }
 
     // Default methods for these kind of data
-    protected _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketWriter.Callback): void {
+    private _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketWriter.Callback): void {
         const contentWriter = new BufferListWriter();
         contentWriter.writeUInt32(args.length);
         // JSONParser.install();

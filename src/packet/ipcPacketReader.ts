@@ -25,7 +25,7 @@ export class IpcPacketReader {
         return undefined;
     }
 
-    protected _read(bufferReader: Reader): any | undefined {
+    private _read(bufferReader: Reader): any | undefined {
         const rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawHeader.contentSize >= 0) {
             const arg = this.readContent(bufferReader, rawHeader.type, rawHeader.contentSize);
@@ -80,18 +80,18 @@ export class IpcPacketReader {
     }
 
     // Header has been read and checked
-    protected _readContentString(bufferReader: Reader, contentSize: number): string {
+    private _readContentString(bufferReader: Reader, contentSize: number): string {
         // Encoding will be managed later
         return bufferReader.readString('utf8', contentSize);
     }
 
-    protected _readContentObject(bufferReader: Reader, contentSize: number): string {
+    private _readContentObject(bufferReader: Reader, contentSize: number): string {
         const data = bufferReader.readString('utf8', contentSize);
         return JSONParser.parse(data);
     }
 
     // Header has been read and checked
-    protected _readContentArray(bufferReader: Reader): any[] {
+    private _readContentArray(bufferReader: Reader): any[] {
         const argsLen = bufferReader.readUInt32();
         const args = new Array(argsLen);
         let argIndex = 0;
@@ -107,7 +107,7 @@ export class IpcPacketReader {
         return bufferReader.readUInt32();
     }
 
-    protected _byPass(bufferReader: Reader): boolean {
+    private _byPass(bufferReader: Reader): boolean {
         // Do not decode data just skip
         const rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawHeader.contentSize >= 0) {

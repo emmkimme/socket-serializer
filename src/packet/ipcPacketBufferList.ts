@@ -45,7 +45,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         return this._buffers[0];
     }
 
-    protected _singleBufferAvailable(): Buffer | null {
+    private _singleBufferAvailable(): Buffer | null {
         if (this._buffers.length === 1) {
             return this._buffers[0];
         }

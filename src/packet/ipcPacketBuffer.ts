@@ -52,7 +52,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
     }
 
     getRawData(): IpcPacketBuffer.RawData {
-        const rawHeader : IpcPacketBuffer.RawData = {
+        const rawHeader: IpcPacketBuffer.RawData = {
             ...this._rawHeader,
             buffer: this._buffer
         };
@@ -90,13 +90,12 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
 
     protected _parseReader(): Reader {
         const bufferReader = new BufferReader(this._buffer, this._rawHeader.headerSize);
-         return bufferReader;
-     }
- 
-     serialize(data: any): void {
+        return bufferReader;
+    }
+
+    serialize(data: any): void {
         const writer = new BufferListWriter();
         this.write(writer, data);
         this._buffer = writer.buffer;
     }
 }
- 
