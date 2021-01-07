@@ -13,6 +13,7 @@ export interface Writer {
     writeDouble(data: number): number;
     writeString(data: string, encoding?: BufferEncoding, len?: number): number;
     writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
+    writeBuffers(data: Buffer[]): number;
     write(writer: Writer): number;
 
     pushContext(): void;
@@ -50,6 +51,7 @@ export abstract class WriterBase implements Writer {
     abstract writeDouble(data: number): number;
     abstract writeString(data: string, encoding?: BufferEncoding, len?: number): number;
     abstract writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
+    abstract writeBuffers(data: Buffer[], totalLength?: number): number;
     abstract write(writer: Writer): number;
 
     abstract pushContext(): void;

@@ -1,5 +1,4 @@
 import { Buffer } from 'buffer';
-
 import { Writer, WriterBase } from './writer';
 
 export abstract class BufferListWriterBase extends WriterBase {
@@ -22,25 +21,25 @@ export abstract class BufferListWriterBase extends WriterBase {
     abstract readonly buffer: Buffer;
     abstract readonly buffers: Buffer[];
 
-    protected abstract _appendBuffer(length: number, buffer: Buffer): number;
-    protected abstract _appendBuffers(length: number, buffers: Buffer[]): number;
+    protected abstract _appendBuffer(buffer: Buffer, length: number): number;
+    protected abstract _appendBuffers(buffers: Buffer[], totalLength: number): number;
 
     writeBytes(dataArray: number[]): number {
         const uint8Array = new Uint8Array(dataArray);
         const buffer = Buffer.from(uint8Array.buffer);
-        return this._appendBuffer(buffer.length, buffer);
+        return this._appendBuffer(buffer, buffer.length);
     }
 
     writeByte(data: number): number {
         const buffer = Buffer.allocUnsafe(1)
         buffer[0] = data;
-        return this._appendBuffer(1, buffer);
+        return this._appendBuffer(buffer, 1);
     }
 
     private _writeNumber(bufferFunction: (value: number, offset: number, noAssert?: boolean) => number, data: number, byteSize: number): number {
         const buffer = Buffer.allocUnsafe(byteSize);
         bufferFunction.call(buffer, data, 0);
-        return this._appendBuffer(byteSize, buffer);
+        return this._appendBuffer(buffer, byteSize);
     }
 
     writeUInt16(data: number): number {
@@ -60,18 +59,23 @@ export abstract class BufferListWriterBase extends WriterBase {
             data = data.substring(0, len);
         }
         const buffer = Buffer.from(data, encoding);
-        return this._appendBuffer(buffer.length, buffer);
+        return this._appendBuffer(buffer, buffer.length);
     }
 
     writeBuffer(buffer: Buffer, sourceStart?: number, sourceEnd?: number): number {
         if ((sourceStart != null) || (sourceEnd != null)) {
             buffer = buffer.slice(sourceStart, sourceEnd);
         }
-        return this._appendBuffer(buffer.length, buffer);
+        return this._appendBuffer(buffer, buffer.length);
+    }
+
+    writeBuffers(buffers: Buffer[], totalLength?: number): number {
+        totalLength = (totalLength == null) ? buffers.reduce((sum, buffer) => sum + buffer.length, 0) : totalLength;
+        return this._appendBuffers(buffers, totalLength);
     }
 
     write(writer: Writer): number {
-        return this._appendBuffers(writer.length, writer.buffers);
+        return this._appendBuffers(writer.buffers, writer.length);
     }
 
     pushContext(): void {
@@ -109,20 +113,20 @@ export class BufferListWriter extends BufferListWriterBase {
         return this._buffers;
     }
 
-    protected _appendBuffer(length: number, buffer: Buffer): number {
+    protected _appendBuffer(buffer: Buffer, length: number): number {
         this._buffers.push(buffer);
         this._length += length;
         return this._length;
     }
 
-    protected _appendBuffers(length: number, buffers: Buffer[]): number {
+    protected _appendBuffers(buffers: Buffer[], totalLength: number): number {
         // 'push' is faster than 'concat' but may have a "Maximum call stack size exceeded" exception when buffers length is very long
         // this._buffers.push.apply(this._buffers, buffers);
         // for (let i = 0, l = buffers.length; i < l; ++i) {
         //     this._buffers.push(buffers[i]);
         // }
         this._buffers = this._buffers.concat(buffers);
-        this._length += length;
+        this._length += totalLength;
         return this._length;
     }
 }

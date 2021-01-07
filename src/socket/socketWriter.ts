@@ -52,13 +52,18 @@ export class SocketWriter extends BufferListWriterBase implements SocketWriterBa
         return [];
     }
 
-    protected _appendBuffer(length: number, buffer: Buffer): number {
+    writeBuffers(buffers: Buffer[], totalLength?: number): number {
+        // don't care of totalLength !!
+        return this._appendBuffers(buffers, undefined);
+    }
+
+    protected _appendBuffer(buffer: Buffer, length: number): number {
         this._socket.write(buffer);
         // length never changed
         return 0;
     }
 
-    protected _appendBuffers(length: number, buffers: Buffer[]): number {
+    protected _appendBuffers(buffers: Buffer[], totalLength: number): number {
         // Taking idea from Node.js - EventEmitter.emit
         const len = buffers.length;
         switch (len) {

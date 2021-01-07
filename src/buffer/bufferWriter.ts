@@ -73,12 +73,16 @@ export class BufferWriter extends WriterBase {
         return this._offset;
     }
 
-    write(writer: Writer): number {
-        const buffers = writer.buffers;
+    writeBuffers(buffers: Buffer[], totalLength?: number): number {
         for (let i = 0, l = buffers.length; i < l; ++i) {
             this.writeBuffer(buffers[i]);
         }
         return this._offset;
+
+    }
+
+    write(writer: Writer): number {
+        return this.writeBuffers(writer.buffers);
     }
 
     pushContext(): void {
