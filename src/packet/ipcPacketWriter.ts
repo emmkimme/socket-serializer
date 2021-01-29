@@ -1,3 +1,5 @@
+import * as util from 'util';
+
 import { JSONParser } from 'json-helpers';
 
 import { Writer } from '../buffer/writer';
@@ -143,7 +145,7 @@ export class IpcPacketWriter {
                 else if (Array.isArray(data)) {
                     this._writeArray(bufferWriter, data, cb);
                 }
-                else if (data instanceof Date) {
+                else if (util.types.isDate(data)) {
                     this._writeDate(bufferWriter, data, cb);
                 }
                 else {

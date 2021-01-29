@@ -161,6 +161,7 @@ function test(type, ipcPacketCoreClass) {
         sender: {
           id: 'MyPeer_1234567890',
           name: 'MyPeer_customName',
+          date: new Date(),
           process: {
             type: 'renderer',
             pid: 2000,
@@ -168,7 +169,7 @@ function test(type, ipcPacketCoreClass) {
             wcid: 10,
             testUndefined: undefined
           },
-          testArrayUndefined: [12, "str", undefined, 3, null, "end"]
+          testArrayUndefined: [12, "str", undefined, 3, null, "end", new Date()]
         },
         request: {
           replyChannel: '/electron-common-ipc/myChannel/myRequest/replyChannel',
