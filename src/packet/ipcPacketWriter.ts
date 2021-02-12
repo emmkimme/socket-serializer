@@ -6,7 +6,7 @@ import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
 import { BufferWriter } from '../buffer/bufferWriter';
 
-import { IpcPacketType, FooterLength, FixedHeaderSize, IpcPacketHeader, DynamicHeaderSize } from './ipcPacketHeader';
+import { IpcPacketType, FooterLength, FixedHeaderSize, IpcPacketHeader, DynamicHeaderSize, MapTypedArrayToShortCodes } from './ipcPacketHeader';
 import { FooterSeparator } from './ipcPacketHeader';
 import { DoubleContentSize, IntegerContentSize } from './ipcPacketHeader';
 
@@ -148,6 +148,9 @@ export class IpcPacketWriter {
                 else if (util.types.isDate(data)) {
                     this._writeDate(bufferWriter, data, cb);
                 }
+                else if (util.types.isTypedArray(data)) {
+                    this._writeTypedArray(bufferWriter, data, cb);
+                }
                 else {
                     this._writeObject(bufferWriter, data, cb);
                 }
@@ -234,4 +237,20 @@ export class IpcPacketWriter {
         // JSONParser.uninstall();
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter, cb);
     }
+
+    private _writeTypedArray(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
+        const shortCodeDef = MapTypedArrayToShortCodes[data.contructor.name];
+        if (shortCodeDef) {
+            const contentWriter = new BufferListWriter();
+            contentWriter.writeByte(shortCodeDef.key);
+
+            const arrayBuffer = data.buffer as ArrayBuffer;
+            const buffer = Buffer.from(arrayBuffer);
+            contentWriter.writeBuffer(buffer);
+
+            this._writeDynamicContent(bufferWriter, IpcPacketType.TypedArrayWithSize, contentWriter, cb);
+        }
+    }
 }
+
+

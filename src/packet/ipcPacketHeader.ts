@@ -25,34 +25,36 @@ export enum IpcPacketType {
     PartialHeader = BufferTypeHeader('p'),
     // // 85
     // Partial = BufferTypeHeader('P'),
-    // 115
-    String = BufferTypeHeader('s'),
-    // 66
-    Buffer = BufferTypeHeader('B'),
-    // 84
-    BooleanTrue = BufferTypeHeader('T'),
-    // 70
-    BooleanFalse = BufferTypeHeader('F'),
-    // 65
-    ArrayWithSize = BufferTypeHeader('A'),
-    // 97 --- EXPERIMENTAL, avoid to read in advance the full array
-    // ArrayWithLen = BufferTypeHeader('a'),
     // 42
     PositiveInteger = BufferTypeHeader('+'),
     // 45
     NegativeInteger = BufferTypeHeader('-'),
-    // 100
-    Double = BufferTypeHeader('d'),
-    // 79
-    Object = BufferTypeHeader('O'),
-    // 111
-    ObjectSTRINGIFY = BufferTypeHeader('o'),
-    // 78
-    Null = BufferTypeHeader('N'),
-    // 85
-    Undefined = BufferTypeHeader('U'),
+    // 65
+    ArrayWithSize = BufferTypeHeader('A'),
+    // 66
+    Buffer = BufferTypeHeader('B'),
+    // 67
+    TypedArrayWithSize = BufferTypeHeader('C'),
     // 68
     Date = BufferTypeHeader('D'),
+    // 70
+    BooleanFalse = BufferTypeHeader('F'),
+    // 78
+    Null = BufferTypeHeader('N'),
+    // 79
+    Object = BufferTypeHeader('O'),
+    // 84
+    BooleanTrue = BufferTypeHeader('T'),
+    // 85
+    Undefined = BufferTypeHeader('U'),
+    // 97 --- EXPERIMENTAL, avoid to read in advance the full array
+    // ArrayWithLen = BufferTypeHeader('a'),
+    // 100
+    Double = BufferTypeHeader('d'),
+    // 111
+    ObjectSTRINGIFY = BufferTypeHeader('o'),
+    // 115
+    String = BufferTypeHeader('s'),
 };
 
 export namespace IpcPacketHeader {
@@ -62,6 +64,66 @@ export namespace IpcPacketHeader {
         contentSize: number;
     }
 }
+
+export interface TypedArrayFactory {
+    ctor: any;
+    key: number;
+};
+
+export const MapTypedArrayToShortCodes: Record<string, TypedArrayFactory> = {
+    'Uint8Array': {
+        ctor: Uint8Array,
+        key: 1
+    },
+    'Uint8ClampedArray': {
+        ctor: Uint8ClampedArray,
+        key: 2
+    },
+    'Uint16Array': {
+        ctor: Uint16Array,
+        key: 3
+    },
+    'Uint32Array': {
+        ctor: Uint32Array,
+        key: 4
+    },
+    'Int8Array': {
+        ctor: Int8Array,
+        key: 5
+    },
+    'Int16Array': {
+        ctor: Int16Array,
+        key: 6
+    },
+    'Int32Array': {
+        ctor: Int32Array,
+        key: 8
+    },
+    'BigInt64Array': {
+        ctor: BigInt64Array,
+        key: 9
+    },
+    'BigUint64Array': {
+        ctor: BigUint64Array,
+        key: 10
+    },
+    'BigUint64Float32ArrayArray': {
+        ctor: Float32Array,
+        key: 11
+    },
+    'Float64Array': {
+        ctor: Float64Array,
+        key: 12
+    },
+};
+
+export const MapShortCodeToTypedArray: Record<number, TypedArrayFactory> = (() => {
+    const mapShortCodeToTypedArray: Record<number, TypedArrayFactory> = {};
+    Object.entries(MapTypedArrayToShortCodes).forEach(([key, value]: [string, any]) => {
+        mapShortCodeToTypedArray[value.key] = value;
+    });
+    return mapShortCodeToTypedArray;
+})();
 
 export class IpcPacketHeader {
     protected _rawHeader: IpcPacketHeader.RawData;

@@ -2,7 +2,7 @@ import { JSONParser } from 'json-helpers';
 
 import { Reader } from '../buffer/reader';
 
-import { IpcPacketType, FooterLength, IpcPacketHeader } from './ipcPacketHeader';
+import { IpcPacketType, FooterLength, IpcPacketHeader, MapShortCodeToTypedArray } from './ipcPacketHeader';
 
 export namespace IpcPacketReader {
     export type Callback = (rawHeader: IpcPacketHeader.RawData, arg?: any) => void;
@@ -63,7 +63,10 @@ export class IpcPacketReader {
             case IpcPacketType.ArrayWithSize:
                 return this._readContentArray(bufferReader);
 
-            // case IpcPacketType.Object:
+            case IpcPacketType.TypedArrayWithSize:
+                return this._readContentTypedArray(bufferReader, contentSize);
+    
+                // case IpcPacketType.Object:
             //     return this._readContentObjectDirect(bufferReader);
             case IpcPacketType.ObjectSTRINGIFY:
                 return this._readContentObject(bufferReader, contentSize);
@@ -88,6 +91,16 @@ export class IpcPacketReader {
     private _readContentObject(bufferReader: Reader, contentSize: number): string {
         const data = bufferReader.readString('utf8', contentSize);
         return JSONParser.parse(data);
+    }
+
+    private _readContentTypedArray(bufferReader: Reader, contentSize: number): any {
+        const shortCode = bufferReader.readByte();
+        const typedArrayDef = MapShortCodeToTypedArray[shortCode];
+        if (typedArrayDef == null) {
+            return undefined;
+        }
+        const buffer = bufferReader.subarray(contentSize - 1);
+        return new typedArrayDef.ctor(buffer.buffer);
     }
 
     // Header has been read and checked
