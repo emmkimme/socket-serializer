@@ -98,13 +98,13 @@ export class IpcPacketReader {
         const typedArrayDef = MapShortCodeToArrayBuffer[shortCode];
         if (shortCode === 0) {
             const buffer = bufferReader.subarray(contentSize - 1);
-            return buffer.buffer;
+            return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1);
         }
         if (typedArrayDef == null) {
             return undefined;
         }
         const buffer = bufferReader.subarray(contentSize - 1);
-        return new typedArrayDef.ctor(buffer.buffer);
+        return new typedArrayDef.ctor(buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1));
     }
 
     // Header has been read and checked
