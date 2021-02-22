@@ -195,24 +195,23 @@ describe('buffer concat', () => {
 
 });
 
-describe('test Uint32Array type', () => {
-    const data = new Uint32Array();
+// describe('test Uint32Array type', () => {
+//     const data = new Uint32Array();
 
-    it('util.types.isUint32Array', () => {
-        assert(util.types.isUint32Array(data));
-    });
+//     it('util.types.isUint32Array', () => {
+//         assert(util.types.isUint32Array(data));
+//     });
 
-    it('util.types.isArrayBuffer', () => {
-        assert(util.types.isArrayBuffer(data));
-    });
+//     it('util.types.isArrayBuffer', () => {
+//         assert(util.types.isArrayBuffer(data));
+//     });
 
-    it('util.types.isAnyArrayBuffer', () => {
-        assert(util.types.isAnyArrayBuffer(data));
-    });
+//     it('util.types.isAnyArrayBuffer', () => {
+//         assert(util.types.isAnyArrayBuffer(data));
+//     });
 
-    it('util.types.isTypedArray', () => {
-        assert(util.types.isTypedArray(data));
-    });
- 
+//     it('util.types.isTypedArray', () => {
+//         assert(util.types.isTypedArray(data));
+//     });
 
-});
+// });

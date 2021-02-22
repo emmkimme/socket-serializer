@@ -34,7 +34,7 @@ export enum IpcPacketType {
     // 66
     Buffer = BufferTypeHeader('B'),
     // 67
-    TypedArrayWithSize = BufferTypeHeader('C'),
+    ArrayBufferWithSize = BufferTypeHeader('C'),
     // 68
     Date = BufferTypeHeader('D'),
     // 70
@@ -70,7 +70,7 @@ export interface TypedArrayFactory {
     key: number;
 };
 
-export const MapTypedArrayToShortCodes: Record<string, TypedArrayFactory> = {
+export const MapArrayBufferToShortCodes: Record<string, TypedArrayFactory> = {
     'Uint8Array': {
         ctor: Uint8Array,
         key: 1
@@ -117,9 +117,9 @@ export const MapTypedArrayToShortCodes: Record<string, TypedArrayFactory> = {
     },
 };
 
-export const MapShortCodeToTypedArray: Record<number, TypedArrayFactory> = (() => {
+export const MapShortCodeToArrayBuffer: Record<number, TypedArrayFactory> = (() => {
     const mapShortCodeToTypedArray: Record<number, TypedArrayFactory> = {};
-    Object.entries(MapTypedArrayToShortCodes).forEach(([key, value]: [string, any]) => {
+    Object.entries(MapArrayBufferToShortCodes).forEach(([key, value]: [string, any]) => {
         mapShortCodeToTypedArray[value.key] = value;
     });
     return mapShortCodeToTypedArray;
@@ -286,6 +286,7 @@ export class IpcPacketHeader {
             case IpcPacketType.String:
             case IpcPacketType.Buffer:
             case IpcPacketType.ArrayWithSize:
+            case IpcPacketType.ArrayBufferWithSize:
                 return {
                     type,
                     headerSize: DynamicHeaderSize,

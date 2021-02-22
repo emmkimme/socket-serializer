@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "9.1.0",
+  "version": "9.2.0",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
@@ -56,7 +56,8 @@
     "typescript": "^4.1.3"
   },
   "dependencies": {
-    "json-helpers": "^5.0.0"
+    "json-helpers": "^5.0.0",
+    "which-typed-array": "^1.1.4"
   },
   "scripts": {
     "clean": "del-cli ./lib ./build ./dist",

@@ -10,45 +10,41 @@ function ArrayEqual(a1, a2) {
 
 function test(ipcPacketCore) {
 
-  describe('Array', function () {
-    const paramArray = ['this is a test', 255, 56.5, true, '', null, undefined];
+  describe(`${ipcPacketCore.constructor.name} Array`, function () {
+    const paramArray = ['this is a test', 255, 56.5, true, '', null, undefined, new Uint8Array([1, 2, 3]), new ArrayBuffer(20)];
 
     describe('serialize', function () {
-      it(`explicit should return a type ${typeof paramArray}`, function () {
-        ipcPacketCore.serialize(paramArray);
-        assert(ArrayEqual(ipcPacketCore.parse(), paramArray));
-      });
-      it(`implicit should return a type ${typeof paramArray}`, function () {
+      it(`should return a type ${typeof paramArray}`, function () {
         ipcPacketCore.serialize(paramArray);
         assert(ArrayEqual(ipcPacketCore.parse(), paramArray));
       });
     });
 
-    describe('access', function () {
-      it(`get length ${typeof paramArray}`, function () {
-        ipcPacketCore.serialize(paramArray);
-        assert(ipcPacketCore.parseArrayLength() === paramArray.length);
-      });
+    // describe('access', function () {
+    //   it(`get length ${typeof paramArray}`, function () {
+    //     ipcPacketCore.serialize(paramArray);
+    //     assert(ipcPacketCore.parseArrayLength() === paramArray.length);
+    //   });
 
-      for (let i = 0; i < paramArray.length; ++i) {
-        it(`get at ${i} ${typeof paramArray[i]} ${paramArray[i]}`, function () {
-          ipcPacketCore.serialize(paramArray);
-          assert(ipcPacketCore.parseArrayAt(i) === paramArray[i]);
-        });
-      }
-    });
+    //   for (let i = 0; i < paramArray.length; ++i) {
+    //     it(`get at ${i} ${typeof paramArray[i]} ${paramArray[i]}`, function () {
+    //       ipcPacketCore.serialize(paramArray);
+    //       assert(ipcPacketCore.parseArrayAt(i) === paramArray[i]);
+    //     });
+    //   }
+    // });
 
-    describe('slice', function () {
-      it(`slice(2, 3) ${typeof paramArray}`, function () {
-        ipcPacketCore.serialize(paramArray);
-        assert(ArrayEqual(ipcPacketCore.parseArraySlice(2, 3), paramArray.slice(2, 3)));
-      })
+    // describe('slice', function () {
+    //   it(`slice(2, 3) ${typeof paramArray}`, function () {
+    //     ipcPacketCore.serialize(paramArray);
+    //     assert(ArrayEqual(ipcPacketCore.parseArraySlice(2, 3), paramArray.slice(2, 3)));
+    //   })
 
-      it(`slice(1, -1) ${typeof paramArray}`, function () {
-        ipcPacketCore.serialize(paramArray);
-        assert(ArrayEqual(ipcPacketCore.parseArraySlice(1, -1), paramArray.slice(1, -1)));
-      })
-    });
+    //   it(`slice(1, -1) ${typeof paramArray}`, function () {
+    //     ipcPacketCore.serialize(paramArray);
+    //     assert(ArrayEqual(ipcPacketCore.parseArraySlice(1, -1), paramArray.slice(1, -1)));
+    //   })
+    // });
   });
 }
 

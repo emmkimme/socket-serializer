@@ -2,7 +2,7 @@ import { JSONParser } from 'json-helpers';
 
 import { Reader } from '../buffer/reader';
 
-import { IpcPacketType, FooterLength, IpcPacketHeader, MapShortCodeToTypedArray } from './ipcPacketHeader';
+import { IpcPacketType, FooterLength, IpcPacketHeader, MapShortCodeToArrayBuffer } from './ipcPacketHeader';
 
 export namespace IpcPacketReader {
     export type Callback = (rawHeader: IpcPacketHeader.RawData, arg?: any) => void;
@@ -63,9 +63,9 @@ export class IpcPacketReader {
             case IpcPacketType.ArrayWithSize:
                 return this._readContentArray(bufferReader);
 
-            case IpcPacketType.TypedArrayWithSize:
+            case IpcPacketType.ArrayBufferWithSize:
                 return this._readContentTypedArray(bufferReader, contentSize);
-    
+
                 // case IpcPacketType.Object:
             //     return this._readContentObjectDirect(bufferReader);
             case IpcPacketType.ObjectSTRINGIFY:
@@ -95,7 +95,11 @@ export class IpcPacketReader {
 
     private _readContentTypedArray(bufferReader: Reader, contentSize: number): any {
         const shortCode = bufferReader.readByte();
-        const typedArrayDef = MapShortCodeToTypedArray[shortCode];
+        const typedArrayDef = MapShortCodeToArrayBuffer[shortCode];
+        if (shortCode === 0) {
+            const buffer = bufferReader.subarray(contentSize - 1);
+            return buffer.buffer;
+        }
         if (typedArrayDef == null) {
             return undefined;
         }
