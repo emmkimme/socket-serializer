@@ -64,7 +64,7 @@ export class IpcPacketReader {
                 return this._readContentArray(bufferReader);
 
             case IpcPacketType.ArrayBufferWithSize:
-                return this._readContentTypedArray(bufferReader, contentSize);
+                return this._readContentArrayBuffer(bufferReader, contentSize);
 
                 // case IpcPacketType.Object:
             //     return this._readContentObjectDirect(bufferReader);
@@ -93,18 +93,18 @@ export class IpcPacketReader {
         return JSONParser.parse(data);
     }
 
-    private _readContentTypedArray(bufferReader: Reader, contentSize: number): any {
+    private _readContentArrayBuffer(bufferReader: Reader, contentSize: number): any {
         const shortCode = bufferReader.readByte();
-        const typedArrayDef = MapShortCodeToArrayBuffer[shortCode];
+        const buffer = bufferReader.subarray(contentSize - 1);
+        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1);
         if (shortCode === 0) {
-            const buffer = bufferReader.subarray(contentSize - 1);
-            return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1);
+            return arrayBuffer;
         }
+        const typedArrayDef = MapShortCodeToArrayBuffer[shortCode];
         if (typedArrayDef == null) {
             return undefined;
         }
-        const buffer = bufferReader.subarray(contentSize - 1);
-        return new typedArrayDef.ctor(buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1));
+        return new typedArrayDef.ctor(arrayBuffer);
     }
 
     // Header has been read and checked

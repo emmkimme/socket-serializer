@@ -257,7 +257,7 @@ export class IpcPacketWriter {
         const shortCodeDef = MapArrayBufferToShortCodes[whichTypedArray(data)];
         if (shortCodeDef) {
             const contentWriter = new BufferListWriter();
-            contentWriter.writeByte(shortCodeDef.key);
+            contentWriter.writeByte(shortCodeDef.shortCode);
 
             const arrayBuffer = data.buffer as ArrayBuffer;
             const buffer = Buffer.from(arrayBuffer);

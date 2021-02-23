@@ -67,60 +67,60 @@ export namespace IpcPacketHeader {
 
 export interface TypedArrayFactory {
     ctor: any;
-    key: number;
+    shortCode: number;
 };
 
 export const MapArrayBufferToShortCodes: Record<string, TypedArrayFactory> = {
     'Uint8Array': {
         ctor: Uint8Array,
-        key: 1
+        shortCode: 1
     },
     'Uint8ClampedArray': {
         ctor: Uint8ClampedArray,
-        key: 2
+        shortCode: 2
     },
     'Uint16Array': {
         ctor: Uint16Array,
-        key: 3
+        shortCode: 3
     },
     'Uint32Array': {
         ctor: Uint32Array,
-        key: 4
+        shortCode: 4
     },
     'Int8Array': {
         ctor: Int8Array,
-        key: 5
+        shortCode: 5
     },
     'Int16Array': {
         ctor: Int16Array,
-        key: 6
+        shortCode: 6
     },
     'Int32Array': {
         ctor: Int32Array,
-        key: 8
+        shortCode: 8
     },
     'BigInt64Array': {
         ctor: BigInt64Array,
-        key: 9
+        shortCode: 9
     },
     'BigUint64Array': {
         ctor: BigUint64Array,
-        key: 10
+        shortCode: 10
     },
     'BigUint64Float32ArrayArray': {
         ctor: Float32Array,
-        key: 11
+        shortCode: 11
     },
     'Float64Array': {
         ctor: Float64Array,
-        key: 12
+        shortCode: 12
     },
 };
 
 export const MapShortCodeToArrayBuffer: Record<number, TypedArrayFactory> = (() => {
     const mapShortCodeToTypedArray: Record<number, TypedArrayFactory> = {};
     Object.entries(MapArrayBufferToShortCodes).forEach(([key, value]: [string, any]) => {
-        mapShortCodeToTypedArray[value.key] = value;
+        mapShortCodeToTypedArray[value.shortCode] = value;
     });
     return mapShortCodeToTypedArray;
 })();
