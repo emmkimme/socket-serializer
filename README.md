@@ -6,7 +6,7 @@ Currently, not all Buffer methods are supported, but contributions or suggestion
 We are relying on native Buffer methods and do not overwrite them (except byte read/write, 10 times faster than calling ReadUInt8/WriteUInt8).
 
 ## Serializer/Unserializer
-Purpose is to serialize object, buffer, string, number and boolean with the minimum of transformations in order to improve performance.
+Purpose is to serialize Object, Buffer, string, Date, TypedArray, ArrayBuffer, number and boolean with the minimum of transformations in order to improve performance.
 We support partial/incremental unserialization that happen with socket.
 It is why we do not use classic serializations like BSON or protobuf.
 
