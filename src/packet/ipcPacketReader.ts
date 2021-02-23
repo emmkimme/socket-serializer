@@ -2,7 +2,7 @@ import { JSONParser } from 'json-helpers';
 
 import { Reader } from '../buffer/reader';
 
-import { IpcPacketType, FooterLength, IpcPacketHeader } from './ipcPacketHeader';
+import { IpcPacketType, FooterLength, IpcPacketHeader, MapShortCodeToArrayBuffer } from './ipcPacketHeader';
 
 export namespace IpcPacketReader {
     export type Callback = (rawHeader: IpcPacketHeader.RawData, arg?: any) => void;
@@ -63,7 +63,10 @@ export class IpcPacketReader {
             case IpcPacketType.ArrayWithSize:
                 return this._readContentArray(bufferReader);
 
-            // case IpcPacketType.Object:
+            case IpcPacketType.ArrayBufferWithSize:
+                return this._readContentArrayBuffer(bufferReader, contentSize);
+
+                // case IpcPacketType.Object:
             //     return this._readContentObjectDirect(bufferReader);
             case IpcPacketType.ObjectSTRINGIFY:
                 return this._readContentObject(bufferReader, contentSize);
@@ -88,6 +91,20 @@ export class IpcPacketReader {
     private _readContentObject(bufferReader: Reader, contentSize: number): string {
         const data = bufferReader.readString('utf8', contentSize);
         return JSONParser.parse(data);
+    }
+
+    private _readContentArrayBuffer(bufferReader: Reader, contentSize: number): any {
+        const shortCode = bufferReader.readByte();
+        const buffer = bufferReader.subarray(contentSize - 1);
+        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1);
+        if (shortCode === 0) {
+            return arrayBuffer;
+        }
+        const typedArrayDef = MapShortCodeToArrayBuffer[shortCode];
+        if (typedArrayDef == null) {
+            return undefined;
+        }
+        return new typedArrayDef.ctor(arrayBuffer);
     }
 
     // Header has been read and checked
