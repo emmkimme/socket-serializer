@@ -335,9 +335,3 @@ export class IpcPacketHeader {
         return rawHeader;
     }
 }
-
-interface JSONLike {
-
-};
-
-JSON

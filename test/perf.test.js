@@ -215,3 +215,21 @@ describe('buffer concat', () => {
 //     });
 
 // });
+
+
+describe('clone vs create', () => {
+    const loop = 100000;
+    const data = { type: 10, headerSize: 100, contentSize: 1000 };
+
+    it('clone', () => {
+        for (let i = 0; i < loop; ++i) {
+            const obj = Object.assign({} , data);
+        }
+    });
+
+    it('create', () => {
+        for (let i = 0; i < loop; ++i) {
+            const obj = { type: 10, headerSize: 100, contentSize: 1000 };
+        }
+    });
+});
