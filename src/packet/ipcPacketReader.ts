@@ -1,4 +1,4 @@
-import { JSONParser } from 'json-helpers';
+import { JSONLike, JSONParser } from 'json-helpers';
 
 import { Reader } from '../buffer/reader';
 
@@ -9,7 +9,10 @@ export namespace IpcPacketReader {
 }
 
 export class IpcPacketReader {
-    constructor() {
+    private _json: JSONLike;
+
+    constructor(json?: JSONLike) {
+        this._json = json || JSONParser;
     }
 
     read(bufferReader: Reader, cb?: IpcPacketReader.Callback): any | undefined {
@@ -90,7 +93,7 @@ export class IpcPacketReader {
 
     private _readContentObject(bufferReader: Reader, contentSize: number): string {
         const data = bufferReader.readString('utf8', contentSize);
-        return JSONParser.parse(data);
+        return this._json.parse(data);
     }
 
     private _readContentArrayBuffer(bufferReader: Reader, contentSize: number): any {

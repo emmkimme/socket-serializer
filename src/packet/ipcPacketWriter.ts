@@ -1,7 +1,7 @@
 import * as util from 'util';
 const whichTypedArray = require('which-typed-array');
 
-import { JSONParser } from 'json-helpers';
+import { JSONParser, JSONLike } from 'json-helpers';
 
 import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
@@ -32,7 +32,10 @@ export namespace IpcPacketWriter {
 }
 
 export class IpcPacketWriter {
-    constructor() {
+    private _json: JSONLike;
+
+    constructor(json?: JSONLike) {
+        this._json = json || JSONParser;
     }
 
     private _writeDynamicBuffer(writer: Writer, type: IpcPacketType, buffer: Buffer, cb: IpcPacketWriter.Callback): void {
@@ -225,7 +228,7 @@ export class IpcPacketWriter {
 
     // Default methods for these kind of data
     private _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketWriter.Callback): void {
-        const stringifycation = JSONParser.stringify(dataObject);
+        const stringifycation = this._json.stringify(dataObject);
         const buffer = Buffer.from(stringifycation, 'utf8');
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.ObjectSTRINGIFY, buffer, cb);
     }
@@ -234,11 +237,9 @@ export class IpcPacketWriter {
     private _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketWriter.Callback): void {
         const contentWriter = new BufferListWriter();
         contentWriter.writeUInt32(args.length);
-        // JSONParser.install();
         for (let i = 0, l = args.length; i < l; ++i) {
             this.write(contentWriter, args[i]);
         }
-        // JSONParser.uninstall();
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter, cb);
     }
 
