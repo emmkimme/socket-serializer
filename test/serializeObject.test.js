@@ -10,17 +10,17 @@ function ObjectEqual(a1, a2) {
   return JSON.stringify(a1) === JSON.stringify(a2);
 }
 
-const defaultWriteObject = ssModule.IpcPacketCore._writer._writeObject;
-const defaultReadObject = ssModule.IpcPacketCore._reader._readContentObject;
+const defaultWriteObject = ssModule.IpcPacketWriter.prototype._writeObject;
+const defaultReadObject = ssModule.IpcPacketReader.prototype._readContentObject;
 
-function OverrideObjectMethods(writeObject, readObject) {
-  ssModule.IpcPacketCore._writer._writeObject = writeObject;
-  ssModule.IpcPacketCore._reader._readContentObject = readObject;
+function OverrideObjectMethods(obj, writeObject, readObject) {
+  obj._writer._writeObject = writeObject;
+  obj._reader._readContentObject = readObject;
 }
 
-function RestoreObjectMethods() {
-  ssModule.IpcPacketCore._writer._writeObject = defaultWriteObject;
-  ssModule.IpcPacketCore._reader._readContentObject = defaultReadObject;
+function RestoreObjectMethods(obj) {
+  obj._writer._writeObject = defaultWriteObject;
+  obj._reader._readContentObject = defaultReadObject;
 }
 
 function readContentObjectDirect(bufferReader, contentSize) {
@@ -88,9 +88,9 @@ function test(type, ipcPacketCoreClass) {
 
     describe('Object - big json', () => {
       it('JSON', () => {
-        OverrideObjectMethods(writeObjectSTRINGIFY1, readObjectSTRINGIFY1);
 
         const ipcPacketCore = new ipcPacketCoreClass();
+        OverrideObjectMethods(ipcPacketCore , writeObjectSTRINGIFY1, readObjectSTRINGIFY1);
         const bufferWriter = new ssModule.BufferListWriter();
         console.time('JSON serialize - big json');
         ipcPacketCore.write(bufferWriter, bigData);
@@ -102,7 +102,7 @@ function test(type, ipcPacketCoreClass) {
         console.timeEnd('JSON deserialize - big json');
         assert(ObjectEqual(bigData, newbigdata));
 
-        RestoreObjectMethods();
+        RestoreObjectMethods(ipcPacketCore);
       });
 
       it('JSONParser', () => {
@@ -254,8 +254,6 @@ function test(type, ipcPacketCoreClass) {
 
       it('direct2 - small json', () => {
         console.time('direct2 serialize - small json');
-        OverrideObjectMethods(writeObjectDirect2, readContentObjectDirect);
-
         for (i = 0; i < 10000; ++i) {
           const ipcPacketCore = new ipcPacketCoreClass();
           const bufferWriter = new ssModule.BufferListWriter();
@@ -270,6 +268,7 @@ function test(type, ipcPacketCoreClass) {
 
         console.time('direct2 deserialize - small json');
         const ipcPacketCore = new ipcPacketCoreClass();
+        OverrideObjectMethods(ipcPacketCore, writeObjectDirect2, readContentObjectDirect);
         const bufferWriter = new ssModule.BufferListWriter();
         ipcPacketCore.write(bufferWriter, busEvent);
         for (i = 0; i < 10000; ++i) {
@@ -279,7 +278,7 @@ function test(type, ipcPacketCoreClass) {
         }
         console.timeEnd('direct2 deserialize - small json');
 
-        RestoreObjectMethods();
+        RestoreObjectMethods(ipcPacketCore);
       });
     });
 

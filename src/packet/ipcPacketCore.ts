@@ -1,19 +1,28 @@
+import { JSONLike } from 'json-helpers';
+
 import { Reader } from '../buffer/reader';
 import { Writer } from '../buffer/writer';
 
 import { IpcPacketReader } from './ipcPacketReader';
 import { IpcPacketWriter } from './ipcPacketWriter';
 import { IpcPacketHeader } from './ipcPacketHeader';
-import { JSONLike } from 'json-helpers';
 
 export class IpcPacketCore extends IpcPacketHeader {
     protected _reader: IpcPacketReader;
     protected _writer: IpcPacketWriter;
 
-    constructor(rawHeader?: IpcPacketHeader.RawData, json?: JSONLike) {
+    get JSON(): JSONLike {
+        return this._reader.JSON;
+    }
+
+    set JSON(json: JSONLike) {
+        this._reader.JSON = json;
+    }
+
+    constructor(rawHeader?: IpcPacketHeader.RawData) {
         super(rawHeader);
-        this._reader = new IpcPacketReader(json);
-        this._writer = new IpcPacketWriter(json);
+        this._reader = new IpcPacketReader();
+        this._writer = new IpcPacketWriter();
     }
 
     read(bufferReader: Reader): any | undefined {

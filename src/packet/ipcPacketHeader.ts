@@ -139,7 +139,7 @@ export class IpcPacketHeader {
             this._rawHeader = rawHeader;
         }
         else {
-            Object.assign(this._rawHeader, DefaultRawHeader);
+            this._rawHeader = Object.assign({}, DefaultRawHeader);
         }
     }
 

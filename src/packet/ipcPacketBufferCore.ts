@@ -1,4 +1,3 @@
-import { JSONLike } from 'json-helpers';
 import { Reader } from '../buffer/reader';
 
 import { IpcPacketCore } from './ipcPacketCore';
@@ -14,8 +13,8 @@ export namespace IpcPacketBufferCore {
 export abstract class IpcPacketBufferCore extends IpcPacketCore {
     static readonly EmptyBuffer = Buffer.allocUnsafe(0);
 
-    constructor(rawHeader?: IpcPacketBufferCore.RawData, json?: JSONLike) {
-        super(rawHeader, json);
+    constructor(rawHeader?: IpcPacketBufferCore.RawData) {
+        super(rawHeader);
     }
     
     abstract get buffer(): Buffer;

@@ -9,6 +9,7 @@ We are relying on native Buffer methods and do not overwrite them (except byte r
 Purpose is to serialize Object, Buffer, string, Date, TypedArray, ArrayBuffer, number and boolean with the minimum of transformations in order to improve performance.
 We support partial/incremental unserialization that happen with socket.
 It is why we do not use classic serializations like BSON or protobuf.
+You can provide your own JSON instance.
 
 ## Socket support
 A socket reader/writer classes uses this BufferList to ease the management of the communication.

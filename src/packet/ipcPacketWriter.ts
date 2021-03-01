@@ -1,8 +1,6 @@
 import * as util from 'util';
 const whichTypedArray = require('which-typed-array');
 
-import { JSONParser, JSONLike } from 'json-helpers';
-
 import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
 import { BufferWriter } from '../buffer/bufferWriter';
@@ -10,6 +8,7 @@ import { BufferWriter } from '../buffer/bufferWriter';
 import { IpcPacketType, FooterLength, FixedHeaderSize, IpcPacketHeader, DynamicHeaderSize, MapArrayBufferToShortCodes } from './ipcPacketHeader';
 import { FooterSeparator } from './ipcPacketHeader';
 import { DoubleContentSize, IntegerContentSize } from './ipcPacketHeader';
+import { IpcPacketJSON } from './ipcPacketJSON';
 
 function CreateZeroSizeBuffer(bufferType: IpcPacketType): Buffer {
     // assert(this.isFixedSize() === true);
@@ -31,13 +30,10 @@ export namespace IpcPacketWriter {
     export type Callback = (rawHeader: IpcPacketHeader.RawData) => void;
 }
 
-export class IpcPacketWriter {
-    private _json: JSONLike;
-
-    constructor(json?: JSONLike) {
-        this._json = json || JSONParser;
+export class IpcPacketWriter extends IpcPacketJSON {
+    constructor() {
+        super();
     }
-
     private _writeDynamicBuffer(writer: Writer, type: IpcPacketType, buffer: Buffer, cb: IpcPacketWriter.Callback): void {
         const contentSize = buffer.length;
         writer.pushContext();

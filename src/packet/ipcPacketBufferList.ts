@@ -5,7 +5,6 @@ import { BufferListWriter } from '../buffer/bufferListWriter';
 
 import { IpcPacketBufferCore } from './ipcPacketBufferCore';
 import { IpcPacketHeader } from './ipcPacketHeader';
-import { JSONLike } from 'json-helpers';
 
 export namespace IpcPacketBufferList {
     export type RawContent = IpcPacketBufferCore.RawData;
@@ -14,8 +13,8 @@ export namespace IpcPacketBufferList {
 export class IpcPacketBufferListReader extends IpcPacketBufferCore {
     private _buffers: Buffer[];
 
-    constructor(rawHeader?: IpcPacketBufferList.RawContent, json?: JSONLike) {
-        super(rawHeader, json);
+    constructor(rawHeader?: IpcPacketBufferList.RawContent) {
+        super(rawHeader);
         if (rawHeader) {
             // buffer is faster, take it when available
             if (rawHeader.buffer) {

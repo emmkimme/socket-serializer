@@ -1,18 +1,15 @@
-import { JSONLike, JSONParser } from 'json-helpers';
-
 import { Reader } from '../buffer/reader';
 
 import { IpcPacketType, FooterLength, IpcPacketHeader, MapShortCodeToArrayBuffer } from './ipcPacketHeader';
+import { IpcPacketJSON } from './ipcPacketJSON';
 
 export namespace IpcPacketReader {
     export type Callback = (rawHeader: IpcPacketHeader.RawData, arg?: any) => void;
 }
 
-export class IpcPacketReader {
-    private _json: JSONLike;
-
-    constructor(json?: JSONLike) {
-        this._json = json || JSONParser;
+export class IpcPacketReader extends IpcPacketJSON {
+    constructor() {
+        super();
     }
 
     read(bufferReader: Reader, cb?: IpcPacketReader.Callback): any | undefined {
