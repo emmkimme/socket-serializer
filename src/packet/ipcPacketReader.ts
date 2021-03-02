@@ -1,15 +1,15 @@
-import { JSONParser } from 'json-helpers';
-
 import { Reader } from '../buffer/reader';
 
 import { IpcPacketType, FooterLength, IpcPacketHeader, MapShortCodeToArrayBuffer } from './ipcPacketHeader';
+import { IpcPacketJSON } from './ipcPacketJSON';
 
 export namespace IpcPacketReader {
     export type Callback = (rawHeader: IpcPacketHeader.RawData, arg?: any) => void;
 }
 
-export class IpcPacketReader {
+export class IpcPacketReader extends IpcPacketJSON {
     constructor() {
+        super();
     }
 
     read(bufferReader: Reader, cb?: IpcPacketReader.Callback): any | undefined {
@@ -64,7 +64,7 @@ export class IpcPacketReader {
                 return this._readContentArray(bufferReader);
 
             case IpcPacketType.ArrayBufferWithSize:
-                return this._readContentArrayBuffer(bufferReader, contentSize);
+                return this._readContentAnyArrayBuffer(bufferReader, contentSize);
 
                 // case IpcPacketType.Object:
             //     return this._readContentObjectDirect(bufferReader);
@@ -90,10 +90,10 @@ export class IpcPacketReader {
 
     private _readContentObject(bufferReader: Reader, contentSize: number): string {
         const data = bufferReader.readString('utf8', contentSize);
-        return JSONParser.parse(data);
+        return this._json.parse(data);
     }
 
-    private _readContentArrayBuffer(bufferReader: Reader, contentSize: number): any {
+    private _readContentAnyArrayBuffer(bufferReader: Reader, contentSize: number): any {
         const shortCode = bufferReader.readByte();
         const buffer = bufferReader.subarray(contentSize - 1);
         const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1);

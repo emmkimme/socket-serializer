@@ -1,8 +1,6 @@
 import * as util from 'util';
 const whichTypedArray = require('which-typed-array');
 
-import { JSONParser } from 'json-helpers';
-
 import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
 import { BufferWriter } from '../buffer/bufferWriter';
@@ -10,6 +8,7 @@ import { BufferWriter } from '../buffer/bufferWriter';
 import { IpcPacketType, FooterLength, FixedHeaderSize, IpcPacketHeader, DynamicHeaderSize, MapArrayBufferToShortCodes } from './ipcPacketHeader';
 import { FooterSeparator } from './ipcPacketHeader';
 import { DoubleContentSize, IntegerContentSize } from './ipcPacketHeader';
+import { IpcPacketJSON } from './ipcPacketJSON';
 
 function CreateZeroSizeBuffer(bufferType: IpcPacketType): Buffer {
     // assert(this.isFixedSize() === true);
@@ -31,10 +30,10 @@ export namespace IpcPacketWriter {
     export type Callback = (rawHeader: IpcPacketHeader.RawData) => void;
 }
 
-export class IpcPacketWriter {
+export class IpcPacketWriter extends IpcPacketJSON {
     constructor() {
+        super();
     }
-
     private _writeDynamicBuffer(writer: Writer, type: IpcPacketType, buffer: Buffer, cb: IpcPacketWriter.Callback): void {
         const contentSize = buffer.length;
         writer.pushContext();
@@ -225,7 +224,7 @@ export class IpcPacketWriter {
 
     // Default methods for these kind of data
     private _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketWriter.Callback): void {
-        const stringifycation = JSONParser.stringify(dataObject);
+        const stringifycation = this._json.stringify(dataObject);
         const buffer = Buffer.from(stringifycation, 'utf8');
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.ObjectSTRINGIFY, buffer, cb);
     }
@@ -234,11 +233,9 @@ export class IpcPacketWriter {
     private _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketWriter.Callback): void {
         const contentWriter = new BufferListWriter();
         contentWriter.writeUInt32(args.length);
-        // JSONParser.install();
         for (let i = 0, l = args.length; i < l; ++i) {
             this.write(contentWriter, args[i]);
         }
-        // JSONParser.uninstall();
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter, cb);
     }
 

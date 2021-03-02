@@ -1,6 +1,6 @@
 {
   "name": "socket-serializer",
-  "version": "10.0.0",
+  "version": "11.0.0",
   "description": "A serializer of object, buffer, string, number and boolean for socket.",
   "repository": {
     "type": "git",
@@ -53,10 +53,10 @@
     "socket-port-helpers": "^1.1.1",
     "tslint": "^6.1.2",
     "tslint-microsoft-contrib": "^6.2.0",
-    "typescript": "^4.1.5"
+    "typescript": "^4.2.2"
   },
   "dependencies": {
-    "json-helpers": "^5.1.0",
+    "json-helpers": "^5.1.3",
     "which-typed-array": "^1.1.4"
   },
   "scripts": {
