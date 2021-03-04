@@ -17,6 +17,7 @@ export class IpcPacketCore extends IpcPacketHeader {
 
     set JSON(json: JSONLike) {
         this._reader.JSON = json;
+        this._writer.JSON = json;
     }
 
     constructor(rawHeader?: IpcPacketHeader.RawData) {
