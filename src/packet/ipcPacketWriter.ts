@@ -264,5 +264,3 @@ export class IpcPacketWriter extends IpcPacketJSON {
         }
     }
 }
-
-
