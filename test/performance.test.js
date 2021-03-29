@@ -15,34 +15,68 @@ function ObjectEqual(a1, a2) {
   return JSON.stringify(a1) === JSON.stringify(a2);
 }
 
-function TestPerformance(myValue, nameTypeOf) {
-  it(`static buffer serial - ${nameTypeOf}`, () => {
+function TestPerformance(myValue, nameTypeOf, compare, count) {
+  it(`1 - static ${nameTypeOf} serial`, () => {
     const ipcBuffer = new ipcSocket.IpcPacketBuffer();
+    ipcBuffer._writer.write = ipcBuffer._writer.write1;
     const time = process.hrtime();
-    for (let i = 0; i < 10000; ++i) {
+    for (let i = 0; i < count; ++i) {
       ipcBuffer.serialize(myValue);
       ipcBuffer.reset();
     }
     const diff = process.hrtime(time);
     const diffms = diff[0] * Conversions.ms[0] + diff[1] * Conversions.ms[1];
-    console.log(`static buffer ${diffms.toFixed(2)} ms`);
+    console.log(`=> static ${nameTypeOf} ${diffms.toFixed(2)} ms`);
+
+    ipcBuffer.serialize(myValue);
+    const buffer = ipcBuffer.buffer;
+    ipcBuffer.decodeFromBuffer(buffer);
+    const resultParse = ipcBuffer.parse();
+    assert(compare(myValue, resultParse));
   });
 
-  it(`dynamic buffer serial - ${nameTypeOf}`, () => {
+  // it(`1 - dynamic ${nameTypeOf} serial`, () => {
+  //   const time = process.hrtime();
+  //   for (let i = 0; i < count; ++i) {
+  //     const ipcBuffer = new ipcSocket.IpcPacketBuffer();
+  //     ipcBuffer._writer.write = ipcBuffer._writer.write1;
+  //     ipcBuffer.serialize(myValue);
+  //   }
+  //   const diff = process.hrtime(time);
+  //   const diffms = diff[0] * Conversions.ms[0] + diff[1] * Conversions.ms[1];
+  //   console.log(`=> dynamic ${nameTypeOf} ${diffms.toFixed(2)} ms`);
+  // });
+
+  it(`2 - static ${nameTypeOf} serial`, () => {
+    const ipcBuffer = new ipcSocket.IpcPacketBuffer();
+    ipcBuffer._writer.write = ipcBuffer._writer.write2;
     const time = process.hrtime();
-    for (let i = 0; i < 10000; ++i) {
-      const ipcBuffer = new ipcSocket.IpcPacketBuffer();
+    for (let i = 0; i < count; ++i) {
       ipcBuffer.serialize(myValue);
+      ipcBuffer.reset();
     }
     const diff = process.hrtime(time);
     const diffms = diff[0] * Conversions.ms[0] + diff[1] * Conversions.ms[1];
-    console.log(`dynamic buffer ${diffms.toFixed(2)} ms`);
+    console.log(`=> static ${nameTypeOf} ${diffms.toFixed(2)} ms`);
   });
+
+  // it(`2 - dynamic ${nameTypeOf} serial`, () => {
+  //   const time = process.hrtime();
+  //   for (let i = 0; i < count; ++i) {
+  //     const ipcBuffer = new ipcSocket.IpcPacketBuffer();
+  //     ipcBuffer._writer.write = ipcBuffer._writer.write2;
+  //     ipcBuffer.serialize(myValue);
+  //   }
+  //   const diff = process.hrtime(time);
+  //   const diffms = diff[0] * Conversions.ms[0] + diff[1] * Conversions.ms[1];
+  //   console.log(`=> dynamic ${nameTypeOf} ${diffms.toFixed(2)} ms`);
+  // });
 }
 
 
-function TestTypeOf(myValue, nameTypeOf) {
-  TestPerformance(myValue, nameTypeOf);
+function TestTypeOf(myValue, nameTypeOf, compare, count) {
+  count = count || 10000;
+  TestPerformance(myValue, nameTypeOf, compare, count);
 }
 
 function allocateString(num) {
@@ -59,9 +93,8 @@ function allocateString(num) {
   }
   return result;
 }
-const myBuffer = {
-  myBuffer: Buffer.from(allocateString(1024))
-}
+
+const myBuffer = Buffer.from(allocateString(1024));
 
 const bigJSON = require('./bigdata.json');
 
@@ -85,41 +118,40 @@ const complexJSON = {
   }
 };
 
-const uint8Array = {
-  myUint8Array: new Uint8Array([1, 2, 3, 4, 5])
-}
+const uint8Array = new Uint8Array([1, 2, 3, 4, 5]);
 
-describe('JSONParser', () => {
-  describe('buffer json', () => {
+const arrayBuffer = new ArrayBuffer([10, 20, 30, 40, 50]);
+
+describe('SocketSerializer', () => {
+  describe('buffer', () => {
     TestTypeOf(myBuffer, "Buffer", (r1, r2) => r1.compare(r2) === 0);
   });
 
-  describe('Uint8Array json', () => {
+  describe('Uint8Array', () => {
     TestTypeOf(uint8Array, "Uint8Array", (r1, r2) => r1.toString() === r2.toString());
   });
 
-  describe('Date json', () => {
+  describe('ArrayBuffer', () => {
+    TestTypeOf(arrayBuffer, "ArrayBuffer", (r1, r2) => r1.toString() === r2.toString());
+  });
+
+  describe('Date', () => {
     let myDate = new Date();
     TestTypeOf(myDate, "Date", (r1, r2) => r1.valueOf() == r2.valueOf());
   });
 
-  describe('Error json', () => {
+  describe('Error', () => {
     let myError = new Error();
     TestTypeOf(myError, "Error", (r1, r2) => r1.message == r2.message);
   });
 
-  describe('TypeError json', () => {
-    let myError = new TypeError();
-    TestTypeOf(myError, "TypeError", (r1, r2) => r1.message == r2.message);
-  });
-
-  describe('TypeError json', () => {
+  describe('TypeError', () => {
     let myError = new TypeError();
     TestTypeOf(myError, "TypeError", (r1, r2) => r1.message == r2.message);
   });
 
   describe('big json', () => {
-    TestTypeOf(bigJSON, "object", (r1, r2) => ObjectEqual(r1, r2));
+    TestTypeOf(bigJSON, "object", (r1, r2) => ObjectEqual(r1, r2), 1);
   });
 
   describe('complex json', () => {

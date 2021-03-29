@@ -58,7 +58,8 @@
   },
   "dependencies": {
     "json-helpers": "^5.1.4",
-    "kind-of": "^6.0.3"
+    "kind-of": "^6.0.3",
+    "which-typed-array": "^1.1.4"
   },
   "scripts": {
     "clean": "del-cli ./lib ./build ./dist",

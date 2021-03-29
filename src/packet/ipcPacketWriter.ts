@@ -1,4 +1,6 @@
+import * as util from 'util';
 const kindOf = require('kind-of');
+const whichTypedArray = require('which-typed-array');
 
 import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
@@ -133,6 +135,9 @@ export class IpcPacketWriter extends IpcPacketJSON {
     // Object (native or host and does implement [[Call]])  "function"
     // Object (host and does not implement [[Call]])        Implementation-defined except may not be "undefined", "boolean", "number", or "string".
     write(bufferWriter: Writer, data: any, cb?: IpcPacketWriter.Callback): void {
+    }
+    
+    write1(bufferWriter: Writer, data: any, cb?: IpcPacketWriter.Callback): void {
         const kindof = kindOf(data);
         switch (kindof) {
             case 'null':
@@ -179,6 +184,49 @@ export class IpcPacketWriter extends IpcPacketJSON {
                 break;
             default:
                 this._writeObject(bufferWriter, data, cb);
+                break;
+        }
+    }
+
+    write2(bufferWriter: Writer, data: any, cb?: IpcPacketWriter.Callback): void {
+        switch (typeof data) {
+            case 'object':
+                if (data === null) {
+                    this._writeFixedContent(bufferWriter, IpcPacketType.Null, undefined, cb);
+                }
+                else if (Buffer.isBuffer(data)) {
+                    this._writeDynamicBuffer(bufferWriter, IpcPacketType.Buffer, data, cb);
+                }
+                else if (Array.isArray(data)) {
+                    this._writeArray(bufferWriter, data, cb);
+                }
+                else if (util.types.isDate(data)) {
+                    this._writeDate(bufferWriter, data, cb);
+                }
+                else if (util.types.isArrayBuffer(data)) {
+                    this._writeArrayBuffer(bufferWriter, data, cb);
+                }
+                else if (util.types.isTypedArray(data)) {
+                    this._writeTypedArray2(bufferWriter, data, cb);
+                }
+                else {
+                    this._writeObject(bufferWriter, data, cb);
+                }
+                break;
+            case 'string':
+                this._writeString(bufferWriter, data, cb);
+                break;
+            case 'number':
+                this._writeNumber(bufferWriter, data, cb);
+                break;
+            case 'boolean':
+                this._writeFixedContent(bufferWriter, data ? IpcPacketType.BooleanTrue : IpcPacketType.BooleanFalse, undefined, cb);
+                break;
+            case 'undefined':
+                this._writeFixedContent(bufferWriter, IpcPacketType.Undefined, undefined, cb);
+                break;
+            case 'symbol':
+            default:
                 break;
         }
     }
@@ -257,7 +305,21 @@ export class IpcPacketWriter extends IpcPacketJSON {
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayBufferWithSize, contentWriter, cb);
     }
 
-    private _writeTypedArray(bufferWriter: Writer, data: any, kindof: string, cb: IpcPacketWriter.Callback): void {
+    private _writeTypedArray2(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
+        const shortCodeDef = MapArrayBufferToShortCodes[(whichTypedArray(data) as string).toLowerCase()];
+        if (shortCodeDef) {
+            const contentWriter = new BufferListWriter();
+            contentWriter.writeByte(shortCodeDef.shortCode);
+
+            const arrayBuffer = data.buffer as ArrayBuffer;
+            const buffer = Buffer.from(arrayBuffer);
+            contentWriter.writeBuffer(buffer);
+
+            this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayBufferWithSize, contentWriter, cb);
+        }
+    }
+
+    private _writeTypedArray(bufferWriter: Writer, kindof: string, data: any, cb: IpcPacketWriter.Callback): void {
         const shortCodeDef = MapArrayBufferToShortCodes[kindof];
         if (shortCodeDef) {
             const contentWriter = new BufferListWriter();
