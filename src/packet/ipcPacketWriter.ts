@@ -1,5 +1,4 @@
-import * as util from 'util';
-const whichTypedArray = require('which-typed-array');
+const kindOf = require('kind-of');
 
 import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
@@ -134,29 +133,22 @@ export class IpcPacketWriter extends IpcPacketJSON {
     // Object (native or host and does implement [[Call]])  "function"
     // Object (host and does not implement [[Call]])        Implementation-defined except may not be "undefined", "boolean", "number", or "string".
     write(bufferWriter: Writer, data: any, cb?: IpcPacketWriter.Callback): void {
-        switch (typeof data) {
-            case 'object':
-                if (data === null) {
-                    this._writeFixedContent(bufferWriter, IpcPacketType.Null, undefined, cb);
-                }
-                else if (Buffer.isBuffer(data)) {
-                    this._writeDynamicBuffer(bufferWriter, IpcPacketType.Buffer, data, cb);
-                }
-                else if (Array.isArray(data)) {
-                    this._writeArray(bufferWriter, data, cb);
-                }
-                else if (util.types.isDate(data)) {
-                    this._writeDate(bufferWriter, data, cb);
-                }
-                else if (util.types.isArrayBuffer(data)) {
-                    this._writeArrayBuffer(bufferWriter, data, cb);
-                }
-                else if (util.types.isTypedArray(data)) {
-                    this._writeTypedArray(bufferWriter, data, cb);
-                }
-                else {
-                    this._writeObject(bufferWriter, data, cb);
-                }
+        const kindof = kindOf(data);
+        switch (kindof) {
+            case 'null':
+                this._writeFixedContent(bufferWriter, IpcPacketType.Null, undefined, cb);
+                break;
+            case 'buffer':
+                this._writeDynamicBuffer(bufferWriter, IpcPacketType.Buffer, data, cb);
+                break;
+            case 'array':
+                this._writeArray(bufferWriter, data, cb);
+                break;
+            case 'date':
+                this._writeDate(bufferWriter, data, cb);
+                break;
+            case 'arraybuffer':
+                this._writeArrayBuffer(bufferWriter, data, cb);
                 break;
             case 'string':
                 this._writeString(bufferWriter, data, cb);
@@ -170,8 +162,23 @@ export class IpcPacketWriter extends IpcPacketJSON {
             case 'undefined':
                 this._writeFixedContent(bufferWriter, IpcPacketType.Undefined, undefined, cb);
                 break;
+            case 'uint8array':
+            case 'uint8clampedarray':
+            case 'uint16array':
+            case 'uint32array':
+            case 'int8array':
+            case 'int16array':
+            case 'int32array':
+            case 'bigint64array':
+            case 'biguint64array':
+            case 'biguint64float32arrayarray':
+            case 'float64array':
+                this._writeTypedArray(bufferWriter, kindof, data, cb);
+                break;
             case 'symbol':
+                break;
             default:
+                this._writeObject(bufferWriter, data, cb);
                 break;
         }
     }
@@ -250,8 +257,8 @@ export class IpcPacketWriter extends IpcPacketJSON {
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayBufferWithSize, contentWriter, cb);
     }
 
-    private _writeTypedArray(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
-        const shortCodeDef = MapArrayBufferToShortCodes[whichTypedArray(data)];
+    private _writeTypedArray(bufferWriter: Writer, data: any, kindof: string, cb: IpcPacketWriter.Callback): void {
+        const shortCodeDef = MapArrayBufferToShortCodes[kindof];
         if (shortCodeDef) {
             const contentWriter = new BufferListWriter();
             contentWriter.writeByte(shortCodeDef.shortCode);

@@ -71,47 +71,47 @@ export interface TypedArrayFactory {
 };
 
 export const MapArrayBufferToShortCodes: Record<string, TypedArrayFactory> = {
-    'Uint8Array': {
+    'uint8array': {
         ctor: Uint8Array,
         shortCode: 1
     },
-    'Uint8ClampedArray': {
+    'uint8clampedarray': {
         ctor: Uint8ClampedArray,
         shortCode: 2
     },
-    'Uint16Array': {
+    'uint16array': {
         ctor: Uint16Array,
         shortCode: 3
     },
-    'Uint32Array': {
+    'uint32array': {
         ctor: Uint32Array,
         shortCode: 4
     },
-    'Int8Array': {
+    'int8array': {
         ctor: Int8Array,
         shortCode: 5
     },
-    'Int16Array': {
+    'int16array': {
         ctor: Int16Array,
         shortCode: 6
     },
-    'Int32Array': {
+    'int32array': {
         ctor: Int32Array,
         shortCode: 8
     },
-    'BigInt64Array': {
+    'bigint64array': {
         ctor: BigInt64Array,
         shortCode: 9
     },
-    'BigUint64Array': {
+    'biguint64array': {
         ctor: BigUint64Array,
         shortCode: 10
     },
-    'BigUint64Float32ArrayArray': {
+    'biguint64float32arrayarray': {
         ctor: Float32Array,
         shortCode: 11
     },
-    'Float64Array': {
+    'float64array': {
         ctor: Float64Array,
         shortCode: 12
     },
