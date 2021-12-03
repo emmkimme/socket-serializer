@@ -18,7 +18,7 @@ function ObjectEqual(a1, a2) {
 function TestPerformance(myValue, nameTypeOf, compare, count) {
   it(`1 - static ${nameTypeOf} serial`, () => {
     const ipcBuffer = new ipcSocket.IpcPacketBuffer();
-    ipcBuffer._writer.write = ipcBuffer._writer.write1;
+//    ipcBuffer._writer.write = ipcBuffer._writer.write1;
     const time = process.hrtime();
     for (let i = 0; i < count; ++i) {
       ipcBuffer.serialize(myValue);

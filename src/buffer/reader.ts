@@ -49,6 +49,10 @@ export interface Reader {
     slice(len?: number): Buffer;
 
     reduce(): void;
+
+    // deprecated
+    subarray(len?: number): Buffer;
+    subarrayList(len?: number): Buffer[];
 }
 
 // Implement common methods
@@ -114,4 +118,13 @@ export abstract class ReaderBase implements Reader {
     abstract slice(len?: number): Buffer;
 
     abstract reduce(): void;
+
+    subarray(len?: number): Buffer {
+        return this.readBuffer(len);
+    }
+
+    subarrayList(len?: number): Buffer[] {
+        return this.readBufferList(len);
+    }
+
 }

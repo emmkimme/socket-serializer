@@ -10,10 +10,9 @@ const NumDouble = 8;
 export class BufferWriterSize extends WriterBase {
     private _length: number;
 
-    constructor(buffer: Buffer, offset?: number) {
+    constructor() {
         super();
-
-        this._length = buffer.length - (offset || 0);
+        this._length = 0;
     }
 
     reset(): void {

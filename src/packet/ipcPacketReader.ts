@@ -95,7 +95,7 @@ export class IpcPacketReader extends IpcPacketJSON {
 
     private _readContentAnyArrayBuffer(bufferReader: Reader, contentSize: number): any {
         const shortCode = bufferReader.readByte();
-        const arrayBuffer = bufferReader.readArrayBuffer(contentSize - 1);
+        const arrayBuffer = bufferReader.readArrayBuffer(contentSize);
         if (shortCode === 0) {
             return arrayBuffer;
         }

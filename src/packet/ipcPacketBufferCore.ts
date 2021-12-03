@@ -1,7 +1,9 @@
 import { Reader } from '../buffer/reader';
+import { BufferWriterSize } from '../buffer/bufferWriterSize';
 
 import { IpcPacketCore } from './ipcPacketCore';
 import { IpcPacketHeader } from './ipcPacketHeader';
+import { IpcPacketWriterSize } from './ipcPacketWriterSize';
 
 export namespace IpcPacketBufferCore {
     export interface RawData extends IpcPacketHeader.RawData {
@@ -21,6 +23,13 @@ export abstract class IpcPacketBufferCore extends IpcPacketCore {
     abstract get buffers(): Buffer[];
 
     protected abstract _parseReader(): Reader;
+
+    bytelength(data: any): number {
+        const writer = new BufferWriterSize();
+        const packetBufferSize = new IpcPacketWriterSize();
+        packetBufferSize.write(writer, data)
+        return writer.length;
+    }
 
     parse<T = any>(): T | undefined {
         return this._reader.readContent(this._parseReader(), this._rawHeader.type, this._rawHeader.contentSize);
