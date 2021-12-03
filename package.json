@@ -70,6 +70,7 @@
     "build-declaration-dts-bundle-browser": "dts-bundle --outputAsModuleFolder --name socket-serializer-browser --main ./lib/socket-serializer-browser.d.ts",
     "clean-declaration-dts": "del-cli ./lib/code/*.d.ts",
     "test": "mocha test --recursive",
+    "mocha": "mocha",
     "tsc": "tsc",
     "tslint": "tslint",
     "deploy": "npm publish ./ --registry https://registry.npmjs.org/"

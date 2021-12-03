@@ -274,7 +274,7 @@ export class BufferListReader extends ReaderBase {
 
     readArrayBuffer(len?: number): ArrayBuffer {
         const buffer = this._consolidate(len);
-        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + len - 1);
+        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + len);
         return arrayBuffer;
     }
 

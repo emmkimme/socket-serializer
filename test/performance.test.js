@@ -49,7 +49,7 @@ function TestPerformance(myValue, nameTypeOf, compare, count) {
 
   it(`2 - static ${nameTypeOf} serial`, () => {
     const ipcBuffer = new ipcSocket.IpcPacketBuffer();
-    ipcBuffer._writer.write = ipcBuffer._writer.write2;
+    // ipcBuffer._writer.write = ipcBuffer._writer.write2;
     const time = process.hrtime();
     for (let i = 0; i < count; ++i) {
       ipcBuffer.serialize(myValue);
