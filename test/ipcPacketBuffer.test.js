@@ -23,6 +23,10 @@ function testSerialization(param, ipb, fctSerialize, checkParse, fctCompare) {
     it(msg, () => {
       console.time(msg);
       ipb.serialize(param);
+
+      const packetSize = new ipb.IpcPacketWriterSize();
+      packetSize.write(param);
+
       assert(fctCompare(ipb.parse(), param));
       assert(checkParse.call(ipb), true);
       console.timeEnd(msg);

@@ -43,8 +43,9 @@ export interface Reader {
     readUInt32(): number;
     readDouble(): number;
     readString(encoding?: BufferEncoding, len?: number): string;
-    subarray(len?: number): Buffer;
-    subarrayList(len?: number): Buffer[];
+    readBuffer(len?: number): Buffer;
+    readBufferList(len?: number): Buffer[];
+    readArrayBuffer(len?: number): ArrayBuffer;
     slice(len?: number): Buffer;
 
     reduce(): void;
@@ -105,8 +106,10 @@ export abstract class ReaderBase implements Reader {
     abstract readDouble(): number;
     abstract readString(encoding?: BufferEncoding, len?: number): string;
     
-    abstract subarray(len?: number): Buffer;
-    abstract subarrayList(len?: number): Buffer[];
+    abstract readBuffer(len?: number): Buffer;
+    abstract readBufferList(len?: number): Buffer[];
+
+    abstract readArrayBuffer(len?: number): ArrayBuffer;
 
     abstract slice(len?: number): Buffer;
 

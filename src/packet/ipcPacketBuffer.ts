@@ -66,7 +66,7 @@ export class IpcPacketBuffer extends IpcPacketBufferCore {
         this._rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         bufferReader.setContext(context);
         if (this._rawHeader.contentSize >= 0) {
-            this._buffer = bufferReader.subarray(this.packetSize);
+            this._buffer = bufferReader.readBuffer(this.packetSize);
             return true;
         }
         else {

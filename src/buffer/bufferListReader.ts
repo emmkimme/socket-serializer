@@ -220,7 +220,7 @@ export class BufferListReader extends ReaderBase {
         }
     }
 
-    subarray(len?: number): Buffer {
+    readBuffer(len?: number): Buffer {
         const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return ReaderBase.EmptyBuffer;
@@ -239,7 +239,7 @@ export class BufferListReader extends ReaderBase {
         }
     }
 
-    subarrayList(len?: number): Buffer[] {
+    readBufferList(len?: number): Buffer[] {
         const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return [ReaderBase.EmptyBuffer];
@@ -270,6 +270,12 @@ export class BufferListReader extends ReaderBase {
             }
             return buffers;
         }
+    }
+
+    readArrayBuffer(len?: number): ArrayBuffer {
+        const buffer = this._consolidate(len);
+        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + len - 1);
+        return arrayBuffer;
     }
 
     slice(len?: number): Buffer {

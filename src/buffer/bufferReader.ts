@@ -98,7 +98,7 @@ export class BufferReader extends ReaderBase {
         // }
     }
 
-    subarray(len?: number): Buffer {
+    readBuffer(len?: number): Buffer {
         const buffer = this._buffer.subarray(this._offset, this._offset + len);
         this._offset += buffer.length;
         return buffer;
@@ -115,10 +115,17 @@ export class BufferReader extends ReaderBase {
         // }
     }
 
-    subarrayList(len?: number): Buffer[] {
-        return [this.subarray(len)];
+    readBufferList(len?: number): Buffer[] {
+        return [this.readBuffer(len)];
     }
  
+    readArrayBuffer(len?: number): ArrayBuffer {
+        const buffer = this.readBuffer(len);
+        this._offset += buffer.length;
+        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + len - 1);
+        return arrayBuffer;
+    }
+
     reduce(): void {
         // Till now, do nothing 
         // Either a conservative slice or a destructive copy to implement ?

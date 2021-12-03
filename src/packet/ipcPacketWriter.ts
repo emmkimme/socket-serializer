@@ -20,11 +20,11 @@ function CreateZeroSizeBuffer(bufferType: IpcPacketType): Buffer {
     return bufferWriterAllInOne.buffer;
 }
 
-const BufferFooter = Buffer.allocUnsafe(1).fill(FooterSeparator);
-const BufferBooleanTrue = CreateZeroSizeBuffer(IpcPacketType.BooleanTrue);
-const BufferBooleanFalse = CreateZeroSizeBuffer(IpcPacketType.BooleanFalse);
-const BufferUndefined = CreateZeroSizeBuffer(IpcPacketType.Undefined);
-const BufferNull = CreateZeroSizeBuffer(IpcPacketType.Null);
+export const BufferFooter = Buffer.allocUnsafe(1).fill(FooterSeparator);
+export const BufferBooleanTrue = CreateZeroSizeBuffer(IpcPacketType.BooleanTrue);
+export const BufferBooleanFalse = CreateZeroSizeBuffer(IpcPacketType.BooleanFalse);
+export const BufferUndefined = CreateZeroSizeBuffer(IpcPacketType.Undefined);
+export const BufferNull = CreateZeroSizeBuffer(IpcPacketType.Null);
 
 export namespace IpcPacketWriter {
     export type Callback = (rawHeader: IpcPacketHeader.RawData) => void;
@@ -34,7 +34,8 @@ export class IpcPacketWriter extends IpcPacketJSON {
     constructor() {
         super();
     }
-    private _writeDynamicBuffer(writer: Writer, type: IpcPacketType, buffer: Buffer, cb: IpcPacketWriter.Callback): void {
+
+    protected _writeDynamicBuffer(writer: Writer, type: IpcPacketType, buffer: Buffer, cb: IpcPacketWriter.Callback): void {
         const contentSize = buffer.length;
         writer.pushContext();
         writer.writeUInt16(type);
@@ -51,7 +52,7 @@ export class IpcPacketWriter extends IpcPacketJSON {
         }
     }
 
-    private _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: IpcPacketWriter.Callback): void {
+    protected _writeDynamicContent(writer: Writer, type: IpcPacketType, writerContent: Writer, cb: IpcPacketWriter.Callback): void {
         const contentSize = writerContent.length;
         writer.pushContext();
         writer.writeUInt16(type);
@@ -70,7 +71,7 @@ export class IpcPacketWriter extends IpcPacketJSON {
 
     // Write header, content and footer in one block
     // Only for basic types except string, buffer and object
-    private _writeFixedContent(writer: Writer, type: IpcPacketType, num: number, cb: IpcPacketWriter.Callback): void {
+    protected _writeFixedContent(writer: Writer, type: IpcPacketType, num: number, cb: IpcPacketWriter.Callback): void {
         let packetBuffer: Buffer;
         switch (type) {
             case IpcPacketType.NegativeInteger:
@@ -177,7 +178,7 @@ export class IpcPacketWriter extends IpcPacketJSON {
     }
 
     // Thanks for parsing coming from https://github.com/tests-always-included/buffer-serializer/
-    private _writeNumber(bufferWriter: Writer, dataNumber: number, cb: IpcPacketWriter.Callback): void {
+    protected _writeNumber(bufferWriter: Writer, dataNumber: number, cb: IpcPacketWriter.Callback): void {
         // An integer
         if (Number.isInteger(dataNumber)) {
             const absDataNumber = Math.abs(dataNumber);
@@ -199,13 +200,13 @@ export class IpcPacketWriter extends IpcPacketJSON {
         this._writeFixedContent(bufferWriter, IpcPacketType.Double, dataNumber, cb);
     }
 
-    private _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketWriter.Callback) {
+    protected _writeDate(bufferWriter: Writer, data: Date, cb: IpcPacketWriter.Callback) {
         this._writeFixedContent(bufferWriter, IpcPacketType.Date, data.getTime(), cb);
     }
 
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
-    private _writeString(bufferWriter: Writer, data: string, cb: IpcPacketWriter.Callback) {
+    protected _writeString(bufferWriter: Writer, data: string, cb: IpcPacketWriter.Callback) {
         // Encoding will be managed later, force 'utf8'
         // case 'hex':
         // case 'utf8':
@@ -218,19 +219,25 @@ export class IpcPacketWriter extends IpcPacketJSON {
         // case 'ucs-2':
         // case 'utf16le':
         // case 'utf-16le':
+        // const contentWriter = new BufferListWriter();
+        // contentWriter.writeString(data, 'utf8');
+        // this._writeDynamicContent(bufferWriter, IpcPacketType.String, contentWriter, cb);
         const buffer = Buffer.from(data, 'utf8');
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.String, buffer, cb);
     }
 
     // Default methods for these kind of data
-    private _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketWriter.Callback): void {
+    protected _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketWriter.Callback): void {
         const stringifycation = this._json.stringify(dataObject);
+        // const contentWriter = new BufferListWriter();
+        // contentWriter.writeString(stringifycation, 'utf8');
+        // this._writeDynamicContent(bufferWriter, IpcPacketType.ObjectSTRINGIFY, contentWriter, cb);
         const buffer = Buffer.from(stringifycation, 'utf8');
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.ObjectSTRINGIFY, buffer, cb);
     }
 
     // Default methods for these kind of data
-    private _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketWriter.Callback): void {
+    protected _writeArray(bufferWriter: Writer, args: any[], cb: IpcPacketWriter.Callback): void {
         const contentWriter = new BufferListWriter();
         contentWriter.writeUInt32(args.length);
         for (let i = 0, l = args.length; i < l; ++i) {
@@ -239,26 +246,22 @@ export class IpcPacketWriter extends IpcPacketJSON {
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayWithSize, contentWriter, cb);
     }
 
-    private _writeArrayBuffer(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
+    protected _writeArrayBuffer(bufferWriter: Writer, data: ArrayBuffer, cb: IpcPacketWriter.Callback): void {
         const contentWriter = new BufferListWriter();
         contentWriter.writeByte(0);
-
-        const arrayBuffer = data as ArrayBuffer;
-        const buffer = Buffer.from(arrayBuffer);
-        contentWriter.writeBuffer(buffer);
+        contentWriter.writeArrayBuffer(data);
 
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayBufferWithSize, contentWriter, cb);
     }
 
-    private _writeTypedArray(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
+    protected _writeTypedArray(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
         const shortCodeDef = MapArrayBufferToShortCodes[whichTypedArray(data)];
         if (shortCodeDef) {
             const contentWriter = new BufferListWriter();
             contentWriter.writeByte(shortCodeDef.shortCode);
 
             const arrayBuffer = data.buffer as ArrayBuffer;
-            const buffer = Buffer.from(arrayBuffer);
-            contentWriter.writeBuffer(buffer);
+            contentWriter.writeArrayBuffer(arrayBuffer);
 
             this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayBufferWithSize, contentWriter, cb);
         }

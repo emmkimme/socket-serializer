@@ -42,7 +42,7 @@ export class IpcPacketReader extends IpcPacketJSON {
                 return this._readContentString(bufferReader, contentSize);
 
             case IpcPacketType.Buffer:
-                return bufferReader.subarray(contentSize);
+                return bufferReader.readBuffer(contentSize);
 
             case IpcPacketType.Double:
                 return bufferReader.readDouble();
@@ -95,8 +95,7 @@ export class IpcPacketReader extends IpcPacketJSON {
 
     private _readContentAnyArrayBuffer(bufferReader: Reader, contentSize: number): any {
         const shortCode = bufferReader.readByte();
-        const buffer = bufferReader.subarray(contentSize - 1);
-        const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + contentSize - 1);
+        const arrayBuffer = bufferReader.readArrayBuffer(contentSize - 1);
         if (shortCode === 0) {
             return arrayBuffer;
         }

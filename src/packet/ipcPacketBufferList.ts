@@ -90,7 +90,7 @@ export class IpcPacketBufferList extends IpcPacketBufferCore {
         this._rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         bufferReader.setContext(context);
         if (this._rawHeader.contentSize >= 0) {
-            this._buffers = bufferReader.subarrayList(this.packetSize);
+            this._buffers = bufferReader.readBufferList(this.packetSize);
             return true;
         }
         else {

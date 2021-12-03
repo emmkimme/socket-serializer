@@ -74,6 +74,11 @@ export abstract class BufferListWriterBase extends WriterBase {
         return this._appendBuffers(buffers, totalLength);
     }
 
+    writeArrayBuffer(data: ArrayBuffer): number {
+        const buffer = Buffer.from(data);
+        return this.writeBuffer(buffer);
+    }
+
     write(writer: Writer): number {
         return this._appendBuffers(writer.buffers, writer.length);
     }

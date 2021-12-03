@@ -78,7 +78,11 @@ export class BufferWriter extends WriterBase {
             this.writeBuffer(buffers[i]);
         }
         return this._offset;
+    }
 
+    writeArrayBuffer(data: ArrayBuffer): number {
+        const buffer = Buffer.from(data);
+        return this.writeBuffer(buffer);
     }
 
     write(writer: Writer): number {
