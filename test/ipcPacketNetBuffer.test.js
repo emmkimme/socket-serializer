@@ -22,105 +22,112 @@ function BufferEqual(a1, a2) {
   return Buffer.compare(a1, a2) === 0;
 }
 
+let current_port = 49152;
 function testSerializationWithSocket(param, socketWriterType, test) {
   it(`transfer type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`, function (done) {
-  socketHelpers.findFirstFreePort({portRange: `>=49152`, log: false, testConnection: true })
-  .then((port) => {
-      let ipcServer = new ssModule.IpcPacketSocket(); // '/tests'
-      let timer = setTimeout(() => {
-        ipcServer.server.close();
-        done('timeout');
-      }, timeoutDelay);
-      ipcServer.addListener('listening', () => {
-        let ipcSocket = new ssModule.IpcPacketSocket();
-        ipcSocket.addListener('packet', (ipcPacket) => {
-          let paramResult = ipcPacket.parse();
-          switch (test) {
+    let test_err;
+    socketHelpers.findFirstFreePort({portRange: `>=${current_port}`, log: false, testConnection: true })
+    .then((port) => {
+        // current_port = port;
+        let ipcServer = new ssModule.IpcPacketSocket(); // '/tests'
+        let timer = setTimeout(() => {
+          ipcServer.server.close();
+          done('timeout');
+        }, timeoutDelay);
+        ipcServer.addListener('listening', () => {
+          // console.log(`Port ${port} : server listening`);
+          let ipcSocket = new ssModule.IpcPacketSocket();
+          ipcSocket.addListener('packet', (ipcPacket) => {
+            let paramResult = ipcPacket.parse();
+            switch (test) {
+              case 0:
+                assert.equal(paramResult, param);
+                break;
+              case 1:
+                assert(ObjectEqual(paramResult, param));
+                break;
+              case 2:
+                assert(ArrayEqual(paramResult, param));
+                break;
+              case 3:
+                assert(BufferEqual(paramResult, param));
+                break;
+            }
+            clearTimeout(timer);
+            ipcSocket.socket.end();
+            ipcSocket.socket.unref();
+            ipcServer.server.close(() => {
+              console.log(`Port ${port} : ipcSocket close server`);
+              // done();
+            });
+          });
+          ipcSocket.addListener('close', (had_error) => {
+            // console.log(`Port ${port} : ipcSocket disconnected (had error=${had_error})`);
+          });
+          ipcSocket.addListener('timeout', (err) => {
+            test_err = err;
+            clearTimeout(timer);
+            ipcSocket.socket.end();
+            ipcSocket.socket.unref();
+            ipcServer.server.close(() => {
+              console.warn(`Port ${port} : ipcSocket close server error ${err}`);
+              // done(err);
+            });
+          });
+          ipcSocket.addListener('error', (err) => {
+            // test_err = err;
+            // console.log(`Port ${port} : ipcSocket error ${err}`);
+            clearTimeout(timer);
+            ipcSocket.socket.end();
+            ipcSocket.socket.unref();
+            ipcServer.server.close(() => {
+              console.warn(`Port ${port} : ipcSocket close server error ${err}`);
+              // done(err);
+            });
+          });
+          ipcSocket.connect(port);
+        });
+        ipcServer.addListener('connection', (socket) => {
+          // console.log(`Port ${port} : ipcSocket connected`);
+          // console.log(`Port ${port} : server sends data`);
+          const ipb = new ssModule.IpcPacketBuffer();
+          switch (socketWriterType) {
+            case -1:
+              socket.write(param);
+              break;
             case 0:
-              assert.equal(paramResult, param);
+              ipb.serialize(param);
+              socket.write(ipb.buffer);
               break;
-            case 1:
-              assert(ObjectEqual(paramResult, param));
+            case 1: {
+              let s = new ssModule.SocketWriter(socket);
+              ipb.write(s, param);
               break;
-            case 2:
-              assert(ArrayEqual(paramResult, param));
+            }
+            case 2: {
+              let s = new ssModule.DelayedSocketWriter(socket);
+              ipb.write(s, param);
               break;
-            case 3:
-              assert(BufferEqual(paramResult, param));
+            }
+            case 3: {
+              let s = new ssModule.BufferedSocketWriter(socket, 64);
+              ipb.write(s, param);
               break;
+            }
           }
+        });
+        ipcServer.addListener('close', (err) => {
           clearTimeout(timer);
-          ipcSocket.socket.end();
-          ipcSocket.socket.unref();
-          ipcServer.server.close(() => {
-            done();
-          });
+          console.log(`Port ${port} : server closed`);
+          test_err ? done(test_err) : done();
         });
-        ipcSocket.addListener('close', (had_error) => {
-          // console.log(`Port ${port} : ipcSocket disconnected (had error=${had_error})`);
-        });
-        ipcSocket.addListener('timeout', (err) => {
+        ipcServer.addListener('error', (err) => {
           clearTimeout(timer);
-          ipcSocket.socket.end();
-          ipcSocket.socket.unref();
-          ipcServer.server.close(() => {
-            console.error(`Port ${port} : ${err}`);
-            done(err);
-          });
+          console.error(`Port ${port} : ${err}`);
+          done(err);
         });
-        ipcSocket.addListener('error', (err) => {
-          clearTimeout(timer);
-          ipcSocket.socket.end();
-          ipcSocket.socket.unref();
-          ipcServer.server.close(() => {
-            console.error(`Port ${port} : ${err}`);
-            done(err);
-          });
-        });
-        ipcSocket.connect(port);
+        ipcServer.listen(port);
       });
-      ipcServer.addListener('listening', (sockett) => {
-        // console.log(`Port ${port} : server listening`);
-      });
-      ipcServer.addListener('connection', (socket) => {
-        // console.log(`Port ${port} : ipcSocket connected`);
-        // console.log(`Port ${port} : server sends data`);
-        const ipb = new ssModule.IpcPacketBuffer();
-        switch (socketWriterType) {
-          case -1:
-            socket.write(param);
-            break;
-          case 0:
-            ipb.serialize(param);
-            socket.write(ipb.buffer);
-            break;
-          case 1: {
-            let s = new ssModule.SocketWriter(socket);
-            ipb.write(s, param);
-            break;
-          }
-          case 2: {
-            let s = new ssModule.DelayedSocketWriter(socket);
-            ipb.write(s, param);
-            break;
-          }
-          case 3: {
-            let s = new ssModule.BufferedSocketWriter(socket, 64);
-            ipb.write(s, param);
-            break;
-          }
-        }
-      });
-      ipcServer.addListener('close', (err) => {
-        // console.log(`Port ${port} : server closed`);
-      });
-      ipcServer.addListener('error', (err) => {
-        clearTimeout(timer);
-        console.error(`Port ${port} : ${err}`);
-        done(err);
-      });
-      ipcServer.listen(port);
-    });
   });
 }
 
@@ -226,28 +233,5 @@ for (let socketWriterType = 0; socketWriterType < 4; ++socketWriterType) {
         testSerialization(paramLongBuffer, 3);
       });
     });
-  });
-
+});
 }
-
-
-
-// describe('Complex', function () {
-//   const paramLongBuffer = Buffer.alloc(70000);
-//   for (let i = 0; i < 256; ++i) {
-//     paramLongBuffer[i] = 255 * Math.random();
-//   }
-
-//   describe(`emit ${typeof msgTestStart}`, function () {
-//     let bufferWriter = new ssModule.BufferListWriter();
-//     let ipcPacket = new ssModule.IpcPacketBuffer();
-//     ipcPacket.write(bufferWriter, paramObject);
-//     ipcPacket.write(bufferWriter, paramObject);
-//     ipcPacket.write(bufferWriter, paramLongBuffer);
-//     ipcPacket.write(bufferWriter, paramObject);
-//     ipcPacket.write(bufferWriter, paramLongBuffer);
-//     ipcPacket.write(bufferWriter, paramLongBuffer);
-//     ipcPacket.write(bufferWriter, paramObject);
-
-//     testSerializationWithSocket(bufferWriter.buffer, -1, );
-//   });

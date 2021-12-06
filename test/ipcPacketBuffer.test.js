@@ -18,23 +18,31 @@ function BufferEqual(a1, a2) {
 }
 
 function testSerialization(param, ipb, fctSerialize, checkParse, fctCompare) {
+  ipb.serialize(param);
+  const rawData = ipb.getRawData();
   {
-    let msg = `implicit should return a type ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
+    let msg = `serialization size ${typeof param} = ${rawData.contentSize + rawData.headerSize + ssbModule.FooterLength}`;
     it(msg, () => {
       console.time(msg);
       ipb.serialize(param);
-
       const packetCore = new ssbModule.IpcPacketBuffer();
       const packetSize = packetCore.bytelength(param);
-      assert(ipb.packetSize === packetSize);
-
-      assert(fctCompare(ipb.parse(), param));
-      assert(checkParse.call(ipb), true);
       console.timeEnd(msg);
+      assert(ipb.packetSize === packetSize);
     });
   }
   {
-    let msg = `raw content ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
+    let msg = `serialization content ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
+    it(msg, () => {
+      console.time(msg);
+      ipb.serialize(param);
+      console.timeEnd(msg);
+      assert(fctCompare(ipb.parse(), param));
+      assert(checkParse.call(ipb), true);
+    });
+  }
+  {
+    let msg = `serialization raw content ${typeof param} = ${JSON.stringify(param).substr(0, 128)}`;
     it(msg, () => {
       console.time(msg);
       ipb.serialize(param);

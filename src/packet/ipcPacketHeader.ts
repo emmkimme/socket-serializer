@@ -125,7 +125,7 @@ export const MapShortCodeToArrayBuffer: Record<number, TypedArrayFactory> = (() 
     return mapShortCodeToTypedArray;
 })();
 
-const DefaultRawHeader: IpcPacketHeader.RawData = {
+const InvalidRawHeader: IpcPacketHeader.RawData = {
     type: IpcPacketType.NotValid,
     headerSize: -1,
     contentSize: -1
@@ -139,12 +139,12 @@ export class IpcPacketHeader {
             this._rawHeader = rawHeader;
         }
         else {
-            this._rawHeader = Object.assign({}, DefaultRawHeader);
+            this._rawHeader = Object.assign({}, InvalidRawHeader);
         }
     }
 
     reset(): void {
-        Object.assign(this._rawHeader, DefaultRawHeader);
+        Object.assign(this._rawHeader, InvalidRawHeader);
     }
 
     setRawData(rawHeader: IpcPacketHeader.RawData): void {
@@ -296,17 +296,9 @@ export class IpcPacketHeader {
                 };
             case IpcPacketType.PartialHeader:
             case IpcPacketType.NotValid:
-                return {
-                    type,
-                    headerSize: -1,
-                    contentSize: -1
-                };
+                return Object.assign({}, InvalidRawHeader);
             default:
-                return {
-                    type: IpcPacketType.NotValid,
-                    headerSize: -1,
-                    contentSize: -1
-                };
+                return Object.assign({}, InvalidRawHeader);
         }
     }
 
