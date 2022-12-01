@@ -1,4 +1,4 @@
-const typedArrays = [
+export const typedArrays = [
     'Int8Array',
     'Int16Array',
     'Int32Array',
