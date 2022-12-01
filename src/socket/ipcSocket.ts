@@ -1,5 +1,4 @@
 import * as net from 'net';
-// import * as util from 'util';
 import { EventEmitter } from 'events';
 
 export class IpcSocket extends EventEmitter {

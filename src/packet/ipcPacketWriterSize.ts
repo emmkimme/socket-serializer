@@ -1,6 +1,5 @@
-const whichTypedArray = require('which-typed-array');
-
 import { Writer } from '../buffer/writer';
+import { PossibleTypedArrays } from '../utils/types';
 
 import { DynamicHeaderSize, FixedHeaderSize, FooterLength, IpcPacketType, MapArrayBufferToShortCodes } from './ipcPacketHeader';
 import { FooterSeparator } from './ipcPacketHeader';
@@ -128,8 +127,8 @@ export class IpcPacketWriterSize extends IpcPacketWriter {
         }
     }
 
-    protected _writeTypedArray(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
-        const shortCodeDef = MapArrayBufferToShortCodes[whichTypedArray(data)];
+    protected _writeTypedArray(bufferWriter: Writer, data: any, arrayType: PossibleTypedArrays, cb: IpcPacketWriter.Callback): void {
+        const shortCodeDef = MapArrayBufferToShortCodes[arrayType];
         if (shortCodeDef) {
             const len = bufferWriter.length;
             bufferWriter.writeUInt16(IpcPacketType.ArrayBufferWithSize);

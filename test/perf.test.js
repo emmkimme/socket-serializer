@@ -1,6 +1,5 @@
 const chai = require('chai');
 const assert = chai.assert;
-const util = require('util');
 
 function logTime(msg, cb) {
     console.time(msg);
