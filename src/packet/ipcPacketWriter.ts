@@ -1,6 +1,3 @@
-import * as util from 'util';
-const whichTypedArray = require('which-typed-array');
-
 import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
 import { BufferWriter } from '../buffer/bufferWriter';
@@ -9,6 +6,7 @@ import { IpcPacketType, FooterLength, FixedHeaderSize, IpcPacketHeader, DynamicH
 import { FooterSeparator } from './ipcPacketHeader';
 import { DoubleContentSize, IntegerContentSize } from './ipcPacketHeader';
 import { IpcPacketJSON } from './ipcPacketJSON';
+import { isArrayBuffer, isDate, PossibleTypedArrays, whichTypedArray } from '../utils/types';
 
 function CreateZeroSizeBuffer(bufferType: IpcPacketType): Buffer {
     // assert(this.isFixedSize() === true);
@@ -146,17 +144,19 @@ export class IpcPacketWriter extends IpcPacketJSON {
                 else if (Array.isArray(data)) {
                     this._writeArray(bufferWriter, data, cb);
                 }
-                else if (util.types.isDate(data)) {
+                else if (isDate(data)) {
                     this._writeDate(bufferWriter, data, cb);
                 }
-                else if (util.types.isArrayBuffer(data)) {
+                else if (isArrayBuffer(data)) {
                     this._writeArrayBuffer(bufferWriter, data, cb);
                 }
-                else if (util.types.isTypedArray(data)) {
-                    this._writeTypedArray(bufferWriter, data, cb);
-                }
                 else {
-                    this._writeObject(bufferWriter, data, cb);
+                    const typedArrayType = whichTypedArray(data);
+                    if (typedArrayType) {
+                        this._writeTypedArray(bufferWriter, data, typedArrayType, cb);
+                    } else {
+                        this._writeObject(bufferWriter, data, cb);
+                    }
                 }
                 break;
             case 'string':
@@ -254,8 +254,8 @@ export class IpcPacketWriter extends IpcPacketJSON {
         this._writeDynamicContent(bufferWriter, IpcPacketType.ArrayBufferWithSize, contentWriter, cb);
     }
 
-    protected _writeTypedArray(bufferWriter: Writer, data: any, cb: IpcPacketWriter.Callback): void {
-        const shortCodeDef = MapArrayBufferToShortCodes[whichTypedArray(data)];
+    protected _writeTypedArray(bufferWriter: Writer, data: any, arrayType: PossibleTypedArrays, cb: IpcPacketWriter.Callback): void {
+        const shortCodeDef = MapArrayBufferToShortCodes[arrayType];
         if (shortCodeDef) {
             const contentWriter = new BufferListWriter();
             contentWriter.writeByte(shortCodeDef.shortCode);
