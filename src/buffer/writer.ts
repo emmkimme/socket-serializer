@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 export interface Writer {
     readonly buffer: Buffer;
     readonly buffers: Buffer[];
