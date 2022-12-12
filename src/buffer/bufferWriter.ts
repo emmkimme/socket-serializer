@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import { Writer, WriterBase } from './writer';
 
 export class BufferWriter extends WriterBase {

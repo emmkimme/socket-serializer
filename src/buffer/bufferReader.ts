@@ -1,4 +1,4 @@
-// import { Buffer } from 'buffer';
+import { Buffer } from 'buffer';
 import { Reader, ReaderBase } from './reader';
 
 export class BufferReader extends ReaderBase {

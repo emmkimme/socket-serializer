@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import { Reader } from '../buffer/reader';
 import { BufferWriterSize } from '../buffer/bufferWriterSize';
 

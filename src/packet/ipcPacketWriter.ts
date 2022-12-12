@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import { Writer } from '../buffer/writer';
 import { BufferListWriter } from '../buffer/bufferListWriter';
 import { BufferWriter } from '../buffer/bufferWriter';

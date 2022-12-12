@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import { BufferReader } from '../buffer/bufferReader';
 import { Reader } from '../buffer/reader';
 import { BufferListReader } from '../buffer/bufferListReader';
