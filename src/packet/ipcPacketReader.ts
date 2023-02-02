@@ -25,7 +25,7 @@ export class IpcPacketReader extends IpcPacketJSON {
         return undefined;
     }
 
-    private _read(bufferReader: Reader): any | undefined {
+    protected _read(bufferReader: Reader): any | undefined {
         const rawHeader = IpcPacketHeader.ReadHeader(bufferReader);
         if (rawHeader.contentSize >= 0) {
             const arg = this.readContent(bufferReader, rawHeader.type, rawHeader.contentSize);
@@ -88,7 +88,7 @@ export class IpcPacketReader extends IpcPacketJSON {
         return bufferReader.readString('utf8', contentSize);
     }
 
-    private _readContentObject(bufferReader: Reader, contentSize: number): string {
+    protected _readContentObject(bufferReader: Reader, contentSize: number): object {
         const data = bufferReader.readString('utf8', contentSize);
         return this._json.parse(data);
     }

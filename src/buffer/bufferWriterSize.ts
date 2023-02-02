@@ -62,11 +62,11 @@ export class BufferWriterSize extends WriterBase {
         return this._length;
     }
 
-    writeString(data: string, encoding?: BufferEncoding, len?: number): number {
+    writeString(data: string, len?: number): number {
         if (len !== undefined) {
             data = data.substr(len);
         }
-        this._length += Buffer.byteLength(data, encoding);
+        this._length += Buffer.byteLength(data);
         return this._length;
     }
 

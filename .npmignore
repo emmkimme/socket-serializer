@@ -3,6 +3,7 @@ build/
 src/
 test/
 examples/
+notes/
 *.tgz
 debug.log
 
@@ -13,4 +14,5 @@ webpack.*
 **/.vscode
 .npmignore
 .gitignore
-
+.prettierrc.js
+.eslintrc.cjs

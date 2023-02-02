@@ -73,7 +73,7 @@ export class BufferReader extends ReaderBase {
         else {
             const start = this._offset;
             this._offset = end;
-            return this._buffer.toString(encoding, start, end);
+            return this._decodeString(this._buffer, start, end);
         }
     }
 
