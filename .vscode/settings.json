@@ -1,0 +1,9 @@
+{
+    "karmaTestExplorer.testFiles": ["test/lib/**/*.test.ts"],
+    "karmaTestExplorer.karmaConfFilePath": "./test/karma.lib.conf.js",
+    "mochaExplorer.files": ["test/lib/**/*.test.ts", "test/net/**/*.test.ts", "test/perf/**/*.test.ts"],
+    "mochaExplorer.require": "ts-node/register",
+    "mochaExplorer.timeout": 9999999,
+    "mochaExplorer.exit": true,
+    "testExplorer.codeLens": true
+}

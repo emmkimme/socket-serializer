@@ -208,32 +208,17 @@ export class IpcPacketWriter extends IpcPacketJSON {
     // We do not use writeFixedSize
     // In order to prevent a potential costly copy of the buffer, we write it directly in the writer.
     protected _writeString(bufferWriter: Writer, data: string, cb: IpcPacketWriter.Callback) {
-        // Encoding will be managed later, force 'utf8'
-        // case 'hex':
-        // case 'utf8':
-        // case 'utf-8':
-        // case 'ascii':
-        // case 'latin1':
-        // case 'binary':
-        // case 'base64':
-        // case 'ucs2':
-        // case 'ucs-2':
-        // case 'utf16le':
-        // case 'utf-16le':
-        // const contentWriter = new BufferListWriter();
-        // contentWriter.writeString(data, 'utf8');
-        // this._writeDynamicContent(bufferWriter, IpcPacketType.String, contentWriter, cb);
-        const buffer = Buffer.from(data, 'utf8');
+        const buffer = bufferWriter.encodeString(data);
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.String, buffer, cb);
     }
 
     // Default methods for these kind of data
     protected _writeObject(bufferWriter: Writer, dataObject: any, cb: IpcPacketWriter.Callback): void {
-        const stringifycation = this._json.stringify(dataObject);
+        const stringify = this._json.stringify(dataObject);
         // const contentWriter = new BufferListWriter();
         // contentWriter.writeString(stringifycation, 'utf8');
         // this._writeDynamicContent(bufferWriter, IpcPacketType.ObjectSTRINGIFY, contentWriter, cb);
-        const buffer = Buffer.from(stringifycation, 'utf8');
+        const buffer = bufferWriter.encodeString(stringify);
         this._writeDynamicBuffer(bufferWriter, IpcPacketType.ObjectSTRINGIFY, buffer, cb);
     }
 

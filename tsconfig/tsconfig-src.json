@@ -1,0 +1,11 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "outDir" : "../lib"
+    },
+	"files": [
+		"../src/socket-serializer.ts",
+		"../src/socket-serializer-browser.ts"
+	]
+}

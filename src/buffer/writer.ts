@@ -13,7 +13,8 @@ export interface Writer {
     writeUInt16(data: number): number;
     writeUInt32(data: number): number;
     writeDouble(data: number): number;
-    writeString(data: string, encoding?: BufferEncoding, len?: number): number;
+    writeString(data: string, len?: number): number;
+    encodeString(data: string): Buffer;
     writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
     writeBuffers(data: Buffer[]): number;
     writeArrayBuffer(data: ArrayBuffer): number;
@@ -26,11 +27,17 @@ export interface Writer {
 // Implement common methods
 export abstract class WriterBase implements Writer {
     protected static EmptyBuffer = Buffer.allocUnsafe(0);
+    readonly encodeString: (data: string) => Buffer;
 
     protected _noAssert: boolean;
 
     constructor() {
         this._noAssert = true;
+        if(typeof TextEncoder === 'undefined') {
+            this.encodeString = this._encodeStringSlow;
+        } else {
+            this.encodeString = this._encodeStringFast.bind(this, new TextEncoder());
+        }
     }
 
     abstract get buffer(): Buffer;
@@ -52,7 +59,7 @@ export abstract class WriterBase implements Writer {
     abstract writeUInt16(data: number): number;
     abstract writeUInt32(data: number): number;
     abstract writeDouble(data: number): number;
-    abstract writeString(data: string, encoding?: BufferEncoding, len?: number): number;
+    abstract writeString(data: string, len?: number): number;
     abstract writeBuffer(data: Buffer, sourceStart?: number, sourceEnd?: number): number;
     abstract writeBuffers(data: Buffer[], totalLength?: number): number;
     abstract writeArrayBuffer(data: ArrayBuffer): number;
@@ -60,4 +67,12 @@ export abstract class WriterBase implements Writer {
 
     abstract pushContext(): void;
     abstract popContext(): void;
+
+    private _encodeStringFast(encoder: TextEncoder, data: string): Buffer {
+        return Buffer.from(encoder.encode(data));
+    }
+    
+    private _encodeStringSlow(data: string): Buffer {
+        return Buffer.from(data);
+    }
 }

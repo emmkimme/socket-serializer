@@ -64,8 +64,8 @@ export class BufferWriter extends WriterBase {
         return this._offset;
     }
 
-    writeString(data: string, encoding?: BufferEncoding, len?: number): number {
-        this._offset += this._buffer.write(data, this._offset, len, encoding);
+    writeString(data: string, len?: number): number {
+        this._offset += this._buffer.write(data, this._offset, len);
         return this._offset;
     }
 

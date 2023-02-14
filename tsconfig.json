@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+		"module": "commonjs",
+        "target": "es6",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "strict": true,
+        "strictNullChecks": false,
+        "noUnusedLocals" : true,
+        "noUnusedParameters" : false,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch" : true,
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitAny": true,
+        "experimentalDecorators": true,
+        "preserveSymlinks": true,
+        "stripInternal": true,
+        "removeComments": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+    }
+}

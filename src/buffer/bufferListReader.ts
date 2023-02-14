@@ -207,7 +207,7 @@ export class BufferListReader extends ReaderBase {
         return this._readNumber(Buffer.prototype.readDoubleLE, 8);
     }
 
-    readString(encoding?: BufferEncoding, len?: number): string {
+    readString(_encoding?: BufferEncoding, len?: number): string {
         const end = Reader.AdjustEnd(this._offset, this._length, len);
         if (this._offset === end) {
             return '';
@@ -216,7 +216,7 @@ export class BufferListReader extends ReaderBase {
             const start = this._curBufferOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
-            return currBuffer.toString(encoding, start, start + len);
+            return this._decodeString(currBuffer, start, end);
         }
     }
 

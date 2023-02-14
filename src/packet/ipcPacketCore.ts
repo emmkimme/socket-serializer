@@ -20,10 +20,10 @@ export class IpcPacketCore extends IpcPacketHeader {
         this._writer.JSON = json;
     }
 
-    constructor(rawHeader?: IpcPacketHeader.RawData) {
+    constructor(rawHeader?: IpcPacketHeader.RawData, reader?: IpcPacketReader, writer?: IpcPacketWriter) {
         super(rawHeader);
-        this._reader = new IpcPacketReader();
-        this._writer = new IpcPacketWriter();
+        this._reader = reader ?? new IpcPacketReader();
+        this._writer = writer ?? new IpcPacketWriter();
     }
 
     read(bufferReader: Reader): any | undefined {

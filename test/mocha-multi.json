@@ -1,0 +1,7 @@
+{
+    "reporterEnabled": "spec, kelonio/out/plugin/mochaReporter",
+    "kelonioOutPluginMochaReporterReporterOptions": {
+        "inferDescriptions": false,
+        "printReportAtEnd": true
+    }
+}

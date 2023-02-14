@@ -54,11 +54,11 @@ export abstract class BufferListWriterBase extends WriterBase {
         return this._writeNumber(Buffer.prototype.writeDoubleLE, data, 8);
     }
 
-    writeString(data: string, encoding?: BufferEncoding, len?: number): number {
+    writeString(data: string, len?: number): number {
         if (len != null) {
             data = data.substring(0, len);
         }
-        const buffer = Buffer.from(data, encoding);
+        const buffer = this.encodeString(data);
         return this._appendBuffer(buffer, buffer.length);
     }
 
