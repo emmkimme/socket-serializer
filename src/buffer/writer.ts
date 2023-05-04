@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import { encodeText } from '../utils/text';
 
 export interface Writer {
     readonly buffer: Buffer;
@@ -27,17 +28,11 @@ export interface Writer {
 // Implement common methods
 export abstract class WriterBase implements Writer {
     protected static EmptyBuffer = Buffer.allocUnsafe(0);
-    readonly encodeString: (data: string) => Buffer;
 
     protected _noAssert: boolean;
 
     constructor() {
         this._noAssert = true;
-        if(typeof TextEncoder === 'undefined') {
-            this.encodeString = this._encodeStringSlow;
-        } else {
-            this.encodeString = this._encodeStringFast.bind(this, new TextEncoder());
-        }
     }
 
     abstract get buffer(): Buffer;
@@ -68,11 +63,7 @@ export abstract class WriterBase implements Writer {
     abstract pushContext(): void;
     abstract popContext(): void;
 
-    private _encodeStringFast(encoder: TextEncoder, data: string): Buffer {
-        return Buffer.from(encoder.encode(data));
-    }
-    
-    private _encodeStringSlow(data: string): Buffer {
-        return Buffer.from(data);
+    encodeString(data: string): Buffer {
+        return encodeText(data);
     }
 }

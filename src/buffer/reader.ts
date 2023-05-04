@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import { decodeText } from '../utils/text';
 
 export namespace Reader {
     export function AdjustEnd(offset: number, maxLen: number, len?: number): number {
@@ -60,7 +61,6 @@ export interface Reader {
 // Implement common methods
 export abstract class ReaderBase implements Reader {
     protected static EmptyBuffer = Buffer.allocUnsafe(0);
-    protected readonly _decodeString: (buffer: Buffer, start: number, end: number) => string;
 
     protected _noAssert: boolean;
     protected _offset: number;
@@ -68,11 +68,6 @@ export abstract class ReaderBase implements Reader {
     constructor(offset?: number) {
         this._offset = offset || 0;
         this._noAssert = true;
-        if (typeof TextDecoder === 'undefined') {
-            this._decodeString = this._decodeStringSlow;
-        } else {
-            this._decodeString = this._decodeBufferFast.bind(this, new TextDecoder());
-        }
     }
 
     abstract get length(): number;
@@ -134,13 +129,8 @@ export abstract class ReaderBase implements Reader {
     subarrayList(len?: number): Buffer[] {
         return this.readBufferList(len);
     }
-    
-    protected _decodeBufferFast(decoder: TextDecoder, buffer: Buffer, start: number, end: number): string {
-        const bufferToDecode = buffer.subarray(start, end);
-        return decoder.decode(bufferToDecode);
-    }
-    
-    protected _decodeStringSlow(buffer: Buffer, start: number, end: number): string {
-        return buffer.toString('utf-8', start, end);
+
+    decodeString(buffer: Buffer, start: number, end: number): string {
+        return decodeText(buffer, start, end);
     }
 }

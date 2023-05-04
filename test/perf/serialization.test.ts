@@ -4,6 +4,42 @@ import { expect } from 'chai';
 import { Buffer } from 'buffer';
 import { IpcPacketBuffer } from '../../src/packet/ipcPacketBuffer';
 import { benchmark } from '../utils/benchmark';
+import { JSONParserV1 } from 'json-helpers';
+
+
+describe('1-big-json', () => {
+    const bigString = JSON.stringify(bigJSON);
+
+    it('should parse JSON', () => {
+        benchmark.record('BIG JSON PARSE', () => {
+            eval(bigString);
+        }, { iterations: 100 });
+    });
+
+    it('should parse JSON', () => {
+        benchmark.record('BIG JSON PARSE', () => {
+            JSON.parse(bigString);
+        }, { iterations: 100 });
+    });
+    
+    it('should parse JSONParserV1', () => {
+        benchmark.record('BIG JSONParseV1 PARSE', () => {
+            JSONParserV1.parse(bigString);
+        }, { iterations: 100 });
+    });
+
+    it('should stringify JSON', () => {
+        benchmark.record('BIG JSON STRINGIFY', () => {
+            JSON.stringify(bigJSON);
+        }, { iterations: 100 });
+    });
+
+    it('should stringify JSONParserV1', () => {
+        benchmark.record('BIG JSONParseV1 STRINGIFY', () => {
+            JSONParserV1.stringify(bigJSON);
+        }, { iterations: 100 });
+    });
+});
 
 function TestPerformance(myValue: unknown, nameTypeOf: string, numberOfCycles = 1000): void {
     it(`1 - static ${nameTypeOf} serial`, function() {
