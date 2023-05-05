@@ -216,7 +216,7 @@ export class BufferListReader extends ReaderBase {
             const start = this._curBufferOffset;
             len = end - this._offset;
             const currBuffer = this._consolidate(len);
-            return this.decodeString(currBuffer, start, end);
+            return this.decodeString(currBuffer, start, start + len);
         }
     }
 
